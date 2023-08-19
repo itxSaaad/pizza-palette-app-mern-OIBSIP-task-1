@@ -10,7 +10,7 @@
     <strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://pizza-delivery-system-app-mern-OIBSIP.vercel.app/">View Demo</a>
+    <a href="https://pizza-delivery-system-app-mern-oibsip.vercel.app/">View Demo</a>
     ·
     <a href="https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP/issues">Report Bug</a>
     ·
@@ -26,7 +26,7 @@
 
 ## Live Preview Project
 
-[Live Preview](https://pizza-delivery-system-app-mern-OIBSIP.vercel.app/)
+[Live Preview](https://pizza-delivery-system-app-mern-oibsip.vercel.app/)
 
 ## Features
 
