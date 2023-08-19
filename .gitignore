@@ -1,0 +1,48 @@
+# Node.js / NPM
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+build/
+dist/
+out/
+*.log
+
+# Environment variables and configurations
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Editor/IDE specific files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Dependency lock files
+yarn.lock
+package-lock.json
+
+
+# Compiled binary files
+*.bin
+
+# macOS specific files
+.DS_Store
+
+# JetBrains IDEs
+.idea/
+
+# Testing files
+coverage/
+.nyc_output/
+
+# User-specific files
+*.iml
+.idea/
+*.DS_Store

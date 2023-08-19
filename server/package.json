@@ -1,0 +1,30 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Backend for Pizza Delivery System.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP.git"
+  },
+  "author": "Muhammad Saad",
+  "license": "CC0-1.0",
+  "bugs": {
+    "url": "https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP/issues"
+  },
+  "homepage": "https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP#readme",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.1",
+    "mongoose": "^7.4.3",
+    "morgan": "^1.10.0"
+  }
+}
