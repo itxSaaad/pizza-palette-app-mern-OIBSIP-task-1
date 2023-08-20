@@ -12,6 +12,7 @@ const { notFound, errorHandler } = require('./middlewares/errorMiddlewares');
 
 // Import Routes
 const userRoutes = require('./routes/userRoutes');
+const adminUserRoutes = require('./routes/adminUserRoutes');
 
 // Configure DotEnv
 dotenv.config();
@@ -47,6 +48,7 @@ app.get('/', (req, res) => {
 
 // Configure API routes
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminUserRoutes);
 
 // Error Middleware
 app.use(notFound);

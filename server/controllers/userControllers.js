@@ -6,22 +6,11 @@ const nodemailer = require('nodemailer');
 // Import Utils
 const generateToken = require('../utils/generateToken');
 
+// Import Middlewares
+const sendEmail = require('../middlewares/nodemailerMiddleware');
+
 // Import Schema
 const User = require('../schemas/userSchema');
-const { reset } = require('nodemon');
-
-// NodeMailer Transporter
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // Use TLS
-  requireTLS: true,
-  auth: {
-    // Enter your email address and password here
-    user: process.env.NODEMAILER_EMAIL,
-    pass: process.env.NODEMAILER_PASSWORD,
-  },
-});
 
 // Function to generate a random 6-digit confirmation code
 const generateConfirmationCode = () => {
@@ -44,7 +33,7 @@ const authUser = asyncHandler(async (req, res) => {
     if (emailValidator.validate(email)) {
       let user = await User.findOne({ email: email });
 
-      if (user != null) {
+      if (user) {
         const passwordsMatch = await bcrypt.compare(password, user.password);
 
         if (user.email === email && passwordsMatch) {
@@ -117,14 +106,14 @@ const registerUser = asyncHandler(async (req, res) => {
             user.verificationToken = confirmationCode;
 
             // Send the verification email
-            const mailOptions = {
-              from: process.env.NODEMAILER_EMAIL,
-              to: user.email,
-              subject: 'Please Confirm your Account!',
-              text: `Please use the following code within the next 10 minutes to confirm your account: ${confirmationCode}`,
-            };
-
-            const emailSent = await transporter.sendMail(mailOptions);
+            const emailSent = await sendEmail(
+              (mailOptions = {
+                from: process.env.NODEMAILER_EMAIL,
+                to: user.email,
+                subject: 'Please Confirm your Account!',
+                text: `Hey ${user.name},\n\nAccount Successfully Created!\n\nPlease use the following code within the next 10 minutes to activate your account: ${confirmationCode}\n\nThanks,\nTeam Pizza Delivery.\n\nP.S. If you did not create an account, please ignore this email. `,
+              })
+            );
 
             if (emailSent) {
               await user.save();
@@ -226,14 +215,14 @@ const forgotPassword = asyncHandler(async (req, res) => {
         user.resetPasswordExpire = Date.now() + 600000; // 10 minutes
 
         // Send the reset email
-        const mailOptions = {
-          from: process.env.NODEMAILER_EMAIL,
-          to: user.email,
-          subject: 'Password Reset Request',
-          text: `Please use the following code within the next 10 minutes to reset your password: ${resetToken}`,
-        };
-
-        const emailSent = await transporter.sendMail(mailOptions);
+        const emailSent = await sendEmail(
+          (mailOptions = {
+            from: process.env.NODEMAILER_EMAIL,
+            to: user.email,
+            subject: 'Password Reset Request',
+            text: `Please use the following code within the next 10 minutes to reset your password: ${resetToken}`,
+          })
+        );
 
         if (emailSent) {
           const resetUserPwd = await user.save();

@@ -77,10 +77,11 @@ PORT = 5000
 MONGO_URI = <your_mongodb_uri>
 JWT_SECRET = <your_jwt_secret>
 SALT = <your_salt>
-SERVER_URL = <your_server_url>
-CLIENT_URL = <your_client_url>
+VITE_SERVER_URL = <your_server_url>
+VITE_CLIENT_URL = <your_client_url>
 NODEMAILER_EMAIL = <your_nodemailer_email>
 NODEMAILER_PASSWORD = <your_nodemailer_password>
+NODEMAILER_SUPERADMIN_EMAIL = <your_nodemailer_superadmin_email>
 ```
 
 4.Create a `.env` file in the client directory and add the following
