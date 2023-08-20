@@ -15,6 +15,10 @@ const {
   resetPassword,
   getUserProfile,
   updateUserProfile,
+  getAllUsers,
+  deleteUser,
+  getUserById,
+  updateUserById,
 } = require('../controllers/userControllers');
 
 // Initialize Routes
@@ -34,6 +38,13 @@ router
   .put(protect, updateUserProfile);
 
 // Admin + Private Routes
+
+router.get('/', protect, admin, getAllUsers);
+router.delete('/:id', protect, admin, deleteUser);
+router
+  .route('profile/:id')
+  .get(protect, admin, getUserById)
+  .put(protect, admin, updateUserById);
 
 // Export Router
 module.exports = router;

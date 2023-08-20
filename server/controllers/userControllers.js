@@ -430,6 +430,90 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get all Users
+// @route   GET /api/users
+// @access  Private/Admin
+
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find({});
+
+  if (users) {
+    res.json(users);
+  } else {
+    res.status(404);
+    throw new Error('Users Not Found!');
+  }
+});
+
+// @desc    Delete a User
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+
+  if (user) {
+    res.json({ message: 'User Removed Successfully!' });
+  } else {
+    res.status(404);
+    throw new Error('User Not Found!');
+  }
+});
+
+// @desc    Get User by ID
+// @route   GET /api/users/profile/:id
+// @access  Private/Admin
+
+const getUserById = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404);
+    throw new Error('User Not Found!');
+  }
+});
+
+// @desc    Update User By ID
+// @route   PUT /api/users/profile/:id
+// @access  Private/Admin
+
+const updateUserById = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (user) {
+    let { name, email, phoneNumber, address } = req.body;
+
+    if (emailValidator.validate(email)) {
+      user.name = name || user.name;
+      user.email = email || user.email;
+      user.phoneNumber = phoneNumber || user.phoneNumber;
+      user.address = address || user.address;
+
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phoneNumber: updatedUser.phoneNumber,
+        address: updatedUser.address,
+        orders: updatedUser.orders,
+        isVerified: updatedUser.isVerified,
+        token: generateToken(updatedUser._id),
+        message: 'User Updated Successfully!',
+      });
+    } else {
+      res.status(400);
+      throw new Error('Invalid Email Address!');
+    }
+  } else {
+    res.status(404);
+    throw new Error('User Not Found!');
+  }
+});
+
 // Export Controllers
 
 module.exports = {
@@ -440,4 +524,8 @@ module.exports = {
   resetPassword,
   getUserProfile,
   updateUserProfile,
+  getAllUsers,
+  deleteUser,
+  getUserById,
+  updateUserById,
 };
