@@ -9,10 +9,12 @@ const { protect, admin } = require('../middlewares/authMiddlewares');
 // Import Controllers
 const {
   authUser,
-  forgotPassword,
   registerUser,
-  resetPassword,
   verifyUser,
+  forgotPassword,
+  resetPassword,
+  getUserProfile,
+  updateUserProfile,
 } = require('../controllers/userControllers');
 
 // Initialize Routes
@@ -26,6 +28,10 @@ router.put('/resetpassword', resetPassword);
 // Private Routes
 
 router.get('/verify', protect, verifyUser);
+router
+  .route('/profile')
+  .get(protect, getUserProfile)
+  .put(protect, updateUserProfile);
 
 // Admin + Private Routes
 

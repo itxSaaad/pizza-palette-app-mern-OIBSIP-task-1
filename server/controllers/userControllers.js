@@ -236,18 +236,24 @@ const forgotPassword = asyncHandler(async (req, res) => {
         const emailSent = await transporter.sendMail(mailOptions);
 
         if (emailSent) {
-          await user.save();
-          res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-            address: user.address,
-            orders: user.orders,
-            isVerified: user.isVerified,
-            token: generateToken(user._id),
-            message: 'Password Reset Email Sent Successfully!',
-          });
+          const resetUserPwd = await user.save();
+
+          if (resetUserPwd) {
+            res.status(201).json({
+              _id: resetUserPwd._id,
+              name: resetUserPwd.name,
+              email: resetUserPwd.email,
+              phoneNumber: resetUserPwd.phoneNumber,
+              address: resetUserPwd.address,
+              orders: resetUserPwd.orders,
+              isVerified: resetUserPwd.isVerified,
+              token: generateToken(resetUserPwd._id),
+              message: 'Password Reset Email Sent Successfully!',
+            });
+          } else {
+            res.status(400);
+            throw new Error('Error Updating User!');
+          }
         } else {
           res.status(400);
           throw new Error('Error Sending Password Reset Email!');
@@ -333,10 +339,105 @@ const resetPassword = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get user profile
+// @route   GET /api/users/profile
+// @access  Private
+
+const getUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      address: user.address,
+      orders: user.orders,
+      isVerified: user.isVerified,
+      message: 'User Profile Fetched Successfully!',
+    });
+  } else {
+    res.status(404);
+    throw new Error('User Not Found!');
+  }
+});
+
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private
+
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    let { name, email, phoneNumber, address, password, confirmPassword } =
+      req.body;
+
+    if (emailValidator.validate(email)) {
+      let match = false;
+
+      if (password !== '') {
+        match = await bcrypt.compare(password, user.password);
+      }
+
+      if (user.email === email && match) {
+        res.status(400);
+        throw new Error('You Have Not Made Any Changes!');
+      } else {
+        if (password !== '' && password !== confirmPassword) {
+          res.status(400);
+          throw new Error('Passwords Do Not Match!');
+        } else {
+          if (password.length < 8) {
+            res.status(400);
+            throw new Error('Password Must Be At Least 8 Characters Long!');
+          } else {
+            if (password !== '') {
+              const salt = await bcrypt.genSalt(Number(process.env.SALT));
+              const hashedPassword = await bcrypt.hash(password, salt);
+              user.password = hashedPassword;
+            }
+
+            user.name = name || user.name;
+            user.email = email || user.email;
+            user.phoneNumber = phoneNumber || user.phoneNumber;
+            user.address = address || user.address;
+
+            const updatedUser = await user.save();
+
+            res.json({
+              _id: updatedUser._id,
+              name: updatedUser.name,
+              email: updatedUser.email,
+              phoneNumber: updatedUser.phoneNumber,
+              address: updatedUser.address,
+              orders: updatedUser.orders,
+              isVerified: updatedUser.isVerified,
+              token: generateToken(updatedUser._id),
+              message: 'User Profile Updated Successfully!',
+            });
+          }
+        }
+      }
+    } else {
+      res.status(400);
+      throw new Error('Invalid Email Address!');
+    }
+  } else {
+    res.status(404);
+    throw new Error('User Not Found!');
+  }
+});
+
+// Export Controllers
+
 module.exports = {
   authUser,
   registerUser,
   verifyUser,
   forgotPassword,
   resetPassword,
+  getUserProfile,
+  updateUserProfile,
 };
