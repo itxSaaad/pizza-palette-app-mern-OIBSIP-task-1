@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
 
 const User = require('../schemas/userSchema');
+const Admin = require('../schemas/adminUserSchema');
 
 // Middleware to protect routes - checks for a valid JWT token in the request header
 const protect = asyncHandler(async (req, res, next) => {
@@ -19,8 +20,14 @@ const protect = asyncHandler(async (req, res, next) => {
       // Verify the token using JWT
       const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`);
 
-      // Find user in the database using the decoded user ID from the token
-      req.user = await User.findById(decoded.id).select('-password');
+      // Check if the token belongs to a user or an admin
+      if (decoded.userType === 'user') {
+        // Find user in the database using the decoded user ID from the token
+        req.user = await User.findById(decoded.id).select('-password');
+      } else if (decoded.userType === 'admin') {
+        // Find admin in the database using the decoded admin ID from the token
+        req.admin = await Admin.findById(decoded.id).select('-password');
+      }
 
       // Continue to the next middleware
       next();
@@ -41,7 +48,7 @@ const protect = asyncHandler(async (req, res, next) => {
 // Middleware to check if the user is an admin
 const admin = asyncHandler(async (req, res, next) => {
   // Check if the user is authenticated and has admin privileges
-  if (req.user && req.user.isAdmin) {
+  if (req.admin) {
     // User is an admin, continue to the next middleware
     next();
   } else {
