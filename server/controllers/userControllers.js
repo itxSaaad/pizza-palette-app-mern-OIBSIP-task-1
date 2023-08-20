@@ -37,7 +37,7 @@ const authUser = asyncHandler(async (req, res) => {
         const passwordsMatch = await bcrypt.compare(password, user.password);
 
         if (user.email === email && passwordsMatch) {
-          res.json({
+          res.status(200).json({
             _id: user._id,
             name: user.name,
             email: user.email,
@@ -117,7 +117,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
             if (emailSent) {
               await user.save();
-              res.status(201).json({
+              res.status(200).json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
@@ -164,7 +164,7 @@ const verifyUser = asyncHandler(async (req, res) => {
           const verifiedUser = await user.save();
 
           if (verifiedUser) {
-            res.status(201).json({
+            res.status(200).json({
               _id: verifiedUser._id,
               name: verifiedUser.name,
               email: verifiedUser.email,
@@ -228,7 +228,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
           const resetUserPwd = await user.save();
 
           if (resetUserPwd) {
-            res.status(201).json({
+            res.status(200).json({
               _id: resetUserPwd._id,
               name: resetUserPwd.name,
               email: resetUserPwd.email,
@@ -296,7 +296,7 @@ const resetPassword = asyncHandler(async (req, res) => {
               const updatedUser = await user.save();
 
               if (updatedUser) {
-                res.status(201).json({
+                res.status(200).json({
                   _id: updatedUser._id,
                   name: updatedUser.name,
                   email: updatedUser.email,
@@ -395,23 +395,28 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
             const updatedUser = await user.save();
 
-            res.json({
-              _id: updatedUser._id,
-              name: updatedUser.name,
-              email: updatedUser.email,
-              phoneNumber: updatedUser.phoneNumber,
-              address: updatedUser.address,
-              orders: updatedUser.orders,
-              isVerified: updatedUser.isVerified,
-              token: generateToken(updatedUser._id),
-              message: 'User Profile Updated Successfully!',
-            });
+            if (updatedUser) {
+              res.status(200).json({
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                phoneNumber: updatedUser.phoneNumber,
+                address: updatedUser.address,
+                orders: updatedUser.orders,
+                isVerified: updatedUser.isVerified,
+                token: generateToken(updatedUser._id),
+                message: 'User Profile Updated Successfully!',
+              });
+            } else {
+              res.status(400);
+              throw new Error('Error Updating User Profile!');
+            }
           }
         }
       }
     } else {
       res.status(400);
-      throw new Error('Invalid Email Address!');
+      throw new Error('Invalid Email or Password!');
     }
   } else {
     res.status(404);
@@ -427,37 +432,22 @@ const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find({});
 
   if (users) {
-    res.json(users);
+    res.status(200).json(users);
   } else {
     res.status(404);
     throw new Error('Users Not Found!');
   }
 });
 
-// @desc    Delete a User
-// @route   DELETE /api/users/:id
-// @access  Private/Admin
-
-const deleteUser = asyncHandler(async (req, res) => {
-  const user = await User.findByIdAndDelete(req.params.id);
-
-  if (user) {
-    res.json({ message: 'User Removed Successfully!' });
-  } else {
-    res.status(404);
-    throw new Error('User Not Found!');
-  }
-});
-
 // @desc    Get User by ID
-// @route   GET /api/users/profile/:id
+// @route   GET /api/users/:id
 // @access  Private/Admin
 
 const getUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
   if (user) {
-    res.json(user);
+    res.status(200).json(user);
   } else {
     res.status(404);
     throw new Error('User Not Found!');
@@ -465,7 +455,7 @@ const getUserById = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update User By ID
-// @route   PUT /api/users/profile/:id
+// @route   PUT /api/users/:id
 // @access  Private/Admin
 
 const updateUserById = asyncHandler(async (req, res) => {
@@ -482,21 +472,41 @@ const updateUserById = asyncHandler(async (req, res) => {
 
       const updatedUser = await user.save();
 
-      res.json({
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        phoneNumber: updatedUser.phoneNumber,
-        address: updatedUser.address,
-        orders: updatedUser.orders,
-        isVerified: updatedUser.isVerified,
-        token: generateToken(updatedUser._id),
-        message: 'User Updated Successfully!',
-      });
+      if (updatedUser) {
+        res.status(200).json({
+          _id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          phoneNumber: updatedUser.phoneNumber,
+          address: updatedUser.address,
+          orders: updatedUser.orders,
+          isVerified: updatedUser.isVerified,
+          token: generateToken(updatedUser._id),
+          message: 'User Updated Successfully!',
+        });
+      } else {
+        res.status(400);
+        throw new Error('Error Updating User!');
+      }
     } else {
       res.status(400);
       throw new Error('Invalid Email Address!');
     }
+  } else {
+    res.status(404);
+    throw new Error('User Not Found!');
+  }
+});
+
+// @desc    Delete a User By Id
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+
+const deleteUserById = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+
+  if (user) {
+    res.status(200).json({ message: 'User Removed Successfully!' });
   } else {
     res.status(404);
     throw new Error('User Not Found!');
@@ -514,7 +524,7 @@ module.exports = {
   getUserProfile,
   updateUserProfile,
   getAllUsers,
-  deleteUser,
   getUserById,
   updateUserById,
+  deleteUserById,
 };

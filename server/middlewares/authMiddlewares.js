@@ -48,7 +48,7 @@ const protect = asyncHandler(async (req, res, next) => {
 // Middleware to check if the user is an admin
 const admin = asyncHandler(async (req, res, next) => {
   // Check if the user is authenticated and has admin privileges
-  if (req.admin) {
+  if (req.admin && req.admin.role === 'admin') {
     // User is an admin, continue to the next middleware
     next();
   } else {
