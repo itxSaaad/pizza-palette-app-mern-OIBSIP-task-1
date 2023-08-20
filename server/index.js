@@ -4,12 +4,14 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const express = require('express');
 const morgan = require('morgan');
+const bodyParser = require('body-parser');
 
 // Import Configs and Middlewares
 const connectDb = require('./config/db');
 const { notFound, errorHandler } = require('./middlewares/errorMiddlewares');
 
 // Import Routes
+const userRoutes = require('./routes/userRoutes');
 
 // Configure DotEnv
 dotenv.config();
@@ -32,6 +34,10 @@ app.use(cors());
 // Parse incoming JSON data
 app.use(express.json());
 
+// Parse incoming form data
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
 // Basic route for the root URL
 app.get('/', (req, res) => {
   res.send(
@@ -40,6 +46,7 @@ app.get('/', (req, res) => {
 });
 
 // Configure API routes
+app.use('/api/users', userRoutes);
 
 // Error Middleware
 app.use(notFound);
