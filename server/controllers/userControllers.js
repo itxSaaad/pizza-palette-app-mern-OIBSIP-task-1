@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const emailValidator = require('email-validator');
 const asyncHandler = require('express-async-handler');
-const nodemailer = require('nodemailer');
 
 // Import Utils
 const generateToken = require('../utils/generateToken');
@@ -514,7 +513,6 @@ const deleteUserById = asyncHandler(async (req, res) => {
 });
 
 // Export Controllers
-
 module.exports = {
   authUser,
   registerUser,

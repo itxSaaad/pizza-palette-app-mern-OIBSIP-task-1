@@ -30,7 +30,6 @@ router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword', resetPassword);
 
 // Private Routes
-
 router.get('/verify', protect, verifyUser);
 router
   .route('/profile')
@@ -38,7 +37,6 @@ router
   .put(protect, updateUserProfile);
 
 // Admin + Private Routes
-
 router.get('/', protect, admin, getAllUsers);
 router
   .route('/:id')

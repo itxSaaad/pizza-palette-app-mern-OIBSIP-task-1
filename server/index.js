@@ -11,8 +11,10 @@ const connectDb = require('./config/db');
 const { notFound, errorHandler } = require('./middlewares/errorMiddlewares');
 
 // Import Routes
-const userRoutes = require('./routes/userRoutes');
 const adminUserRoutes = require('./routes/adminUserRoutes');
+const userRoutes = require('./routes/userRoutes');
+const pizzaRoutes = require('./routes/pizzaRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 // Configure DotEnv
 dotenv.config();
@@ -47,8 +49,10 @@ app.get('/', (req, res) => {
 });
 
 // Configure API routes
-app.use('/api/users', userRoutes);
 app.use('/api/admin', adminUserRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/pizzas', pizzaRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Error Middleware
 app.use(notFound);
