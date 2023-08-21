@@ -10,12 +10,43 @@ const pizzaSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    base: { type: String, required: true },
-    sauces: [{ type: String }],
-    cheeses: [{ type: String }],
-    veggies: [{ type: String }],
-    price: { type: Number, required: true },
-    imageUrl: { type: String },
+    base: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Inventory',
+      },
+    ],
+    sauces: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Inventory',
+      },
+    ],
+    cheeses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Inventory',
+      },
+    ],
+    veggies: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Inventory',
+      },
+    ],
+    price: {
+      type: Number,
+      required: true,
+    },
+    size: {
+      type: String,
+      enum: ['small', 'medium', 'large', 'extra-large'],
+      required: true,
+    },
+    imageUrl: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
