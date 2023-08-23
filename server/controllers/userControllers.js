@@ -12,7 +12,7 @@ const sendEmail = require('../middlewares/nodemailerMiddleware');
 const User = require('../schemas/userSchema');
 
 // Function to generate a random 6-digit confirmation code
-const generateConfirmationCode = () => {
+const generateverificationCode = () => {
   return Math.floor(100000 + Math.random() * 900000);
 };
 
@@ -101,8 +101,8 @@ const registerUser = asyncHandler(async (req, res) => {
             });
 
             // Generate a verification token
-            const confirmationCode = generateConfirmationCode();
-            user.verificationToken = confirmationCode;
+            const verificationCode = generateverificationCode();
+            user.verificationToken = verificationCode;
 
             // Send the verification email
             const emailSent = await sendEmail(
@@ -110,7 +110,7 @@ const registerUser = asyncHandler(async (req, res) => {
                 from: process.env.NODEMAILER_EMAIL,
                 to: user.email,
                 subject: 'Please Confirm your Account!',
-                text: `Hey ${user.name},\n\nAccount Successfully Created!\n\nPlease use the following code within the next 10 minutes to activate your account: ${confirmationCode}\n\nThanks,\nTeam Pizza Delivery.\n\nP.S. If you did not create an account, please ignore this email. `,
+                text: `Hey ${user.name},\n\nAccount Successfully Created!\n\nPlease use the following code within the next 10 minutes to activate your account: ${verificationCode}\n\nThanks,\nTeam Pizza Delivery.\n\nP.S. If you did not create an account, please ignore this email. `,
               })
             );
 
@@ -146,19 +146,19 @@ const registerUser = asyncHandler(async (req, res) => {
 // @access  Public
 
 const verifyUser = asyncHandler(async (req, res) => {
-  const { email, confirmationCode } = req.body;
+  const { email, verificationCode } = req.body;
 
-  if (!email || !confirmationCode) {
+  if (!email || !verificationCode) {
     res.status(400);
     throw new Error('All Fields Are Required!');
   } else {
     if (emailValidator.validate(email)) {
-      const user = await User.findOne({ email, confirmationCode });
+      const user = await User.findOne({ email, _id: req.user._id });
 
       if (user) {
-        if (user.confirmationCode === confirmationCode) {
+        if (user.verificationCode === verificationCode) {
           user.isVerified = true;
-          user.confirmationCode = '';
+          user.verificationCode = '';
 
           const verifiedUser = await user.save();
 
@@ -209,7 +209,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
       if (user) {
         // Generate a reset token
-        const resetToken = generateConfirmationCode();
+        const resetToken = generateverificationCode();
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpire = Date.now() + 600000; // 10 minutes
 
@@ -271,50 +271,53 @@ const resetPassword = asyncHandler(async (req, res) => {
     if (emailValidator.validate(email)) {
       const user = await User.findOne({
         email,
-        resetPasswordToken: resetToken,
-        resetPasswordExpire: { $gt: Date.now() },
       });
 
       if (user) {
-        if (user.resetPasswordToken === resetToken) {
-          if (newPassword !== confirmNewPassword) {
-            res.status(400);
-            throw new Error('Passwords Do Not Match!');
-          } else {
-            if (newPassword.length < 8) {
+        if (user.resetPasswordExpire < Date.now()) {
+          if (user.resetPasswordToken === resetToken) {
+            if (newPassword !== confirmNewPassword) {
               res.status(400);
-              throw new Error('Password Must Be At Least 8 Characters Long!');
+              throw new Error('Passwords Do Not Match!');
             } else {
-              const salt = await bcrypt.genSalt(10);
-              hashedPassword = await bcrypt.hash(newPassword, salt);
-
-              user.password = hashedPassword;
-              user.resetPasswordToken = undefined;
-              user.resetPasswordExpire = undefined;
-
-              const updatedUser = await user.save();
-
-              if (updatedUser) {
-                res.status(200).json({
-                  _id: updatedUser._id,
-                  name: updatedUser.name,
-                  email: updatedUser.email,
-                  phoneNumber: updatedUser.phoneNumber,
-                  address: updatedUser.address,
-                  orders: updatedUser.orders,
-                  isVerified: updatedUser.isVerified,
-                  token: generateToken(updatedUser._id),
-                  message: 'Password Reset Successful!',
-                });
-              } else {
+              if (newPassword.length < 8) {
                 res.status(400);
-                throw new Error('Error Resetting Password!');
+                throw new Error('Password Must Be At Least 8 Characters Long!');
+              } else {
+                const salt = await bcrypt.genSalt(10);
+                hashedPassword = await bcrypt.hash(newPassword, salt);
+
+                user.password = hashedPassword;
+                user.resetPasswordToken = undefined;
+                user.resetPasswordExpire = undefined;
+
+                const updatedUser = await user.save();
+
+                if (updatedUser) {
+                  res.status(200).json({
+                    _id: updatedUser._id,
+                    name: updatedUser.name,
+                    email: updatedUser.email,
+                    phoneNumber: updatedUser.phoneNumber,
+                    address: updatedUser.address,
+                    orders: updatedUser.orders,
+                    isVerified: updatedUser.isVerified,
+                    token: generateToken(updatedUser._id),
+                    message: 'Password Reset Successful!',
+                  });
+                } else {
+                  res.status(400);
+                  throw new Error('Error Resetting Password!');
+                }
               }
             }
+          } else {
+            res.status(400);
+            throw new Error('Invalid Reset Token!');
           }
         } else {
           res.status(400);
-          throw new Error('Invalid Reset Token!');
+          throw new Error('Reset Token Expired!');
         }
       } else {
         res.status(404);

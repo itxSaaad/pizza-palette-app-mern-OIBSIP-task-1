@@ -15,6 +15,7 @@ const adminUserRoutes = require('./routes/adminUserRoutes');
 const userRoutes = require('./routes/userRoutes');
 const pizzaRoutes = require('./routes/pizzaRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const inventoryRoutes = require('./routes/inventoryRoutes');
 
 // Configure DotEnv
 dotenv.config();
@@ -53,6 +54,7 @@ app.use('/api/admin', adminUserRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/pizzas', pizzaRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 // Error Middleware
 app.use(notFound);

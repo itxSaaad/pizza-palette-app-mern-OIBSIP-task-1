@@ -74,41 +74,36 @@ const createPizza = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error('Price Must Be Greater Than 0!');
       } else {
-        if (!['small', 'medium', 'large', 'extra-large'].includes(size)) {
-          res.status(400);
-          throw new Error('Size Must Be Small, Medium, Large or Extra-Large!');
-        } else {
-          const pizza = new Pizza({
-            name,
-            description,
-            base,
-            sauces,
-            cheeses,
-            veggies,
-            price,
-            size,
-            imageUrl,
-          });
-          const createdPizza = await pizza.save();
+        const pizza = new Pizza({
+          name,
+          description,
+          base,
+          sauces,
+          cheeses,
+          veggies,
+          price,
+          size,
+          imageUrl,
+        });
+        const createdPizza = await pizza.save();
 
-          if (createdPizza) {
-            res.status(201).json({
-              _id: createdPizza._id,
-              name: createdPizza.name,
-              description: createdPizza.description,
-              base: createdPizza.base,
-              sauces: createdPizza.sauces,
-              cheeses: createdPizza.cheeses,
-              veggies: createdPizza.veggies,
-              price: createdPizza.price,
-              size: createdPizza.size,
-              imageUrl: createdPizza.imageUrl,
-              message: 'Pizza Created Successfully!',
-            });
-          } else {
-            res.status(500);
-            throw new Error('Internal Server Error!');
-          }
+        if (createdPizza) {
+          res.status(201).json({
+            _id: createdPizza._id,
+            name: createdPizza.name,
+            description: createdPizza.description,
+            base: createdPizza.base,
+            sauces: createdPizza.sauces,
+            cheeses: createdPizza.cheeses,
+            veggies: createdPizza.veggies,
+            price: createdPizza.price,
+            size: createdPizza.size,
+            imageUrl: createdPizza.imageUrl,
+            message: 'Pizza Created Successfully!',
+          });
+        } else {
+          res.status(500);
+          throw new Error('Internal Server Error!');
         }
       }
     }

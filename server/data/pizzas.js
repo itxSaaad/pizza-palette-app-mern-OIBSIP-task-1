@@ -7,6 +7,7 @@ const pizzas = [
     cheeses: ['Mozzarella'],
     veggies: ['Oregano'],
     price: 6.95,
+    size: 'small',
     imageUrl: '/images/margherita.jpg',
   },
   {
@@ -17,6 +18,7 @@ const pizzas = [
     cheeses: [],
     veggies: ['Garlic', 'Basil'],
     price: 6.95,
+    size: 'small',
     imageUrl: '/images/marinara.jpg',
   },
   {
@@ -28,6 +30,7 @@ const pizzas = [
     cheeses: ['Mozzarella', 'Parmesan', 'Gorgonzola'],
     veggies: ['Artichokes', 'Basil'],
     price: 8.95,
+    size: 'small',
     imageUrl: '/images/quattro-formaggi.jpg',
   },
   {
@@ -38,6 +41,7 @@ const pizzas = [
     cheeses: ['Mozzarella', 'Parmesan'],
     veggies: ['Eggs', 'Bacon'],
     price: 8.95,
+    size: 'small',
     imageUrl: '/images/carbonara.jpg',
   },
 ];

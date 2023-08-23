@@ -35,7 +35,8 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false, // Email verification status (default is false)
     },
-    confirmationCode: {
+
+    verificationCode: {
       type: String,
       unique: true,
     },

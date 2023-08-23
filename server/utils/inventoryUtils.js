@@ -1,23 +1,46 @@
 // Import Schema
-const Inventory = require('../schemas/inventorySchema');
+const { Base, Sauce, Cheese, Veggie } = require('../schemas/inventorySchema');
 
 // Update inventory quantity for a given item
-const updateInventoryQuantity = async (itemId, qty) => {
-  const inventoryItem = await Inventory.findById(itemId);
+const updateInventoryQuantity = async (pizza, qty) => {
+  const { base, sauces, cheeses, veggies } = pizza;
 
-  if (inventoryItem) {
-    if (inventoryItem.quantity >= qty) {
-      inventoryItem.quantity -= qty;
+  // Update base quantity
+  for (const baseId of base) {
+    const baseItem = await Base.findById(baseId);
+    await updateQuantity(baseItem);
+  }
 
-      const updatedInventoryItem = await inventoryItem.save();
+  // Update sauce quantity
+  for (const sauceId of sauces) {
+    const sauceItem = await Sauce.findById(sauceId);
+    await updateQuantity(sauceItem);
+  }
 
-      if (updatedInventoryItem) {
+  // Update cheese quantity
+  for (const cheeseId of cheeses) {
+    const cheeseItem = await Cheese.findById(cheeseId);
+    await updateQuantity(cheeseItem);
+  }
+  // Update veggie quantity
+  for (const veggieId of veggies) {
+    const veggieItem = await Veggie.findById(veggieId);
+    await updateQuantity(veggieItem);
+  }
+};
+
+const updateQuantity = async (item) => {
+  if (item) {
+    if (item.quantity >= qty) {
+      item.quantity -= qty;
+      const updateditem = await item.save();
+      if (updateditem) {
         res.status(200);
-        throw new Error(`Inventory Item ${inventoryItem.item} Updated!`);
+        throw new Error(`Inventory Item ${item.item} Updated!`);
       }
     } else {
       res.status(400);
-      throw new Error(`Not enough ${inventoryItem.item} in stock!`);
+      throw new Error(`Not enough ${item.item} in stock!`);
     }
   } else {
     res.status(404);
@@ -25,6 +48,4 @@ const updateInventoryQuantity = async (itemId, qty) => {
   }
 };
 
-module.exports = {
-  updateInventoryQuantity,
-};
+module.exports = { updateInventoryQuantity };

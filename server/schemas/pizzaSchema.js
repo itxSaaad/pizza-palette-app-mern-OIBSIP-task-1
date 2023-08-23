@@ -13,25 +13,25 @@ const pizzaSchema = new mongoose.Schema(
     base: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Inventory',
+        ref: 'Base',
       },
     ],
     sauces: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Inventory',
+        ref: 'Sauce',
       },
     ],
     cheeses: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Inventory',
+        ref: 'Cheese',
       },
     ],
     veggies: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Inventory',
+        ref: 'Veggie',
       },
     ],
     price: {

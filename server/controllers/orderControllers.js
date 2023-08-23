@@ -67,18 +67,7 @@ const createOrder = asyncHandler(async (req, res) => {
                     const pizza = await Pizza.findById(orderItem.pizza);
                     if (pizza) {
                       // Deduct items from inventory
-                      for (const itemId of pizza.base) {
-                        await updateInventoryQuantity(itemId, orderItem.qty);
-                      }
-                      for (const itemId of pizza.sauces) {
-                        await updateInventoryQuantity(itemId, orderItem.qty);
-                      }
-                      for (const itemId of pizza.cheeses) {
-                        await updateInventoryQuantity(itemId, orderItem.qty);
-                      }
-                      for (const itemId of pizza.veggies) {
-                        await updateInventoryQuantity(itemId, orderItem.qty);
-                      }
+                      await updateInventoryQuantity(pizza, orderItem.qty);
                     } else {
                       res.status(404);
                       throw new Error('Pizza not found');

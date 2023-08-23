@@ -4,15 +4,15 @@ const colors = require('colors');
 
 const connectDb = require('./config/db');
 
+const Admin = require('./schemas/adminUserSchema');
 const User = require('./schemas/userSchema');
 const Pizza = require('./schemas/pizzaSchema');
 const Order = require('./schemas/orderSchema');
-const Inventory = require('./schemas/inventorySchema');
-const Admin = require('./schemas/adminUserSchema');
+const { Base, Sauce, Cheese, Veggie } = require('./schemas/inventorySchema');
 
 const { users, admin } = require('./data/users');
 const pizzas = require('./data/pizzas');
-const inventory = require('./data/inventory');
+const { base, sauce, cheese, veggie } = require('./data/inventory');
 
 dotenv.config();
 
@@ -24,13 +24,19 @@ const importData = async () => {
     await Order.deleteMany();
     await Pizza.deleteMany();
     await User.deleteMany();
-    await Inventory.deleteMany();
     await Admin.deleteMany();
+    await Base.deleteMany();
+    await Sauce.deleteMany();
+    await Cheese.deleteMany();
+    await Veggie.deleteMany();
 
     const createdUsers = await User.insertMany(users);
     const createdAdmin = await Admin.create(admin);
-    const createdPizzas = await Pizza.insertMany(pizzas);
-    const createdInventory = await Inventory.insertMany(inventory);
+    const createdBase = await Base.insertMany(base);
+    const createdSauce = await Sauce.insertMany(sauce);
+    const createdCheese = await Cheese.insertMany(cheese);
+    const createdVeggie = await Veggie.insertMany(veggie);
+    // const createdPizzas = await Pizza.insertMany(pizzas);
 
     console.log('Data Imported!'.green.inverse);
     process.exit();
@@ -42,11 +48,14 @@ const importData = async () => {
 
 const destroyData = async () => {
   try {
+    await Admin.deleteMany();
     await Order.deleteMany();
     await Pizza.deleteMany();
     await User.deleteMany();
-    await Inventory.deleteMany();
-    await Admin.deleteMany();
+    await Base.deleteMany();
+    await Sauce.deleteMany();
+    await Cheese.deleteMany();
+    await Veggie.deleteMany();
 
     console.log('Data Destroyed!'.red.inverse);
     process.exit();
