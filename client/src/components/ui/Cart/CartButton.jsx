@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 
 import Button from '../Button';
 
-function CartButton({ children }) {
+function CartButton({ children, ...props }) {
   return (
     <Button
+      {...props}
       variant="primary"
       className="text-white font-semibold p-2 sm:p-4 rounded-full inline-flex items-center text-sm sm:text-base"
     >

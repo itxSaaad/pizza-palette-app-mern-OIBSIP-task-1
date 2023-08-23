@@ -1,17 +1,19 @@
-import { useState, useRef, useEffect } from 'react';
-import { BiSolidDownArrow, BiSolidUserDetail } from 'react-icons/bi';
-import { CgLogIn, CgLogOut } from 'react-icons/cg';
-import { FaUserAlt } from 'react-icons/fa';
-import { NavLink, Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { CgLogIn } from 'react-icons/cg';
+import { NavLink } from 'react-router-dom';
 
 import Logo from '/android-chrome-192x192.png';
 
 import Button from '../ui/Button';
 import CartButton from '../ui/Cart/CartButton';
+import CartModal from '../ui/Cart/CartModal/CartModal';
+import ProfileBtnAndDropOnNav from '../ui/Profile/ProfileBtnAndDropOnNav';
 
 function MainNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [dropIsOpen, setDropIsOpen] = useState(false);
+  const [cartIsOpen, setCartIsOpen] = useState(false);
+
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -47,7 +49,20 @@ function MainNavbar() {
     },
   ];
 
-  const cartItems = 10;
+  const cartDetails = [
+    {
+      name: 'Pizza 1',
+      image: 'https://picsum.photos/200',
+      price: 10,
+      quantity: 1,
+    },
+    {
+      name: 'Pizza 2',
+      image: 'https://picsum.photos/200',
+      price: 20,
+      quantity: 2,
+    },
+  ];
   const isLoggedIn = true;
 
   const logoutHandler = () => {
@@ -87,39 +102,17 @@ function MainNavbar() {
           ))}
         </div>
         <div className="flex flex-row items-center justify-center space-x-1 sm:space-x-4">
-          <CartButton>{cartItems}</CartButton>
+          <CartButton onClick={() => setCartIsOpen(!cartIsOpen)}>
+            {cartDetails.length}
+          </CartButton>
 
           {isLoggedIn ? (
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setDropIsOpen(!dropIsOpen)}
-                className="text-black hover:text-orange-500 border-2 border-orange-500 rounded-full inline-flex items-center p-2 focus:outline-none"
-              >
-                <FaUserAlt />
-                <BiSolidDownArrow className="h-3 text-orange-300" />
-              </button>
-              {dropIsOpen && (
-                <div className="absolute right-0 w-48  bg-white border border-gray-300 rounded shadow-lg mt-4">
-                  <Link
-                    to="/profile" // Replace with the actual profile route
-                    onClick={() => setDropIsOpen(!dropIsOpen)}
-                    className="inline-flex items-center w-full px-4 py-2 text-sm text-left text-orange-500 hover:bg-orange-100"
-                  >
-                    <BiSolidUserDetail className="mr-1" />
-                    Profile
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={logoutHandler}
-                    className="inline-flex items-center w-full px-4 py-2 text-sm text-left text-orange-500 hover:bg-orange-100"
-                  >
-                    <CgLogOut className="mr-1" />
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
+            <ProfileBtnAndDropOnNav
+              dropIsOpen={dropIsOpen}
+              setDropIsOpen={setDropIsOpen}
+              dropdownRef={dropdownRef}
+              logoutHandler={logoutHandler}
+            />
           ) : (
             <Button
               variant="primary"
@@ -204,6 +197,15 @@ function MainNavbar() {
             </Button>
           </nav>
         </div>
+      )}
+      {cartIsOpen && (
+        <CartModal
+          cartDetails={cartDetails}
+          onClose={() => {
+            setCartIsOpen(false);
+            setIsOpen(false);
+          }}
+        />
       )}
     </>
   );

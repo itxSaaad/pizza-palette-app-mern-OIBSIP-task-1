@@ -10,20 +10,20 @@ function Button({
 
   switch (variant) {
     case 'primary':
-      classes = 'bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 my-4';
+      classes = 'bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 my-2';
       break;
     case 'secondary':
-      classes = 'bg-white hover:bg-gray-300 text-orange-500 py-3 px-4 my-4';
+      classes = 'bg-white hover:bg-gray-300 text-orange-500 py-3 px-4 my-2';
       break;
     case 'outline':
       classes =
-        'bg-transparent hover:bg-orange-500 text-orange-500 hover:text-white border-2 border-orange-500 py-3 px-4 my-4 transition-all duration-300';
+        'bg-transparent hover:bg-orange-500 text-orange-500 hover:text-white border-2 border-orange-500 py-3 px-4 my-2 transition-all duration-300';
       break;
     case 'danger':
-      classes = 'bg-red-500 hover:bg-red-600 text-white py-3 px-4 my-4';
+      classes = 'bg-red-500 hover:bg-red-600 text-white py-3 px-4 my-2';
       break;
     default:
-      classes = 'bg-orange-500 hover:bg-orange-600 py-3 px-4 my-4';
+      classes = 'bg-orange-500 hover:bg-orange-600 py-3 px-4 my-2';
       break;
   }
 
