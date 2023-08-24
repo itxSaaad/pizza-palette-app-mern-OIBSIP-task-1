@@ -70,7 +70,10 @@ function CartModal({ onClose, cartDetails }) {
             <FaShoppingCart className="inline-flex mr-2" />
             Your Cart
           </h2>
-          <button onClick={handleModalClose}>
+          <button
+            className="text-red-500 hover:text-red-600 border-2 border-red-500 hover:border-red-600 rounded-full p-1"
+            onClick={handleModalClose}
+          >
             <FaTimes />
           </button>
         </div>

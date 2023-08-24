@@ -13,6 +13,7 @@ function MainNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [dropIsOpen, setDropIsOpen] = useState(false);
   const [cartIsOpen, setCartIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const dropdownRef = useRef(null);
 
@@ -63,11 +64,11 @@ function MainNavbar() {
       quantity: 2,
     },
   ];
-  const isLoggedIn = true;
 
   const logoutHandler = () => {
     console.log('Logout');
     setDropIsOpen(!dropIsOpen);
+    setIsLoggedIn(false);
   };
 
   return (
