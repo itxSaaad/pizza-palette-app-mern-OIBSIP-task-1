@@ -4,7 +4,8 @@ import { Link, NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
 // Import Actions
-import { logout } from '../../redux/slices/userSlice';
+import { clearUserData } from '../../redux/slices/userSlice';
+import { clearPizzaData } from '../../redux/slices/pizzaSlice';
 
 // Import Images
 import Logo from '/android-chrome-192x192.png';
@@ -42,7 +43,7 @@ function MainNavbar() {
       name: 'Home',
     },
     {
-      route: '/pizzas',
+      route: '/menu',
       name: 'Menu',
     },
     {
@@ -77,7 +78,8 @@ function MainNavbar() {
 
   const logoutHandler = () => {
     console.log('Logout');
-    dispatch(logout());
+    dispatch(clearUserData());
+    dispatch(clearPizzaData());
     setDropIsOpen(!dropIsOpen);
   };
 

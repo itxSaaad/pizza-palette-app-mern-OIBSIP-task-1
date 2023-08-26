@@ -20,7 +20,7 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    logout: (state) => {
+    clearUserData: (state) => {
       state.userLoginError = null;
       state.userRegisterError = null;
       state.userLoginSuccess = false;
@@ -65,7 +65,7 @@ const userSlice = createSlice({
 });
 
 // Export Actions
-export const { logout } = userSlice.actions;
+export const { clearUserData } = userSlice.actions;
 
 // Export Reducer
 export default userSlice.reducer;

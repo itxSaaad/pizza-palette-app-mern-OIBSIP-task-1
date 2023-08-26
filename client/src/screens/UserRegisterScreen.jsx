@@ -1,9 +1,22 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 
-import Logo from '/android-chrome-512x512.png';
 import UserRegisterForm from '../components/ui/Auth/UserRegisterForm';
+import Logo from '/android-chrome-512x512.png';
 
 function UserRegisterScreen() {
+  const navigate = useNavigate();
+
+  const user = useSelector((state) => state.user);
+  const { userInfo } = user;
+
+  useEffect(() => {
+    if (userInfo) {
+      navigate('/');
+    }
+  }, [navigate, userInfo]);
+
   return (
     <section className="min-h-screen flex flex-col justify-center items-center pt-14 sm:pt-28 pb-4 px-10 sm:px-16 bg-gradient-to-b from-orange-200 to-orange-100">
       <div className="flex flex-col sm:flex-row justify-center items-center sm:space-x-6">
