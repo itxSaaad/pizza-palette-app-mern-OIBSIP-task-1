@@ -92,17 +92,8 @@ const registerUser = asyncHandler(async (req, res) => {
             const salt = await bcrypt.genSalt(10);
             hashedPassword = await bcrypt.hash(password, salt);
 
-            user = await User.create({
-              name,
-              email,
-              password: hashedPassword,
-              phoneNumber,
-              address,
-            });
-
             // Generate a verification token
             const verificationCode = generateverificationCode();
-            user.verificationToken = verificationCode;
 
             // Send the verification email
             const emailSent = await sendEmail(
@@ -110,12 +101,20 @@ const registerUser = asyncHandler(async (req, res) => {
                 from: process.env.NODEMAILER_EMAIL,
                 to: user.email,
                 subject: 'Please Confirm your Account!',
-                text: `Hey ${user.name},\n\nAccount Successfully Created!\n\nPlease use the following code within the next 10 minutes to activate your account: ${verificationCode}\n\nThanks,\nTeam Pizza Delivery.\n\nP.S. If you did not create an account, please ignore this email. `,
+                text: `Hey ${user.name},\n\nAccount Successfully Created!\n\nPlease use the following code within the next 10 minutes to activate your account: ${verificationCode}\n\nThanks,\nTeam Pizza Palette.\n\nP.S. If you did not create an account, please ignore this email. `,
               })
             );
 
             if (emailSent) {
-              await user.save();
+              user = await User.create({
+                name,
+                email,
+                password: hashedPassword,
+                phoneNumber,
+                address,
+                verificationCode,
+              });
+
               res.status(200).json({
                 _id: user._id,
                 name: user.name,

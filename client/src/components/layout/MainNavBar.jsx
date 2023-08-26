@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { CgLogIn } from 'react-icons/cg';
 import { Link, NavLink } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 
+// Import Actions
+import { logout } from '../../redux/slices/userSlice';
+
+// Import Images
 import Logo from '/android-chrome-192x192.png';
 
+// Import Components
 import Button from '../ui/Button';
 import CartButton from '../ui/Cart/CartButton';
 import CartModal from '../ui/Cart/CartModal/CartModal';
@@ -13,7 +19,6 @@ function MainNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [dropIsOpen, setDropIsOpen] = useState(false);
   const [cartIsOpen, setCartIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const dropdownRef = useRef(null);
 
@@ -65,20 +70,29 @@ function MainNavbar() {
     },
   ];
 
+  const dispatch = useDispatch();
+
+  const user = useSelector((state) => state.user);
+  const { userInfo } = user;
+
   const logoutHandler = () => {
     console.log('Logout');
+    dispatch(logout());
     setDropIsOpen(!dropIsOpen);
-    setIsLoggedIn(false);
   };
 
   return (
     <>
-      <nav className="fixed bg-white w-screen flex flex-row items-center justify-between px-6 sm:px-16 shadow-sm space-x-6">
+      <nav className="fixed bg-white w-screen flex flex-row items-center justify-between px-6 sm:px-16 shadow-sm space-x-3">
         <NavLink
           href="/"
-          className="flex flex-row justify-center items-center text-black font-bold text-xl sm:text-3xl"
+          className="flex flex-row justify-center items-center text-black font-bold text-lg sm:text-3xl"
         >
-          <img src={Logo} alt="Pizza Palette Logo" className="h-14 w-14 mr-2" />
+          <img
+            src={Logo}
+            alt="Pizza Palette Logo"
+            className="h-10 w-10 sm:h-14 sm:w-14 mr-2"
+          />
           Pizza Palette
         </NavLink>
         {/* // Desktop Menu */}
@@ -103,7 +117,7 @@ function MainNavbar() {
             {cartDetails.length}
           </CartButton>
 
-          {isLoggedIn ? (
+          {userInfo ? (
             <ProfileBtnAndDropOnNav
               dropIsOpen={dropIsOpen}
               setDropIsOpen={setDropIsOpen}
@@ -186,14 +200,16 @@ function MainNavbar() {
                 {navItem.name}
               </NavLink>
             ))}
-            <Button
-              variant="outline"
-              type="button"
-              className="font-semibold text-xl py-2 px-4 rounded-full inline-flex items-center mt-4"
-            >
-              <CgLogIn className="mr-2" />
-              Login / Register
-            </Button>
+            {!userInfo && (
+              <Button
+                variant="outline"
+                type="button"
+                className="font-semibold text-xl py-2 px-4 rounded-full inline-flex items-center mt-4"
+              >
+                <CgLogIn className="mr-2" />
+                Login / Register
+              </Button>
+            )}
           </nav>
         </div>
       )}

@@ -8,11 +8,11 @@ function CartButton({ children, ...props }) {
     <Button
       {...props}
       variant="primary"
-      className="text-white font-semibold sm:p-4 rounded-full inline-flex items-center text-sm sm:text-base"
+      className="text-white font-semibold p-1 sm:p-4 rounded-full inline-flex items-center text-sm sm:text-base"
     >
-      <FaShoppingCart className="text-lg sm:text-2xl sm:mr-2" />
+      <FaShoppingCart className="text-md sm:text-2xl sm:mr-2" />
       <span className="hidden sm:inline-flex">Your Cart</span>
-      <span className="ml-1 sm:ml-2 bg-white text-black rounded-full h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center">
+      <span className="ml-1 sm:ml-2 bg-white text-black rounded-full h-5 w-5 sm:h-8 sm:w-8 flex items-center justify-center">
         {children}
       </span>
     </Button>
