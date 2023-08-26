@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CgLogIn } from 'react-icons/cg';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 
 import Logo from '/android-chrome-192x192.png';
 
@@ -73,16 +73,12 @@ function MainNavbar() {
 
   return (
     <>
-      <nav className="fixed bg-white w-screen flex flex-row items-center justify-between px-6 sm:px-16 shadow-sm">
+      <nav className="fixed bg-white w-screen flex flex-row items-center justify-between px-6 sm:px-16 shadow-sm space-x-6">
         <NavLink
           href="/"
           className="flex flex-row justify-center items-center text-black font-bold text-xl sm:text-3xl"
         >
-          <img
-            src={Logo}
-            alt="Pizza Palette Logo"
-            className="h-8 w-8 sm:h-14 sm:w-14 mr-2"
-          />
+          <img src={Logo} alt="Pizza Palette Logo" className="h-14 w-14 mr-2" />
           Pizza Palette
         </NavLink>
         {/* // Desktop Menu */}
@@ -115,14 +111,16 @@ function MainNavbar() {
               logoutHandler={logoutHandler}
             />
           ) : (
-            <Button
-              variant="primary"
-              type="button"
-              className="font-medium py-2 px-4 rounded-full hidden md:inline-flex items-center text-base"
-            >
-              <CgLogIn className="mr-2" />
-              Login / Register
-            </Button>
+            <Link to={'/login'}>
+              <Button
+                variant="primary"
+                type="button"
+                className="font-medium py-2 px-4 rounded-full hidden md:inline-flex items-center text-base"
+              >
+                <CgLogIn className="mr-2" />
+                Login / Register
+              </Button>
+            </Link>
           )}
         </div>
 

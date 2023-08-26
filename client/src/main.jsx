@@ -6,6 +6,8 @@ import App from './App.jsx';
 import './index.css';
 
 import HomeScreen from './screens/HomeScreen.jsx';
+import UserLoginScreen from './screens/UserLoginScreen.jsx';
+import UserRegisterScreen from './screens/UserRegisterScreen.jsx';
 
 const router = createBrowserRouter([
   {
@@ -15,6 +17,14 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <HomeScreen />,
+      },
+      {
+        path: '/login',
+        element: <UserLoginScreen />,
+      },
+      {
+        path: '/register',
+        element: <UserRegisterScreen />,
       },
     ],
   },

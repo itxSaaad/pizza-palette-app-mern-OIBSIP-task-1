@@ -25,14 +25,14 @@ function FeaturedPizzasSection() {
   return (
     <section
       id="featured-pizzas"
-      className="min-h-screen flex flex-col justify-center items-center py-12 px-10 sm:px-16"
+      className="min-h-screen flex flex-col justify-center items-center py-16 sm:py-12 px-10 sm:px-16"
     >
       <h2 className="text-4xl font-bold text-center mb-8">Featured Pizzas</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {featuredPizzas.map((pizza) => (
           <div
             key={pizza.id}
-            className="bg-orange-100 rounded-2xl shadow-lg overflow-hidden"
+            className="bg-orange-100 rounded-2xl shadow-lg overflow-hidden hover:transform hover:scale-105 transition-transform duration-500 ease-in-out"
           >
             <img
               src={pizza.imageUrl}
@@ -40,7 +40,7 @@ function FeaturedPizzasSection() {
               className="w-full h-48 object-cover p-4 border-b border-orange-200"
             />
 
-            <div className="p-4 flex flex-col justify-between items-start border-b border-orange-200">
+            <div className="p-4 flex flex-col justify-between items-start">
               <div className="flex justify-between items-center w-full">
                 <h3 className="text-lg font-bold text-black mb-1">
                   {pizza.name}

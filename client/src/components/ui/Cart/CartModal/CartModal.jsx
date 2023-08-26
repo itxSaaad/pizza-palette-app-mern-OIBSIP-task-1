@@ -56,14 +56,14 @@ function CartModal({ onClose, cartDetails }) {
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center z-10 bg-gray-800 bg-opacity-30 backdrop-filter backdrop-blur-sm transition-opacity duration-200 ${
+      className={`fixed inset-0 flex items-center justify-center z-10 bg-gray-800 bg-opacity-30 p-4 backdrop-filter backdrop-blur-sm transition-opacity duration-200 ${
         modalVisible ? 'opacity-100' : 'opacity-0 delay-150'
       }`}
       onClick={handleModalClose}
     >
       <div
-        className="bg-white rounded-2xl p-6 w-1/2"
-        onClick={(e) => e.stopPropagation()} // To prevent the modal from closing when clicking inside it
+        className="bg-white rounded-2xl p-4 sm:p-6 w-full sm:w-2/3 md:w-1/2"
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl text-orange-500 font-bold mb-4">
