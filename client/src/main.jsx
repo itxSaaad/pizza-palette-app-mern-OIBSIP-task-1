@@ -3,15 +3,19 @@ import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 
+// Import App
 import App from './App.jsx';
 import './index.css';
 import store from './redux/store.js';
 
+// Import Screens
+import CheckoutScreen from './screens/CheckoutScreen.jsx';
 import HomeScreen from './screens/HomeScreen.jsx';
 import MenuScreen from './screens/MenuScreen.jsx';
 import UserLoginScreen from './screens/UserLoginScreen.jsx';
 import UserRegisterScreen from './screens/UserRegisterScreen.jsx';
 
+// Create Router
 const router = createBrowserRouter([
   {
     path: '/',
@@ -33,10 +37,15 @@ const router = createBrowserRouter([
         path: '/menu',
         element: <MenuScreen />,
       },
+      {
+        path: '/checkout',
+        element: <CheckoutScreen />,
+      },
     ],
   },
 ]);
 
+// Render App
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
