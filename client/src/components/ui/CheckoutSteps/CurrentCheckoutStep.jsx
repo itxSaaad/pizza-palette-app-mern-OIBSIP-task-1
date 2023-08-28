@@ -3,7 +3,7 @@ import { FaChevronRight } from 'react-icons/fa';
 
 function CurrentCheckoutStep({ currentStep, AllSteps }) {
   return (
-    <div className="flex items-center justify-center space-x-2">
+    <div className="flex items-center justify-center space-x-2 mb-4 pb-4 border-b border-b-orange-300">
       {AllSteps.map((step, index) => (
         <div key={index} className="flex items-center space-x-2">
           <p
