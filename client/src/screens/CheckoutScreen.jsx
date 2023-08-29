@@ -9,7 +9,7 @@ import PlaceOrderStep from '../components/ui/CheckoutSteps/PlaceOrderStep';
 import ShippingStep from '../components/ui/CheckoutSteps/ShippingStep';
 
 function CheckoutScreen() {
-  const [currentStep, setCurrentStep] = useState('Payment');
+  const [currentStep, setCurrentStep] = useState('Shipping');
 
   const AllSteps = [
     {

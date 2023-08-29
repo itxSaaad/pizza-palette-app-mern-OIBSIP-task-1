@@ -12,9 +12,10 @@ import store from './redux/store.js';
 import CheckoutScreen from './screens/CheckoutScreen.jsx';
 import HomeScreen from './screens/HomeScreen.jsx';
 import MenuScreen from './screens/MenuScreen.jsx';
+import ProfileScreen from './screens/ProfileScreen.jsx';
 import UserLoginScreen from './screens/UserLoginScreen.jsx';
-import UserRegisterScreen from './screens/UserRegisterScreen.jsx';
 import UserOrdersScreen from './screens/UserOrdersScreen.jsx';
+import UserRegisterScreen from './screens/UserRegisterScreen.jsx';
 
 // Create Router
 const router = createBrowserRouter([
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
       {
         path: '/register',
         element: <UserRegisterScreen />,
+      },
+      {
+        path: '/profile',
+        element: <ProfileScreen />,
       },
       {
         path: '/menu',

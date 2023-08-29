@@ -2,7 +2,10 @@ import PropTypes from 'prop-types';
 import { BiSolidDownArrow, BiSolidUserDetail } from 'react-icons/bi';
 import { CgLogOut } from 'react-icons/cg';
 import { FaUserAlt } from 'react-icons/fa';
+import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
+
+import { getUserDetails } from '../../../redux/asyncThunks/userThunks';
 
 function ProfileBtnAndDropOnNav({
   dropIsOpen,
@@ -10,6 +13,7 @@ function ProfileBtnAndDropOnNav({
   dropdownRef,
   logoutHandler,
 }) {
+  const dispatch = useDispatch();
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -24,7 +28,10 @@ function ProfileBtnAndDropOnNav({
         <div className="absolute right-0 w-48  bg-white border border-gray-300 rounded shadow-lg mt-4">
           <Link
             to="/profile" // Replace with the actual profile route
-            onClick={() => setDropIsOpen(!dropIsOpen)}
+            onClick={() => {
+              dispatch(getUserDetails({}));
+              setDropIsOpen(!dropIsOpen);
+            }}
             className="inline-flex items-center w-full px-4 py-2 text-sm text-left text-orange-500 hover:bg-orange-100"
           >
             <BiSolidUserDetail className="mr-1" />

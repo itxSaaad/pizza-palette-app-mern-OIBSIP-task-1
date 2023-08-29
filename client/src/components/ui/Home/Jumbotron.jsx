@@ -20,7 +20,7 @@ function Jumbotron() {
         Craving for a pizza? You are in the right place!
       </p>
       <Link
-        to="/pizzas"
+        to="/menu"
         className="bg-orange-500 hover:bg-orange-600 transition-all duration-200 text-white font-semibold px-8 py-3 rounded-full shadow-lg"
       >
         Order Now

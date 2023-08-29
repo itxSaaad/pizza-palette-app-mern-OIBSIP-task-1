@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 // Import Actions
 import { clearUserData } from '../../redux/slices/userSlice';
 import { clearPizzaData } from '../../redux/slices/pizzaSlice';
+import { getUserDetails } from '../../redux/asyncThunks/userThunks';
 
 // Import Images
 import Logo from '/android-chrome-192x192.png';
@@ -203,14 +204,16 @@ function MainNavbar() {
               </NavLink>
             ))}
             {!userInfo && (
-              <Button
-                variant="outline"
-                type="button"
-                className="font-semibold text-xl py-2 px-4 rounded-full inline-flex items-center mt-4"
-              >
-                <CgLogIn className="mr-2" />
-                Login / Register
-              </Button>
+              <Link to="/login">
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="font-semibold text-xl py-2 px-4 rounded-full inline-flex items-center mt-4"
+                >
+                  <CgLogIn className="mr-2" />
+                  Login / Register
+                </Button>
+              </Link>
             )}
           </nav>
         </div>
