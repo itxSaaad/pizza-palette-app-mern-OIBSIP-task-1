@@ -14,6 +14,7 @@ import HomeScreen from './screens/HomeScreen.jsx';
 import MenuScreen from './screens/MenuScreen.jsx';
 import UserLoginScreen from './screens/UserLoginScreen.jsx';
 import UserRegisterScreen from './screens/UserRegisterScreen.jsx';
+import UserOrdersScreen from './screens/UserOrdersScreen.jsx';
 
 // Create Router
 const router = createBrowserRouter([
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
       {
         path: '/menu',
         element: <MenuScreen />,
+      },
+      {
+        path: '/my-orders',
+        element: <UserOrdersScreen />,
       },
       {
         path: '/checkout',
