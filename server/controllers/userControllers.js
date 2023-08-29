@@ -99,9 +99,9 @@ const registerUser = asyncHandler(async (req, res) => {
             const emailSent = await sendEmail(
               (mailOptions = {
                 from: process.env.NODEMAILER_EMAIL,
-                to: user.email,
+                to: email,
                 subject: 'Please Confirm your Account!',
-                text: `Hey ${user.name},\n\nAccount Successfully Created!\n\nPlease use the following code within the next 10 minutes to activate your account: ${verificationCode}\n\nThanks,\nTeam Pizza Palette.\n\nP.S. If you did not create an account, please ignore this email. `,
+                text: `Hey ${name},\n\nAccount Successfully Created!\n\nPlease use the following code within the next 10 minutes to activate your account: ${verificationCode}\n\nThanks,\nTeam Pizza Palette.\n\nP.S. If you did not create an account, please ignore this email. `,
               })
             );
 
