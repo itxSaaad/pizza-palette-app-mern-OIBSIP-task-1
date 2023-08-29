@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 
-import UserRegisterForm from '../components/ui/Auth/UserRegisterForm';
+import UserRegisterForm from '../../components/ui/Auth/UserRegisterForm';
 import Logo from '/android-chrome-512x512.png';
 
 function UserRegisterScreen() {
@@ -11,12 +11,14 @@ function UserRegisterScreen() {
   const user = useSelector((state) => state.user);
   const { userInfo } = user;
 
+  const admin = useSelector((state) => state.admin);
+  const { adminUserInfo } = admin;
+
   useEffect(() => {
-    if (userInfo) {
+    if (userInfo || adminUserInfo) {
       navigate('/');
     }
-  }, [navigate, userInfo]);
-
+  }, [navigate, userInfo, adminUserInfo]);
   return (
     <section className="min-h-screen flex flex-col justify-center items-center pt-14 sm:pt-28 pb-4 px-10 sm:px-16 bg-gradient-to-b from-orange-200 to-orange-100">
       <div className="flex flex-col sm:flex-row justify-center items-center sm:space-x-6">

@@ -9,14 +9,16 @@ import './index.css';
 import store from './redux/store.js';
 
 // Import Screens
-import AdminDashboardScreen from './screens/AdminDashboradScreen.jsx';
-import CheckoutScreen from './screens/CheckoutScreen.jsx';
+import AdminDashboardScreen from './screens/Admin/AdminDashboardScreen.jsx';
+import AdminLoginScreen from './screens/Admin/AdminLoginScreen.jsx';
 import HomeScreen from './screens/HomeScreen.jsx';
 import MenuScreen from './screens/MenuScreen.jsx';
-import ProfileScreen from './screens/ProfileScreen.jsx';
-import UserLoginScreen from './screens/UserLoginScreen.jsx';
-import UserOrdersScreen from './screens/UserOrdersScreen.jsx';
-import UserRegisterScreen from './screens/UserRegisterScreen.jsx';
+import CheckoutScreen from './screens/User/CheckoutScreen.jsx';
+import ProfileScreen from './screens/User/ProfileScreen.jsx';
+import UserLoginScreen from './screens/User/UserLoginScreen.jsx';
+import UserOrdersScreen from './screens/User/UserOrdersScreen.jsx';
+import UserRegisterScreen from './screens/User/UserRegisterScreen.jsx';
+import AdminRegisterScreen from './screens/Admin/AdminRegisterScreen.jsx';
 
 // Create Router
 const router = createBrowserRouter([
@@ -41,20 +43,28 @@ const router = createBrowserRouter([
         element: <ProfileScreen />,
       },
       {
-        path: '/admin/dashboard',
-        element: <AdminDashboardScreen />,
-      },
-      {
-        path: '/menu',
-        element: <MenuScreen />,
-      },
-      {
         path: '/my-orders',
         element: <UserOrdersScreen />,
       },
       {
         path: '/checkout',
         element: <CheckoutScreen />,
+      },
+      {
+        path: '/admin/dashboard',
+        element: <AdminDashboardScreen />,
+      },
+      {
+        path: '/admin/login',
+        element: <AdminLoginScreen />,
+      },
+      {
+        path: '/admin/register',
+        element: <AdminRegisterScreen />,
+      },
+      {
+        path: '/menu',
+        element: <MenuScreen />,
       },
     ],
   },

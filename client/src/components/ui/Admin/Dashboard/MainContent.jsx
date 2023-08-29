@@ -5,10 +5,10 @@ import Home from './Home';
 import SideBarToggleButton from './SideBarToggleButton';
 
 function MainContent({ activeMenuItem, collapsible, onToggleSidebar }) {
-  const user = useSelector((state) => state.user);
-  const { userInfo } = user;
+  const admin = useSelector((state) => state.admin);
+  const { adminUserInfo } = admin;
 
-  const formattedUserName = userInfo.name
+  const formattedUserName = adminUserInfo.name
     .split(' ')
     .map((name) => name.charAt(0).toUpperCase() + name.slice(1))
     .join(' ');

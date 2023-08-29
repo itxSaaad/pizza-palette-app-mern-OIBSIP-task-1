@@ -1,12 +1,13 @@
-// Import Components
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaCheck, FaMoneyCheckAlt, FaTruck } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 // Import Components
-import CurrentCheckoutStep from '../components/ui/CheckoutSteps/CurrentCheckoutStep';
-import PaymentStep from '../components/ui/CheckoutSteps/PaymentStep';
-import PlaceOrderStep from '../components/ui/CheckoutSteps/PlaceOrderStep';
-import ShippingStep from '../components/ui/CheckoutSteps/ShippingStep';
+import CurrentCheckoutStep from '../../components/ui/CheckoutSteps/CurrentCheckoutStep';
+import PaymentStep from '../../components/ui/CheckoutSteps/PaymentStep';
+import PlaceOrderStep from '../../components/ui/CheckoutSteps/PlaceOrderStep';
+import ShippingStep from '../../components/ui/CheckoutSteps/ShippingStep';
 
 function CheckoutScreen() {
   const [currentStep, setCurrentStep] = useState('Shipping');
@@ -25,6 +26,20 @@ function CheckoutScreen() {
       icon: <FaCheck className="inline-block sm:mr-1" />,
     },
   ];
+
+  const navigate = useNavigate();
+
+  const user = useSelector((state) => state.user);
+  const { userInfo } = user;
+
+  const admin = useSelector((state) => state.admin);
+  const { adminUserInfo } = admin;
+
+  useEffect(() => {
+    if (!adminUserInfo && !userInfo) {
+      navigate('/login');
+    }
+  }, [userInfo, adminUserInfo, navigate]);
 
   return (
     <section className="min-h-screen flex flex-col justify-center items-center pt-24 pb-6 px-2 sm:px-16 bg-orange-200">

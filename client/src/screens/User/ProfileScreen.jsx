@@ -3,15 +3,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 // Import Components
-import Button from '../components/ui/Button';
-import Loader from '../components/ui/Loader';
-import Message from '../components/ui/Message';
-import EditProfileForm from '../components/ui/Profile/EditProfileForm';
-import Profile from '../components/ui/Profile/Profile';
-import UserOrdersTable from '../components/ui/UserOrdersTable';
+import Button from '../../components/ui/Button';
+import Loader from '../../components/ui/Loader';
+import Message from '../../components/ui/Message';
+import EditProfileForm from '../../components/ui/Profile/EditProfileForm';
+import Profile from '../../components/ui/Profile/Profile';
+import UserOrdersTable from '../../components/ui/UserOrdersTable';
 
 // Import Actions
-import { getUserDetails } from '../redux/asyncThunks/userThunks';
+import { getUserDetails } from '../../redux/asyncThunks/userThunks';
 
 function ProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);

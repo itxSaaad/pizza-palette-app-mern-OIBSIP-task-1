@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-import Loader from '../components/ui/Loader';
-import UserOrdersTable from '../components/ui/UserOrdersTable';
+import Loader from '../../components/ui/Loader';
+import UserOrdersTable from '../../components/ui/UserOrdersTable';
 
 function UserOrdersScreen() {
   const orders = [
@@ -43,11 +43,17 @@ function UserOrdersScreen() {
   const user = useSelector((state) => state.user);
   const { loading, userInfo } = user;
 
+  const admin = useSelector((state) => state.admin);
+  const { adminUserInfo } = admin;
+
   useEffect(() => {
     if (!userInfo) {
       navigate('/login');
     }
-  }, [userInfo, navigate]);
+    if (adminUserInfo) {
+      navigate('/admin/dashboard');
+    }
+  }, [userInfo, adminUserInfo, navigate]);
 
   return (
     <section className="min-h-screen flex flex-col justify-center items-center pt-14 px-10 sm:px-16">

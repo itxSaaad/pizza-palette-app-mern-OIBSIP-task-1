@@ -10,8 +10,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-import MainContent from '../components/ui/Admin/Dashboard/MainContent';
-import SideBar from '../components/ui/Admin/Dashboard/SideBar';
+import MainContent from '../../components/ui/Admin/Dashboard/MainContent';
+import SideBar from '../../components/ui/Admin/Dashboard/SideBar';
 
 function AdminDashboardScreen() {
   const menuItems = [
@@ -50,21 +50,8 @@ function AdminDashboardScreen() {
   const user = useSelector((state) => state.user);
   const { userInfo } = user;
 
-  useEffect(() => {
-    if (userInfo) {
-      navigate('/');
-    }
-    // else {
-    //   if (!adminUserInfo) {
-    //     navigate('/admin/login');
-    //   }
-    // dispatch(listUsers({}));
-    //   dispatch(listStaff({}));
-    //   dispatch(listPizzas({}));
-    //   dispatch(listOrders({}));
-    // }
-    // }, [navigate, dispatch, userInfo]);
-  }, [dispatch, userInfo, navigate]);
+  const admin = useSelector((state) => state.admin);
+  const { adminUserInfo } = admin;
 
   const toggleSidebar = () => {
     setCollapsible((prevState) => !prevState);
@@ -75,25 +62,42 @@ function AdminDashboardScreen() {
     toggleSidebar();
   };
 
+  useEffect(() => {
+    if (!adminUserInfo) {
+      navigate('/admin/login');
+    }
+  }, [navigate, adminUserInfo]);
+
+  useEffect(() => {
+    // Check if any other user type is logged in (redirect to homepage)
+    if (userInfo) {
+      navigate('/');
+    }
+  }, [navigate, userInfo]);
+
   return (
     <section className="min-h-screen flex flex-row bg-orange-600 text-white pt-16 sm:pt-20">
-      <>
-        {collapsible && (
-          <SideBar
+      {adminUserInfo ? (
+        <>
+          {collapsible && (
+            <SideBar
+              menuItems={menuItems}
+              handleMenuItemClick={handleMenuItemClick}
+              activeMenuItem={activeMenuItem}
+              collapsible={collapsible}
+            />
+          )}
+
+          <MainContent
             menuItems={menuItems}
-            handleMenuItemClick={handleMenuItemClick}
             activeMenuItem={activeMenuItem}
             collapsible={collapsible}
+            onToggleSidebar={toggleSidebar}
           />
-        )}
-
-        <MainContent
-          menuItems={menuItems}
-          activeMenuItem={activeMenuItem}
-          collapsible={collapsible}
-          onToggleSidebar={toggleSidebar}
-        />
-      </>
+        </>
+      ) : (
+        navigate('/admin/login')
+      )}
     </section>
   );
 }

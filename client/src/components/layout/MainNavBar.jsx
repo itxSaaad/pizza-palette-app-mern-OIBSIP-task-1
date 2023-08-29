@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 // Import Actions
 import { clearUserData } from '../../redux/slices/userSlice';
 import { clearPizzaData } from '../../redux/slices/pizzaSlice';
+import { clearAdminUserData } from '../../redux/slices/adminSlice';
 import { getUserDetails } from '../../redux/asyncThunks/userThunks';
 
 // Import Images
@@ -77,10 +78,14 @@ function MainNavbar() {
   const user = useSelector((state) => state.user);
   const { userInfo } = user;
 
+  const admin = useSelector((state) => state.admin);
+  const { adminUserInfo } = admin;
+
   const logoutHandler = () => {
     console.log('Logout');
     dispatch(clearUserData());
     dispatch(clearPizzaData());
+    dispatch(clearAdminUserData());
     setDropIsOpen(!dropIsOpen);
   };
 
@@ -120,7 +125,7 @@ function MainNavbar() {
             {cartDetails.length}
           </CartButton>
 
-          {userInfo ? (
+          {userInfo || adminUserInfo ? (
             <ProfileBtnAndDropOnNav
               dropIsOpen={dropIsOpen}
               setDropIsOpen={setDropIsOpen}
@@ -203,7 +208,7 @@ function MainNavbar() {
                 {navItem.name}
               </NavLink>
             ))}
-            {!userInfo && (
+            {!userInfo && !adminUserInfo && (
               <Link to="/login">
                 <Button
                   variant="outline"
