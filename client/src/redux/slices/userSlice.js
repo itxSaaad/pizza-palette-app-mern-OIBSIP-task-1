@@ -33,12 +33,19 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     clearUserData: (state) => {
+      localStorage.removeItem('userInfo');
+      localStorage.removeItem('userDetails');
+      state.userInfo = null;
+      state.userDetails = null;
       state.userLoginError = null;
       state.userRegisterError = null;
+      state.userDetailsError = null;
+      state.userUpdateProfileError = null;
       state.userLoginSuccess = false;
       state.userRegisterSuccess = false;
-      state.userInfo = null;
-      localStorage.removeItem('userInfo');
+      state.userDetailsSuccess = false;
+      state.userUpdateProfileSuccess = false;
+      state.loading = false;
     },
   },
   extraReducers: (builder) => {

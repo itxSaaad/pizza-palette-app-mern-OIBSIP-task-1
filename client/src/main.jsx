@@ -9,6 +9,7 @@ import './index.css';
 import store from './redux/store.js';
 
 // Import Screens
+import AdminDashboardScreen from './screens/AdminDashboradScreen.jsx';
 import CheckoutScreen from './screens/CheckoutScreen.jsx';
 import HomeScreen from './screens/HomeScreen.jsx';
 import MenuScreen from './screens/MenuScreen.jsx';
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
       {
         path: '/profile',
         element: <ProfileScreen />,
+      },
+      {
+        path: '/admin/dashboard',
+        element: <AdminDashboardScreen />,
       },
       {
         path: '/menu',
