@@ -1,17 +1,29 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 // Import Async Thunks
-import { loginUser, registerUser } from '../asyncThunks/userThunks.js';
+import {
+  loginUser,
+  registerUser,
+  updateUserProfile,
+  getUserDetails,
+} from '../asyncThunks/userThunks.js';
 
 // Initial State
 const initialState = {
   userInfo: localStorage.getItem('userInfo')
     ? JSON.parse(localStorage.getItem('userInfo'))
     : null,
+  userDetails: localStorage.getItem('userDetails')
+    ? JSON.parse(localStorage.getItem('userDetails'))
+    : null,
   userLoginError: null,
   userRegisterError: null,
+  userDetailsError: null,
+  userUpdateProfileError: null,
   userLoginSuccess: false,
   userRegisterSuccess: false,
+  userDetailsSuccess: false,
+  userUpdateProfileSuccess: false,
   loading: false,
 };
 
@@ -60,6 +72,37 @@ const userSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.userRegisterError = action.payload;
+      })
+      .addCase(getUserDetails.pending, (state) => {
+        state.loading = true;
+        state.userDetailsError = null;
+        state.userDetailsSuccess = false;
+      })
+      .addCase(getUserDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userDetails = action.payload;
+        localStorage.setItem('userDetails', JSON.stringify(action.payload));
+        state.userDetailsSuccess = true;
+      })
+      .addCase(getUserDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.userDetailsError = action.payload;
+      })
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.userUpdateProfileError = null;
+        state.userUpdateProfileSuccess = false;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userInfo = action.payload;
+        localStorage.setItem('userInfo', JSON.stringify(action.payload));
+        localStorage.setItem('userDetails', JSON.stringify(action.payload));
+        state.userUpdateProfileSuccess = true;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.userUpdateProfileError = action.payload;
       });
   },
 });
