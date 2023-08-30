@@ -10,6 +10,10 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
+// Import Thunks
+import { listUsers } from '../../redux/asyncThunks/userThunks';
+
+// Import Components
 import MainContent from '../../components/ui/Admin/Dashboard/MainContent';
 import SideBar from '../../components/ui/Admin/Dashboard/SideBar';
 
@@ -66,7 +70,8 @@ function AdminDashboardScreen() {
     if (!adminUserInfo) {
       navigate('/admin/login');
     }
-  }, [navigate, adminUserInfo]);
+    dispatch(listUsers({}));
+  }, [dispatch, navigate, adminUserInfo]);
 
   useEffect(() => {
     // Check if any other user type is logged in (redirect to homepage)

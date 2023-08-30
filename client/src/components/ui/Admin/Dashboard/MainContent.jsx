@@ -1,7 +1,13 @@
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 
+// Import Components
 import Home from './Home';
+import InventoryList from './Lists/InventoryList';
+import OrdersList from './Lists/OrdersList';
+import PizzasList from './Lists/PizzasList';
+import StaffList from './Lists/StaffList';
+import UsersList from './Lists/UsersList';
 import SideBarToggleButton from './SideBarToggleButton';
 
 function MainContent({ activeMenuItem, collapsible, onToggleSidebar }) {
@@ -25,11 +31,11 @@ function MainContent({ activeMenuItem, collapsible, onToggleSidebar }) {
           Welcome to Admin Panel {formattedUserName}!
         </h1>
         {activeMenuItem === 'Home' && <Home />}
-        {/* {activeMenuItem === 'Staff' && <StaffList />} */}
-        {/* {activeMenuItem === 'Users' && <UsersList />} */}
-        {/* {activeMenuItem === 'Pizzas' && <PizzasList />} */}
-        {/* {activeMenuItem === 'Orders' && <OrdersList />} */}
-        {/* {activeMenuItem === 'Inventory' && <Inventory />} */}
+        {activeMenuItem === 'Staff' && <StaffList />}
+        {activeMenuItem === 'Users' && <UsersList />}
+        {activeMenuItem === 'Pizzas' && <PizzasList />}
+        {activeMenuItem === 'Orders' && <OrdersList />}
+        {activeMenuItem === 'Inventory' && <InventoryList />}
       </div>
     </div>
   );
