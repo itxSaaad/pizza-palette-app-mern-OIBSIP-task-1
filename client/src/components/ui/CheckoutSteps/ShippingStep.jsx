@@ -1,18 +1,30 @@
 import PropTypes from 'prop-types';
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
+// Import Actions
+import { saveShippingAddress } from '../../../redux/slices/cartSlice';
+
+// Import Components
 import Button from '../Button';
 
 function ShippingStep({ setCurrentStep }) {
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [postalCode, setPostalCode] = useState('');
-  const [country, setCountry] = useState('');
+  const dispatch = useDispatch();
+
+  const cart = useSelector((state) => state.cart);
+  const { shippingAddress } = cart;
+
+  const [address, setAddress] = useState(shippingAddress.address);
+  const [city, setCity] = useState(shippingAddress.city);
+  const [postalCode, setPostalCode] = useState(shippingAddress.postalCode);
+  const [country, setCountry] = useState(shippingAddress.country);
 
   const submitHandler = (e) => {
     e.preventDefault();
+    dispatch(saveShippingAddress({ address, city, postalCode, country }));
     setCurrentStep('Payment');
   };
+
   return (
     <form onSubmit={submitHandler} className="w-full p-4">
       <p className="text-center text-black text-xl leading-relaxed">

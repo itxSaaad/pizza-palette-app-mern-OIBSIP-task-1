@@ -1,13 +1,30 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
+// Import Actions
+import { savePaymentMethod } from '../../../redux/slices/cartSlice';
+
+// Import Components
 import Button from '../Button';
 
 function PaymentStep({ setCurrentStep }) {
   const [paymentMethod, setPaymentMethod] = useState('');
 
+  const dispatch = useDispatch();
+
+  const cart = useSelector((state) => state.cart);
+  const { shippingAddress } = cart;
+
+  useEffect(() => {
+    if (!shippingAddress) {
+      setCurrentStep('Shipping');
+    }
+  }, [shippingAddress, setCurrentStep]);
+
   const submitHandler = (e) => {
     e.preventDefault();
+    dispatch(savePaymentMethod(paymentMethod));
     setCurrentStep('Place Order');
   };
   return (

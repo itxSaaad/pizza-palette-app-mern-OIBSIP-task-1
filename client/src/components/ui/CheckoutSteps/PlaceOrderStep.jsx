@@ -1,16 +1,10 @@
 import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 
 // Import Components
 import Button from '../Button';
 
 function PlaceOrderStep({ setCurrentStep }) {
-  const ShippingAddress = {
-    address: '1234 Main St',
-    city: 'Boston',
-    postalCode: 'MA 02101',
-    country: 'United States',
-  };
-  const PaymentMethod = 'RazorPay';
   const CartItems = [
     {
       name: 'Pizza 1',
@@ -25,6 +19,9 @@ function PlaceOrderStep({ setCurrentStep }) {
       quantity: 2,
     },
   ];
+
+  const cart = useSelector((state) => state.cart);
+  const { shippingAddress, paymentMethod } = cart;
 
   const orderSummary = [
     {
@@ -70,8 +67,8 @@ function PlaceOrderStep({ setCurrentStep }) {
               <span className="text-black text-md leading-relaxed mr-2">
                 Address:
               </span>
-              {ShippingAddress.address}, {ShippingAddress.city},{' '}
-              {ShippingAddress.postalCode}, {ShippingAddress.country}
+              {shippingAddress.address}, {shippingAddress.city},{' '}
+              {shippingAddress.postalCode}, {shippingAddress.country}
             </p>
           </div>
           <div className="flex flex-col items-start justify-between w-full md:w-2/3 border-y border-y-orange-300 py-2">
@@ -82,7 +79,7 @@ function PlaceOrderStep({ setCurrentStep }) {
               <span className="text-black text-md leading-relaxed mr-2">
                 Method:
               </span>
-              {PaymentMethod}
+              {paymentMethod}
             </p>
           </div>
           <div className="flex flex-col items-start justify-between w-full md:2/3 py-2 ">
