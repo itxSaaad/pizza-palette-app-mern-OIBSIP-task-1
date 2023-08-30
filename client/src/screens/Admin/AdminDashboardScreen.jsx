@@ -12,10 +12,12 @@ import { useNavigate } from 'react-router-dom';
 
 // Import Thunks
 import { listUsers } from '../../redux/asyncThunks/userThunks';
+import { listAdminUsers } from '../../redux/asyncThunks/adminThunks';
 
 // Import Components
 import MainContent from '../../components/ui/Admin/Dashboard/MainContent';
 import SideBar from '../../components/ui/Admin/Dashboard/SideBar';
+import Loader from '../../components/ui/Loader';
 
 function AdminDashboardScreen() {
   const menuItems = [
@@ -52,10 +54,10 @@ function AdminDashboardScreen() {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user);
-  const { userInfo } = user;
+  const { loading, userInfo } = user;
 
   const admin = useSelector((state) => state.admin);
-  const { adminUserInfo } = admin;
+  const { loading: adminLoading, adminUserInfo } = admin;
 
   const toggleSidebar = () => {
     setCollapsible((prevState) => !prevState);
@@ -71,6 +73,7 @@ function AdminDashboardScreen() {
       navigate('/admin/login');
     }
     dispatch(listUsers({}));
+    dispatch(listAdminUsers({}));
   }, [dispatch, navigate, adminUserInfo]);
 
   useEffect(() => {

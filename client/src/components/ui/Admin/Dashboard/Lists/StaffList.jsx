@@ -1,17 +1,18 @@
 import { useDispatch, useSelector } from 'react-redux';
 
+// Import Thunks
+import {
+  listAdminUsers,
+  deleteAdminUserById,
+} from '../../../../../redux/asyncThunks/adminThunks';
+
+// Import Components
 import Loader from '../../../Loader';
 import Message from '../../../Message';
 import Table from '../Table';
 
-// import {
-//   deleteUser,
-//   listUsers,
-//   updateProfileByAdmin,
-// } from '../../../redux/thunks/userThunks';
-
 function StaffList() {
-  const userColumns = [
+  const adminUserColumns = [
     '_id',
     'name',
     'email',
@@ -22,27 +23,36 @@ function StaffList() {
 
   const dispatch = useDispatch();
 
-  const user = useSelector((state) => state.user);
+  const admin = useSelector((state) => state.admin);
   const {
     loading,
     adminUserList,
     adminUserListError,
-    adminUserDeleteError,
-    // adminUpdateProfileToIsApprovedError,
-    adminUserDeleteSuccess,
-    // adminUpdateProfileToIsApprovedSuccess,
-  } = user;
+    adminUserDeleteByIdError,
+    adminUserUpdateProfileByIdError,
+    adminUserUpdateProfileByIdSuccess,
+    adminUserDeleteByIdSuccess,
+  } = admin;
 
   const handleDelete = (id) => {
-    // dispatch(deleteUser(id)).then(() => dispatch(listUsers({})));
+    dispatch(deleteAdminUserById(id)).then(() => dispatch(listAdminUsers({})));
   };
 
-  // const successMessageUpdate = adminUpdateProfileToIsApprovedSuccess && {
-  //   status: '200',
-  //   message: 'User Updated Successfully!',
-  // };
+  const handleChange = (id) => {
+    dispatch(
+      listAdminUsers({
+        id,
+        isApproved: !adminUserList.find((user) => user._id === id).isApproved,
+      })
+    );
+  };
 
-  const successMessageDelete = adminUserDeleteSuccess && {
+  const successMessageUpdate = adminUserUpdateProfileByIdSuccess && {
+    status: '200',
+    message: 'User Updated Successfully!',
+  };
+
+  const successMessageDelete = adminUserDeleteByIdSuccess && {
     status: '200',
     message: 'User Deleted Successfully!',
   };
@@ -54,28 +64,30 @@ function StaffList() {
         <Loader />
       ) : (
         <>
-          {/* {(adminUserListError ||
-            adminUpdateProfileToIsApprovedError ||
-            adminUserDeleteError) && (
+          {(adminUserListError ||
+            adminUserDeleteByIdError ||
+            adminUserUpdateProfileByIdError) && (
             <Message>
               {adminUserListError ||
-                adminUpdateProfileToIsApprovedError ||
-                adminUserDeleteError}
+                adminUserDeleteByIdError ||
+                adminUserUpdateProfileByIdError}
             </Message>
-          )} */}
-          {/* {(successMessageUpdate || successMessageDelete) && (
-            <Message>{successMessageUpdate || successMessageDelete}</Message>
-          )} */}
+          )}
+          {successMessageDelete ||
+            (successMessageUpdate && (
+              <Message>{successMessageDelete || successMessageUpdate}</Message>
+            ))}
           <div className="mt-4">
             {adminUserList.length > 0 ? (
               <Table
                 data={adminUserList}
-                columns={userColumns}
+                columns={adminUserColumns}
                 handleDelete={handleDelete}
+                handleChange={handleChange}
               />
             ) : (
               <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4 hidden md:block">
-                No Users Found..
+                No Staff Found..
               </h2>
             )}
           </div>

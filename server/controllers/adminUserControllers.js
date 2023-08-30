@@ -283,11 +283,25 @@ const updateAdminById = asyncHandler(async (req, res) => {
     let { name, email, role, permissions, isApproved } = req.body;
 
     if (emailValidator.validate(email)) {
-      admin.name = name || admin.name;
-      admin.email = email || admin.email;
-      admin.role = role || admin.role;
-      admin.permissions = permissions || admin.permissions;
-      admin.isApproved = isApproved || admin.isApproved;
+      if (admin.email !== email && email !== '') {
+        admin.email = email;
+      }
+
+      if (admin.name !== name && name !== '') {
+        admin.name = name;
+      }
+
+      if (admin.role !== role && role !== '') {
+        admin.role = role;
+      }
+
+      if (admin.permissions !== permissions && permissions !== '') {
+        admin.permissions = permissions;
+      }
+
+      if (admin.isApproved !== isApproved && isApproved !== '') {
+        admin.isApproved = isApproved;
+      }
 
       const updatedAdmin = await admin.save();
 
