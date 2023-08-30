@@ -8,10 +8,13 @@ const initialState = {
   adminUserInfo: localStorage.getItem('adminUserInfo')
     ? JSON.parse(localStorage.getItem('adminUserInfo'))
     : null,
+  adminUserList: [],
   adminUserLoginError: null,
   adminUserRegisterError: null,
+  adminUserListsError: null,
   adminUserLoginSuccess: false,
   adminUserRegisterSuccess: false,
+  adminUserListsSuccess: false,
   loading: false,
 };
 
