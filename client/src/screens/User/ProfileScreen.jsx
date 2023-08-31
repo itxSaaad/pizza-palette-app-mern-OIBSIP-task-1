@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
+// Import Thunks
+import { listOrdersByUserId } from '../../redux/asyncThunks/orderThunks';
+import { getUserDetails } from '../../redux/asyncThunks/userThunks';
+
 // Import Components
 import Button from '../../components/ui/Button';
 import Loader from '../../components/ui/Loader';
@@ -10,42 +14,8 @@ import EditProfileForm from '../../components/ui/Profile/EditProfileForm';
 import Profile from '../../components/ui/Profile/Profile';
 import UserOrdersTable from '../../components/ui/UserOrdersTable';
 
-// Import Actions
-import { getUserDetails } from '../../redux/asyncThunks/userThunks';
-
 function ProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
-
-  const orders = [
-    {
-      id: 1,
-      name: 'John Doe',
-      status: 'Sent for Delivery',
-      totalPrice: 200,
-      date: '2021-05-01',
-    },
-    {
-      id: 2,
-      name: 'John Doe',
-      status: 'Recieved',
-      totalPrice: 400,
-      date: '2021-05-01',
-    },
-    {
-      id: 3,
-      name: 'John Doe',
-      status: 'In the Kitchen',
-      totalPrice: 290,
-      date: '2021-05-02',
-    },
-    {
-      id: 4,
-      name: 'John Doe',
-      status: 'Delivered',
-      totalPrice: 100,
-      date: '2021-05-01',
-    },
-  ];
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -59,6 +29,13 @@ function ProfileScreen() {
     userUpdateProfileSuccess,
   } = user;
 
+  const order = useSelector((state) => state.order);
+  const {
+    orderListByUserById,
+    loading: orderLoading,
+    orderListByUserByIdError,
+  } = order;
+
   const successMessage = userUpdateProfileSuccess && {
     status: '200',
     message: 'Updated Successfully!',
@@ -68,20 +45,20 @@ function ProfileScreen() {
     if (!userInfo) {
       navigate('/login');
     }
-  }, [userInfo, navigate]);
-
-  useEffect(() => {
     if (userInfo && !userDetails) {
-      dispatch(getUserDetails({}));
+      dispatch(getUserDetails(userInfo._id));
     }
-  }, [dispatch, userInfo, userDetails]);
+    if (userInfo && userDetails && !orderListByUserById) {
+      dispatch(listOrdersByUserId(userInfo._id));
+    }
+  }, [dispatch, navigate, userInfo, userDetails, orderListByUserById]);
 
   return (
     <section className="min-h-screen flex flex-col sm:flex-row justify-center items-center pt-16 px-5 sm:px-16 space-y-5 sm:space-y-0 sm:space-x-5">
-      {loading ? (
+      {loading || orderLoading ? (
         <Loader />
-      ) : userDetailsError ? (
-        <Message>{userDetailsError}</Message>
+      ) : userDetailsError || orderListByUserByIdError ? (
+        <Message>{userDetailsError || orderListByUserByIdError}</Message>
       ) : (
         userDetails && (
           <>
@@ -108,8 +85,18 @@ function ProfileScreen() {
               )}
             </div>
             <div className="flex flex-col justify-center items-center w-full sm:w-2/3">
-              <h1 className="text-2xl font-bold text-center mb-4">My Orders</h1>
-              <UserOrdersTable orders={orders} />
+              {orderListByUserById ? (
+                <>
+                  <h1 className="text-2xl font-bold text-center mb-4">
+                    My Orders
+                  </h1>
+                  <UserOrdersTable orders={orderListByUserById} />
+                </>
+              ) : (
+                <div className="w-full text-4xl text-center font-bold text-orange-600 border-2 border-orange-500 rounded-2xl p-4">
+                  No Orders Found!
+                </div>
+              )}
             </div>
           </>
         )

@@ -1,4 +1,4 @@
-import PropTypes, { object } from 'prop-types';
+import PropTypes from 'prop-types';
 import { useState } from 'react';
 import {
   FaBoxOpen,
@@ -142,7 +142,7 @@ function UserOrdersTable({ orders }) {
 }
 
 UserOrdersTable.propTypes = {
-  orders: PropTypes.arrayOf(object).isRequired,
+  orders: PropTypes.array.isRequired,
 };
 
 export default UserOrdersTable;

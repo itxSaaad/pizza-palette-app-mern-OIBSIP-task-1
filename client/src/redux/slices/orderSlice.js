@@ -34,11 +34,14 @@ const orderSlice = createSlice({
   reducers: {
     clearOrderData: (state) => {
       state.orderInfo = {};
+      state.orderListByUserId = [];
       state.orderList = [];
+      state.orderListByUserIdError = null;
       state.orderListError = null;
       state.orderDetailsByIdError = null;
       state.orderUpdateByIdError = null;
       state.orderDeleteByIdError = null;
+      state.orderListByUserIdSuccess = false;
       state.orderListSuccess = false;
       state.orderDetailsByIdSuccess = false;
       state.orderUpdateByIdSuccess = false;

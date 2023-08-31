@@ -2,41 +2,15 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
+// Import Thunks
+import { listOrdersByUserId } from '../../redux/asyncThunks/orderThunks';
+
+// Import Components
 import Loader from '../../components/ui/Loader';
 import UserOrdersTable from '../../components/ui/UserOrdersTable';
+import Message from '../../components/ui/Message';
 
 function UserOrdersScreen() {
-  const orders = [
-    {
-      id: 1,
-      name: 'John Doe',
-      status: 'Sent for Delivery',
-      totalPrice: 200,
-      date: '2021-05-01',
-    },
-    {
-      id: 2,
-      name: 'John Doe',
-      status: 'Recieved',
-      totalPrice: 400,
-      date: '2021-05-01',
-    },
-    {
-      id: 3,
-      name: 'John Doe',
-      status: 'In the Kitchen',
-      totalPrice: 290,
-      date: '2021-05-02',
-    },
-    {
-      id: 4,
-      name: 'John Doe',
-      status: 'Delivered',
-      totalPrice: 100,
-      date: '2021-05-01',
-    },
-  ];
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -46,6 +20,13 @@ function UserOrdersScreen() {
   const admin = useSelector((state) => state.admin);
   const { adminUserInfo } = admin;
 
+  const order = useSelector((state) => state.order);
+  const {
+    loading: orderLoading,
+    orderListByUserId,
+    orderListByUserIdError,
+  } = order;
+
   useEffect(() => {
     if (!userInfo) {
       navigate('/login');
@@ -53,16 +34,30 @@ function UserOrdersScreen() {
     if (adminUserInfo) {
       navigate('/admin/dashboard');
     }
-  }, [userInfo, adminUserInfo, navigate]);
-
+    if (userInfo && !orderListByUserId) {
+      dispatch(listOrdersByUserId(userInfo._id));
+    }
+  }, [dispatch, navigate, userInfo, adminUserInfo, orderListByUserId]);
   return (
     <section className="min-h-screen flex flex-col justify-center items-center pt-14 px-10 sm:px-16">
-      {loading ? (
+      {loading || orderLoading ? (
         <Loader />
+      ) : orderListByUserIdError ? (
+        <Message>{orderListByUserIdError}</Message>
       ) : (
         <>
-          <h1 className="text-4xl font-bold text-orange-600 mb-8">My Orders</h1>
-          <UserOrdersTable orders={orders} />
+          {orderListByUserId.length > 0 ? (
+            <>
+              <h1 className="text-4xl font-bold text-orange-600 mb-8">
+                My Orders
+              </h1>
+              <UserOrdersTable orders={orderListByUserId} />
+            </>
+          ) : (
+            <div className="text-4xl font-bold text-orange-600">
+              No Orders Found!
+            </div>
+          )}
         </>
       )}
     </section>
