@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
-import { fetchAllPizzas } from '../redux/asyncThunks/pizzaThunks';
+import { listPizzas } from '../redux/asyncThunks/pizzaThunks';
 
 // Import Components
 import Loader from '../components/ui/Loader';
@@ -16,12 +16,12 @@ function MenuScreen() {
   const { loading, pizzaList, pizzaListError } = pizza;
 
   useEffect(() => {
-    dispatch(fetchAllPizzas());
+    dispatch(listPizzas({}));
   }, [dispatch]);
 
   useEffect(() => {
     if (!pizzaList) {
-      dispatch(fetchAllPizzas());
+      dispatch(listPizzas({}));
     }
   }, [dispatch, pizzaList]);
 

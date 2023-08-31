@@ -2,6 +2,8 @@ const asyncHandler = require('express-async-handler');
 
 // Import Schema
 const Pizza = require('../schemas/pizzaSchema');
+const Admin = require('../schemas/adminUserSchema');
+const User = require('../schemas/userSchema');
 
 // Initialize Controllers
 
@@ -10,7 +12,9 @@ const Pizza = require('../schemas/pizzaSchema');
 // @access  Public
 
 const getAllPizzas = asyncHandler(async (req, res) => {
-  const pizzas = await Pizza.find({});
+  const pizzas = await Pizza.find({
+    createdBy: 'admin',
+  });
 
   if (pizzas) {
     res.status(200).json(pizzas);
@@ -74,36 +78,76 @@ const createPizza = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error('Price Must Be Greater Than 0!');
       } else {
-        const pizza = new Pizza({
-          name,
-          description,
-          base,
-          sauces,
-          cheeses,
-          veggies,
-          price,
-          size,
-          imageUrl,
-        });
-        const createdPizza = await pizza.save();
-
-        if (createdPizza) {
-          res.status(201).json({
-            _id: createdPizza._id,
-            name: createdPizza.name,
-            description: createdPizza.description,
-            base: createdPizza.base,
-            sauces: createdPizza.sauces,
-            cheeses: createdPizza.cheeses,
-            veggies: createdPizza.veggies,
-            price: createdPizza.price,
-            size: createdPizza.size,
-            imageUrl: createdPizza.imageUrl,
-            message: 'Pizza Created Successfully!',
+        if (req.user._id === Admin.findById(req.user._id)) {
+          const pizza = new Pizza({
+            name,
+            description,
+            base,
+            sauces,
+            cheeses,
+            veggies,
+            price,
+            size,
+            createdBy: 'admin',
+            imageUrl,
           });
+
+          const createdPizza = await pizza.save();
+
+          if (createdPizza) {
+            res.status(201).json({
+              _id: createdPizza._id,
+              name: createdPizza.name,
+              description: createdPizza.description,
+              base: createdPizza.base,
+              sauces: createdPizza.sauces,
+              cheeses: createdPizza.cheeses,
+              veggies: createdPizza.veggies,
+              price: createdPizza.price,
+              size: createdPizza.size,
+              createdBy: createdPizza.createdBy,
+              imageUrl: createdPizza.imageUrl,
+              message: 'Pizza Created Successfully!',
+            });
+          } else {
+            res.status(500);
+            throw new Error('Internal Server Error!');
+          }
         } else {
-          res.status(500);
-          throw new Error('Internal Server Error!');
+          const pizza = new Pizza({
+            name,
+            description,
+            base,
+            sauces,
+            cheeses,
+            veggies,
+            price,
+            size,
+            createdBy: 'user',
+            imageUrl,
+          });
+
+          const createdPizza = await pizza.save();
+
+          if (createdPizza) {
+            res.status(201).json({
+              _id: createdPizza._id,
+              name: createdPizza.name,
+              description: createdPizza.description,
+              base: createdPizza.base,
+              sauces: createdPizza.sauces,
+              cheeses: createdPizza.cheeses,
+              veggies: createdPizza.veggies,
+              price: createdPizza.price,
+              size: createdPizza.size,
+              createdBy: createdPizza.createdBy,
+              imageUrl: createdPizza.imageUrl,
+              message: 'Pizza Created Successfully!',
+            });
+          } else {
+            res.status(500);
+            throw new Error('Internal Server Error!');
+          }
         }
       }
     }

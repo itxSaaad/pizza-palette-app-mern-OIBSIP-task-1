@@ -43,6 +43,11 @@ const pizzaSchema = new mongoose.Schema(
       enum: ['small', 'medium', 'large', 'extra-large'],
       required: true,
     },
+    createdBy: {
+      type: String,
+      enum: ['admin', 'user'],
+      required: true,
+    },
     imageUrl: {
       type: String,
       required: true,

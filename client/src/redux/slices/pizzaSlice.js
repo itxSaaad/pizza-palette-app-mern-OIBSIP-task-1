@@ -1,13 +1,25 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 // Import Thunks
-import { fetchAllPizzas } from '../asyncThunks/pizzaThunks';
+import {
+  deletePizzaById,
+  getPizzaById,
+  listPizzas,
+  updatePizzaById,
+} from '../asyncThunks/pizzaThunks';
 
 // Initial State
 const initialState = {
+  pizzaInfo: null,
   pizzaList: [],
   pizzaListError: null,
+  pizzaGetByIdError: null,
+  pizzaUpdateByIdError: null,
+  pizzaDeleteByIdError: null,
   pizzaListSuccess: false,
+  pizzaGetByIdSuccess: false,
+  pizzaUpdateByIdSuccess: false,
+  pizzaDeleteByIdSuccess: false,
   loading: false,
 };
 
@@ -17,27 +29,74 @@ const pizzaSlice = createSlice({
   initialState,
   reducers: {
     clearPizzaData: (state) => {
-      state.pizzaList = [];
+      state.pizzaInfo = null;
       state.pizzaListError = null;
+      state.pizzaGetByIdError = null;
+      state.pizzaUpdateByIdError = null;
+      state.pizzaDeleteByIdError = null;
       state.pizzaListSuccess = false;
+      state.pizzaGetByIdSuccess = false;
+      state.pizzaUpdateByIdSuccess = false;
+      state.pizzaDeleteByIdSuccess = false;
       state.loading = false;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchAllPizzas.pending, (state) => {
+      .addCase(listPizzas.pending, (state) => {
         state.loading = true;
         state.pizzaListError = null;
         state.pizzaListSuccess = false;
       })
-      .addCase(fetchAllPizzas.fulfilled, (state, action) => {
+      .addCase(listPizzas.fulfilled, (state, action) => {
         state.loading = false;
         state.pizzaList = action.payload;
         state.pizzaListSuccess = true;
       })
-      .addCase(fetchAllPizzas.rejected, (state, action) => {
+      .addCase(listPizzas.rejected, (state, action) => {
         state.loading = false;
         state.pizzaListError = action.payload;
+      })
+      .addCase(getPizzaById.pending, (state) => {
+        state.loading = true;
+        state.pizzaGetByIdError = null;
+        state.pizzaGetByIdSuccess = false;
+      })
+      .addCase(getPizzaById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.pizzaInfo = action.payload;
+        state.pizzaGetByIdSuccess = true;
+      })
+      .addCase(getPizzaById.rejected, (state, action) => {
+        state.loading = false;
+        state.pizzaGetByIdError = action.payload;
+      })
+      .addCase(updatePizzaById.pending, (state) => {
+        state.loading = true;
+        state.pizzaUpdateByIdError = null;
+        state.pizzaUpdateByIdSuccess = false;
+      })
+      .addCase(updatePizzaById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.pizzaInfo = action.payload;
+        state.pizzaUpdateByIdSuccess = true;
+      })
+      .addCase(updatePizzaById.rejected, (state, action) => {
+        state.loading = false;
+        state.pizzaUpdateByIdError = action.payload;
+      })
+      .addCase(deletePizzaById.pending, (state) => {
+        state.loading = true;
+        state.pizzaDeleteByIdError = null;
+        state.pizzaDeleteByIdSuccess = false;
+      })
+      .addCase(deletePizzaById.fulfilled, (state) => {
+        state.loading = false;
+        state.pizzaDeleteByIdSuccess = true;
+      })
+      .addCase(deletePizzaById.rejected, (state, action) => {
+        state.loading = false;
+        state.pizzaDeleteByIdError = action.payload;
       });
   },
 });
