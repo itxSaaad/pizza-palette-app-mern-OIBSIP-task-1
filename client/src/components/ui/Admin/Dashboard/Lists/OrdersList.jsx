@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
 
 // Import Thunks
 import {
@@ -12,7 +13,15 @@ import Message from '../../../Message';
 import Table from '../Table';
 
 function OrdersList() {
-  const orderColumns = ['_id', 'name', 'price', 'size'];
+  const orderColumns = [
+    '_id',
+    'user',
+    'status',
+    'salesTax',
+    'deliveryCharges',
+    'totalPrice',
+    'deliveredAt',
+  ];
 
   const dispatch = useDispatch();
 
@@ -34,6 +43,12 @@ function OrdersList() {
     message: 'order Deleted Successfully!',
   };
 
+  useEffect(() => {
+    if (!orderList) {
+      dispatch(listOrders({}));
+    }
+  }, [dispatch, orderList]);
+
   return (
     <div className="w-full p-4">
       <h2 className="text-2xl font-bold my-2">All Orders</h2>
@@ -46,7 +61,7 @@ function OrdersList() {
           )}
           {successMessageDelete && <Message>{successMessageDelete}</Message>}
           <div className="mt-4">
-            {orderList && orderList.length > 0 ? (
+            {orderList.length > 0 ? (
               <Table
                 data={orderList}
                 columns={orderColumns}

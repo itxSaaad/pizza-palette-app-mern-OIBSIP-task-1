@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
@@ -34,6 +35,12 @@ function UsersList() {
     message: 'User Deleted Successfully!',
   };
 
+  useEffect(() => {
+    if (!userList) {
+      dispatch(listUsers({}));
+    }
+  }, [dispatch, userList]);
+
   return (
     <div className="w-full p-4">
       <h2 className="text-2xl font-bold my-2">All Users</h2>
@@ -46,7 +53,7 @@ function UsersList() {
           )}
           {successMessageDelete && <Message>{successMessageDelete}</Message>}
           <div className="mt-4">
-            {userList && userList.length > 0 ? (
+            {userList.length > 0 ? (
               <Table
                 data={userList}
                 columns={userColumns}

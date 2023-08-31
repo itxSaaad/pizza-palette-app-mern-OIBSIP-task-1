@@ -1,9 +1,10 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
 import {
-  listAdminUsers,
   deleteAdminUserById,
+  listAdminUsers,
 } from '../../../../../redux/asyncThunks/adminThunks';
 
 // Import Components
@@ -57,6 +58,12 @@ function StaffList() {
     message: 'User Deleted Successfully!',
   };
 
+  useEffect(() => {
+    if (!adminUserList) {
+      dispatch(listAdminUsers({}));
+    }
+  }, [dispatch, adminUserList]);
+
   return (
     <div className="w-full p-4">
       <h2 className="text-2xl font-bold my-2">All Staff</h2>
@@ -78,7 +85,7 @@ function StaffList() {
               <Message>{successMessageDelete || successMessageUpdate}</Message>
             ))}
           <div className="mt-4">
-            {adminUserList && adminUserList.length > 0 ? (
+            {adminUserList.length > 0 ? (
               <Table
                 data={adminUserList}
                 columns={adminUserColumns}

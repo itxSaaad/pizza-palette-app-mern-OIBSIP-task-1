@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
@@ -34,6 +35,12 @@ function PizzasList() {
     message: 'pizza Deleted Successfully!',
   };
 
+  useEffect(() => {
+    if (!pizzaList) {
+      dispatch(listPizzas({}));
+    }
+  }, [dispatch, pizzaList]);
+
   return (
     <div className="w-full p-4">
       <h2 className="text-2xl font-bold my-2">All pizzas</h2>
@@ -46,7 +53,7 @@ function PizzasList() {
           )}
           {successMessageDelete && <Message>{successMessageDelete}</Message>}
           <div className="mt-4">
-            {pizzaList && pizzaList.length > 0 ? (
+            {pizzaList.length > 0 ? (
               <Table
                 data={pizzaList}
                 columns={pizzaColumns}
