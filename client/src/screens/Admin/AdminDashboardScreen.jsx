@@ -11,13 +11,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 // Import Thunks
-import { listUsers } from '../../redux/asyncThunks/userThunks';
 import { listAdminUsers } from '../../redux/asyncThunks/adminThunks';
+import { listOrders } from '../../redux/asyncThunks/orderThunks';
+import { listPizzas } from '../../redux/asyncThunks/pizzaThunks';
+import { listUsers } from '../../redux/asyncThunks/userThunks';
 
 // Import Components
 import MainContent from '../../components/ui/Admin/Dashboard/MainContent';
 import SideBar from '../../components/ui/Admin/Dashboard/SideBar';
-import Loader from '../../components/ui/Loader';
 
 function AdminDashboardScreen() {
   const menuItems = [
@@ -54,10 +55,10 @@ function AdminDashboardScreen() {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user);
-  const { loading, userInfo } = user;
+  const { userInfo } = user;
 
   const admin = useSelector((state) => state.admin);
-  const { loading: adminLoading, adminUserInfo } = admin;
+  const { adminUserInfo } = admin;
 
   const toggleSidebar = () => {
     setCollapsible((prevState) => !prevState);
@@ -74,6 +75,8 @@ function AdminDashboardScreen() {
     }
     dispatch(listUsers({}));
     dispatch(listAdminUsers({}));
+    dispatch(listPizzas({}));
+    dispatch(listOrders({}));
   }, [dispatch, navigate, adminUserInfo]);
 
   useEffect(() => {

@@ -28,7 +28,8 @@ function MainContent({ activeMenuItem, collapsible, onToggleSidebar }) {
       <SideBarToggleButton onClick={onToggleSidebar} isOpen={collapsible} />
       <div className="flex flex-col items-center justify-center">
         <h1 className="text-4xl text-center font-bold">
-          Welcome to Admin Panel {formattedUserName}!
+          Welcome to Admin Panel
+          <span className="text-orange-300"> {formattedUserName}</span>!
         </h1>
         {activeMenuItem === 'Home' && <Home />}
         {activeMenuItem === 'Staff' && <StaffList />}
