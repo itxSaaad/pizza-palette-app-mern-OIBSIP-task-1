@@ -235,7 +235,6 @@ export const getUserDetails = createAsyncThunk(
 
       return data;
     } catch (error) {
-      console.log(error);
       return rejectWithValue({
         status: error.response && error.response.status,
         message:
@@ -269,7 +268,6 @@ export const listUsers = createAsyncThunk(
 
       return data;
     } catch (error) {
-      console.log(error);
       return rejectWithValue({
         status: error.response && error.response.status,
         message:
@@ -303,7 +301,6 @@ export const getUserDetailsById = createAsyncThunk(
 
       return data;
     } catch (error) {
-      console.log(error);
       return rejectWithValue({
         status: error.response && error.response.status,
         message:
@@ -344,7 +341,6 @@ export const updateUserProfileById = createAsyncThunk(
 
       return data;
     } catch (error) {
-      console.log(error);
       return rejectWithValue({
         status: error.response && error.response.status,
         message:
@@ -378,7 +374,6 @@ export const deleteUserById = createAsyncThunk(
 
       return data;
     } catch (error) {
-      console.log(error);
       return rejectWithValue({
         status: error.response && error.response.status,
         message:
