@@ -46,14 +46,14 @@ function UsersList() {
           )}
           {successMessageDelete && <Message>{successMessageDelete}</Message>}
           <div className="mt-4">
-            {userList.length > 0 ? (
+            {userList && userList.length > 0 ? (
               <Table
                 data={userList}
                 columns={userColumns}
                 handleDelete={handleDelete}
               />
             ) : (
-              <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4 hidden md:block">
+              <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
                 No Users Found..
               </h2>
             )}

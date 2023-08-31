@@ -1,10 +1,13 @@
 import PropTypes from 'prop-types';
-import { FaMinus, FaPlus } from 'react-icons/fa';
+import { FaMinus, FaPlus, FaTrash } from 'react-icons/fa';
 
-function CartItemList({ cartDetails, handleQuantityChange }) {
+// Import Components
+import Button from '../../Button';
+
+function CartItemList({ cartItems, handleQuantityChange, removeItemFromCart }) {
   return (
     <>
-      {cartDetails.map((item, index) => (
+      {cartItems.map((item, index) => (
         <div
           key={index}
           className="flex items-center space-x-4 border-b border-b-orange-300 pb-2"
@@ -29,6 +32,14 @@ function CartItemList({ cartDetails, handleQuantityChange }) {
               </button>
             </div>
           </div>
+          <Button
+            variant="danger"
+            className="rounded-full p-1"
+            onClick={removeItemFromCart(item.id)}
+          >
+            <FaTrash />
+          </Button>
+
           <p>Total: ${item.price * item.quantity}</p>
         </div>
       ))}
@@ -37,8 +48,9 @@ function CartItemList({ cartDetails, handleQuantityChange }) {
 }
 
 CartItemList.propTypes = {
-  cartDetails: PropTypes.array.isRequired,
+  cartItems: PropTypes.array.isRequired,
   handleQuantityChange: PropTypes.func.isRequired,
+  removeItemFromCart: PropTypes.func.isRequired,
 };
 
 export default CartItemList;

@@ -9,12 +9,12 @@ import { savePaymentMethod } from '../../../redux/slices/cartSlice';
 import Button from '../Button';
 
 function PaymentStep({ setCurrentStep }) {
-  const [paymentMethod, setPaymentMethod] = useState('');
-
   const dispatch = useDispatch();
 
   const cart = useSelector((state) => state.cart);
-  const { shippingAddress } = cart;
+  const { shippingAddress, cartItems } = cart;
+
+  const [paymentMethod, setPaymentMethod] = useState(cart.paymentMethod || '');
 
   useEffect(() => {
     if (!shippingAddress) {
@@ -34,33 +34,44 @@ function PaymentStep({ setCurrentStep }) {
         <br />
         <span className="text-sm text-orange-500">Select Payment Method</span>
       </p>
-      <div className="flex flex-col items-center justify-center mt-4">
-        <div className="flex items-center justify-center">
-          <input
-            type="radio"
-            id="razorpay"
-            value="Razorpay"
-            name="paymentMethod"
-            required
-            checked={paymentMethod === 'Razorpay'}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            className="mr-2"
-          />
-          <label
-            htmlFor="razorpay"
-            className="text-orange-500 font-semibold text-lg"
+      {cartItems ? (
+        <>
+          <div className="flex flex-col items-center justify-center mt-4">
+            <div className="flex items-center justify-center">
+              <input
+                type="radio"
+                id="razorpay"
+                value="Razorpay"
+                name="paymentMethod"
+                required
+                checked={paymentMethod === 'Razorpay'}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="mr-2"
+              />
+              <label
+                htmlFor="razorpay"
+                className="text-orange-500 font-semibold text-lg"
+              >
+                Razorpay
+              </label>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            type="submit"
+            disabled={!paymentMethod || !cartItems}
+            className="w-full sm:w-1/3 rounded-full mt-4 disabled:cursor-not-allowed"
           >
-            Razorpay
-          </label>
+            Continue
+          </Button>
+        </>
+      ) : (
+        <div className="flex flex-col items-center justify-center w-full border border-orange-300 rounded-2xl p-4">
+          <p className="text-center text-orange-500 text-xl leading-relaxed">
+            Can&apos;t Place Order Without Order Items
+          </p>
         </div>
-      </div>
-      <Button
-        variant="outline"
-        type="submit"
-        className="w-full sm:w-1/3 rounded-full mt-4"
-      >
-        Continue
-      </Button>
+      )}
     </form>
   );
 }

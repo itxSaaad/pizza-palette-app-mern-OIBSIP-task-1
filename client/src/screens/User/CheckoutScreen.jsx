@@ -35,11 +35,17 @@ function CheckoutScreen() {
   const admin = useSelector((state) => state.admin);
   const { adminUserInfo } = admin;
 
+  const cart = useSelector((state) => state.cart);
+  const { cartItems } = cart;
+
   useEffect(() => {
-    if (!adminUserInfo && !userInfo) {
+    if (!userInfo && !adminUserInfo) {
       navigate('/login');
     }
-  }, [userInfo, adminUserInfo, navigate]);
+    // else if (!cartItems) {
+    //   navigate('/menu');
+    // }
+  }, [navigate, userInfo, adminUserInfo, cartItems]);
 
   return (
     <section className="min-h-screen flex flex-col justify-center items-center pt-24 pb-6 px-2 sm:px-16 bg-orange-200">

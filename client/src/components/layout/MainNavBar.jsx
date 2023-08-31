@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { CgLogIn } from 'react-icons/cg';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, NavLink } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
 
 // Import Actions
-import { clearUserData } from '../../redux/slices/userSlice';
-import { clearPizzaData } from '../../redux/slices/pizzaSlice';
 import { clearAdminUserData } from '../../redux/slices/adminSlice';
-import { getUserDetails } from '../../redux/asyncThunks/userThunks';
+import { clearCartData } from '../../redux/slices/cartSlice';
+import { clearPizzaData } from '../../redux/slices/pizzaSlice';
+import { clearUserData } from '../../redux/slices/userSlice';
 
 // Import Images
 import Logo from '/android-chrome-192x192.png';
@@ -58,21 +58,6 @@ function MainNavbar() {
     },
   ];
 
-  const cartDetails = [
-    {
-      name: 'Pizza 1',
-      image: 'https://picsum.photos/200',
-      price: 10,
-      quantity: 1,
-    },
-    {
-      name: 'Pizza 2',
-      image: 'https://picsum.photos/200',
-      price: 20,
-      quantity: 2,
-    },
-  ];
-
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user);
@@ -81,11 +66,14 @@ function MainNavbar() {
   const admin = useSelector((state) => state.admin);
   const { adminUserInfo } = admin;
 
+  const cart = useSelector((state) => state.cart);
+  const { cartItems } = cart;
+
   const logoutHandler = () => {
-    console.log('Logout');
     dispatch(clearUserData());
     dispatch(clearPizzaData());
     dispatch(clearAdminUserData());
+    dispatch(clearCartData());
     setDropIsOpen(!dropIsOpen);
   };
 
@@ -122,7 +110,7 @@ function MainNavbar() {
         </div>
         <div className="flex flex-row items-center justify-center space-x-1 sm:space-x-4">
           <CartButton onClick={() => setCartIsOpen(!cartIsOpen)}>
-            {cartDetails.length}
+            {cartItems ? cartItems.length : 0}
           </CartButton>
 
           {userInfo || adminUserInfo ? (
@@ -213,6 +201,7 @@ function MainNavbar() {
                 <Button
                   variant="outline"
                   type="button"
+                  onClick={() => setIsOpen(!isOpen)}
                   className="font-semibold text-xl py-2 px-4 rounded-full inline-flex items-center mt-4"
                 >
                   <CgLogIn className="mr-2" />
@@ -225,7 +214,6 @@ function MainNavbar() {
       )}
       {cartIsOpen && (
         <CartModal
-          cartDetails={cartDetails}
           onClose={() => {
             setCartIsOpen(false);
             setIsOpen(false);

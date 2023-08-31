@@ -78,7 +78,7 @@ function StaffList() {
               <Message>{successMessageDelete || successMessageUpdate}</Message>
             ))}
           <div className="mt-4">
-            {adminUserList.length > 0 ? (
+            {adminUserList && adminUserList.length > 0 ? (
               <Table
                 data={adminUserList}
                 columns={adminUserColumns}
@@ -86,7 +86,7 @@ function StaffList() {
                 handleChange={handleChange}
               />
             ) : (
-              <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4 hidden md:block">
+              <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
                 No Staff Found..
               </h2>
             )}

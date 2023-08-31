@@ -78,6 +78,19 @@ const cartSlice = createSlice({
         JSON.stringify(state.paymentMethod)
       );
     },
+    clearCartData(state) {
+      localStorage.removeItem('cartItems');
+      localStorage.removeItem('shippingAddress');
+      localStorage.removeItem('paymentMethod');
+      state.cartAddItemError = null;
+      state.cartRemoveItemError = null;
+      state.cartSaveShippingAddressError = null;
+      state.cartSavePaymentMethodError = null;
+      state.cartAddItemSuccess = false;
+      state.cartRemoveItemSuccess = false;
+      state.cartSaveShippingAddressSuccess = false;
+      state.cartSavePaymentMethodSuccess = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -111,8 +124,12 @@ const cartSlice = createSlice({
 });
 
 // Export Actions
-export const { removeFromCart, saveShippingAddress, savePaymentMethod } =
-  cartSlice.actions;
+export const {
+  clearCartData,
+  removeFromCart,
+  saveShippingAddress,
+  savePaymentMethod,
+} = cartSlice.actions;
 
 // Export Reducer
 export default cartSlice.reducer;
