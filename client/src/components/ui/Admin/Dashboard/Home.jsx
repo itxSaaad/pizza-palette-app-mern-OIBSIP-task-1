@@ -1,7 +1,9 @@
 import { useSelector } from 'react-redux';
+import { FaPlus, FaEdit } from 'react-icons/fa';
 
 // Import Components
 import Loader from '../../Loader';
+import Button from '../../Button';
 
 function Home() {
   const user = useSelector((state) => state.user);
@@ -84,11 +86,11 @@ function Home() {
   const CardList = [
     {
       title: 'Total Users',
-      value: totalUsers,
+      count: totalUsers,
     },
     {
       title: 'Total Admins',
-      value: totalAdmins,
+      count: totalAdmins,
     },
     {
       title: 'Users Created Today',
@@ -118,37 +120,45 @@ function Home() {
 
   return (
     <div className="w-full flex flex-col items-center justify-center p-4">
-      {loading || adminLoading ? (
-        <Loader />
-      ) : (
+      <div className="w-full flex flex-col items-center justify-center">
         <div className="w-full flex flex-row items-center justify-center space-x-5">
-          <table className="bg-orange-700 sm:w-1/3 table-auto border-collapse border-2 border-orange-700 rounded-lg text-left overflow-hidden whitespace-no-wrap">
-            <thead className="bg-orange-700 h-10 uppercase font-bold">
-              <tr>
-                <th className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
-                  Title
-                </th>
-                <th className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
-                  Count
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-orange-600 text-orange-100">
-              {CardList.map((card, index) => (
-                <tr key={index}>
-                  <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
-                    {card.title}
-                  </td>
-                  <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
-                    {card.count}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div>Create New Pizza</div>
+          <Button
+            variant="secondary"
+            className="w-full rounded-full font-bold inline-flex items-center justify-center"
+          >
+            <FaPlus className="mr-1" />
+            Create Pizza
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full rounded-full font-bold inline-flex items-center justify-center"
+          >
+            <FaEdit className="mr-1" />
+            Update Inventory
+          </Button>
         </div>
-      )}
+        {loading || adminLoading ? (
+          <div className="w-full flex flex-col items-center justify-center mt-10">
+            <Loader />
+          </div>
+        ) : (
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-center">
+            {CardList.map((card, index) => (
+              <div
+                key={index}
+                className="w-full flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-md"
+              >
+                <h1 className="text-xl font-bold text-orange-700">
+                  {card.title}
+                </h1>
+                <h1 className="text-3xl font-bold text-orange-600">
+                  {card.count}
+                </h1>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

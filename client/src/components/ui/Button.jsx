@@ -13,7 +13,7 @@ function Button({
       classes = 'bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 my-2';
       break;
     case 'secondary':
-      classes = 'bg-white hover:bg-gray-300 text-orange-500 py-3 px-4 my-2';
+      classes = 'bg-white hover:bg-gray-100 text-orange-500 py-3 px-4 my-2';
       break;
     case 'outline':
       classes =
