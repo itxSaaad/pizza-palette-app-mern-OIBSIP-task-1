@@ -9,6 +9,7 @@ import { clearCartData } from '../../redux/slices/cartSlice';
 import { clearPizzaData } from '../../redux/slices/pizzaSlice';
 import { clearUserData } from '../../redux/slices/userSlice';
 import { clearOrderData } from '../../redux/slices/orderSlice';
+import { clearInventoryData } from '../../redux/slices/inventorySlice';
 
 // Import Images
 import Logo from '/android-chrome-192x192.png';
@@ -76,6 +77,7 @@ function MainNavbar() {
     dispatch(clearAdminUserData());
     dispatch(clearCartData());
     dispatch(clearOrderData());
+    dispatch(clearInventoryData());
     setDropIsOpen(!dropIsOpen);
   };
 

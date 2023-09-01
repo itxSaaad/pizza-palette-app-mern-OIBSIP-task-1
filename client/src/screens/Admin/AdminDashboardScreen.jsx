@@ -15,10 +15,11 @@ import { listAdminUsers } from '../../redux/asyncThunks/adminThunks';
 import { listOrders } from '../../redux/asyncThunks/orderThunks';
 import { listPizzas } from '../../redux/asyncThunks/pizzaThunks';
 import { listUsers } from '../../redux/asyncThunks/userThunks';
+import { listInventory } from '../../redux/asyncThunks/inventoryThunks';
 
 // Import Components
 import MainContent from '../../components/ui/Admin/Dashboard/MainContent';
-import SideBar from '../../components/ui/Admin/Dashboard/SideBar';
+import SideBar from '../../components/ui/Admin/Dashboard/SideBar/SideBar';
 
 function AdminDashboardScreen() {
   const menuItems = [
@@ -77,6 +78,7 @@ function AdminDashboardScreen() {
     dispatch(listAdminUsers({}));
     dispatch(listPizzas({}));
     dispatch(listOrders({}));
+    dispatch(listInventory({}));
   }, [dispatch, navigate, adminUserInfo]);
 
   useEffect(() => {

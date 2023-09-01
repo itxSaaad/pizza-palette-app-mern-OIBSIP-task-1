@@ -8,7 +8,7 @@ import OrdersList from './Lists/OrdersList';
 import PizzasList from './Lists/PizzasList';
 import StaffList from './Lists/StaffList';
 import UsersList from './Lists/UsersList';
-import SideBarToggleButton from './SideBarToggleButton';
+import SideBarToggleButton from './SideBar/SideBarToggleButton';
 
 function MainContent({ activeMenuItem, collapsible, onToggleSidebar }) {
   const admin = useSelector((state) => state.admin);

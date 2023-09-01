@@ -1,11 +1,17 @@
+import { useState } from 'react';
+import { FaPlus } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
-import { FaPlus, FaEdit } from 'react-icons/fa';
 
 // Import Components
-import Loader from '../../Loader';
 import Button from '../../Button';
+import Loader from '../../Loader';
+import PizzaCreateModal from './Modals/PizzaCreateModal';
+import UpdateInventoryModal from './Modals/UpdateInventoryModal';
 
 function Home() {
+  const [isPizzaModalVisible, setIsPizzaModalVisible] = useState(false);
+  const [isInventoryModalVisible, setIsInventoryModalVisible] = useState(false);
+
   const user = useSelector((state) => state.user);
   const { loading, userList } = user;
 
@@ -119,47 +125,69 @@ function Home() {
   ];
 
   return (
-    <div className="w-full flex flex-col items-center justify-center p-4">
-      <div className="w-full flex flex-col items-center justify-center">
-        <div className="w-full flex flex-row items-center justify-center space-x-5">
-          <Button
-            variant="secondary"
-            className="w-full rounded-full font-bold inline-flex items-center justify-center"
-          >
-            <FaPlus className="mr-1" />
-            Create Pizza
-          </Button>
-          <Button
-            variant="secondary"
-            className="w-full rounded-full font-bold inline-flex items-center justify-center"
-          >
-            <FaEdit className="mr-1" />
-            Update Inventory
-          </Button>
+    <>
+      <div className="w-full flex flex-col items-center justify-center p-4">
+        <div className="w-full flex flex-col items-center justify-center">
+          <div className="w-full flex flex-row items-center justify-center space-x-5">
+            <Button
+              variant="secondary"
+              className="w-full rounded-full font-bold inline-flex items-center justify-center"
+              onClick={() => {
+                setIsPizzaModalVisible(true);
+              }}
+            >
+              <FaPlus className="mr-1" />
+              Create New Pizza
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full rounded-full font-bold inline-flex items-center justify-center"
+              onClick={() => {
+                setIsInventoryModalVisible(true);
+              }}
+            >
+              <FaPlus className="mr-1" />
+              Add New Stock
+            </Button>
+          </div>
+          {loading || adminLoading ? (
+            <div className="w-full flex flex-col items-center justify-center mt-10">
+              <Loader />
+            </div>
+          ) : (
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-center">
+              {CardList.map((card, index) => (
+                <div
+                  key={index}
+                  className="w-full flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-md"
+                >
+                  <h1 className="text-xl font-bold text-orange-700">
+                    {card.title}
+                  </h1>
+                  <h1 className="text-3xl font-bold text-orange-600">
+                    {card.count}
+                  </h1>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        {loading || adminLoading ? (
-          <div className="w-full flex flex-col items-center justify-center mt-10">
-            <Loader />
-          </div>
-        ) : (
-          <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-center">
-            {CardList.map((card, index) => (
-              <div
-                key={index}
-                className="w-full flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-md"
-              >
-                <h1 className="text-xl font-bold text-orange-700">
-                  {card.title}
-                </h1>
-                <h1 className="text-3xl font-bold text-orange-600">
-                  {card.count}
-                </h1>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-    </div>
+      {isPizzaModalVisible && (
+        <PizzaCreateModal
+          onClose={() => {
+            setIsPizzaModalVisible(false);
+          }}
+        />
+      )}
+      {isInventoryModalVisible && (
+        <UpdateInventoryModal
+          onClose={() => {
+            setIsInventoryModalVisible(false);
+          }}
+        />
+      )}
+    </>
   );
 }
 
