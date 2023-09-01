@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../../Button';
 import Loader from '../../../Loader';
 
-function UpdateInventoryModal({ onClose }) {
+function StockCreateModal({ onClose }) {
   const [modalVisible, setModalVisible] = useState(false);
   const navigate = useNavigate();
 
@@ -60,8 +60,8 @@ function UpdateInventoryModal({ onClose }) {
   );
 }
 
-UpdateInventoryModal.propTypes = {
+StockCreateModal.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-export default UpdateInventoryModal;
+export default StockCreateModal;

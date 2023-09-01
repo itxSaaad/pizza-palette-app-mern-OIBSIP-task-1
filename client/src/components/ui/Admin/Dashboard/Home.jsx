@@ -6,7 +6,8 @@ import { useSelector } from 'react-redux';
 import Button from '../../Button';
 import Loader from '../../Loader';
 import PizzaCreateModal from './Modals/PizzaCreateModal';
-import UpdateInventoryModal from './Modals/UpdateInventoryModal';
+import StockCreateModal from './Modals/StockCreateModal';
+import InventoryTable from './InventoryTable';
 
 function Home() {
   const [isPizzaModalVisible, setIsPizzaModalVisible] = useState(false);
@@ -18,29 +19,14 @@ function Home() {
   const admin = useSelector((state) => state.admin);
   const { loading: adminLoading, adminUserList } = admin;
 
+  const order = useSelector((state) => state.order);
+  const { orderList, loading: orderLoading } = order;
+
+  const inventory = useSelector((state) => state.inventory);
+  const { inventoryList, loading: inventoryLoading } = inventory;
+
   const totalUsers = userList.length;
   const totalAdmins = adminUserList.length;
-
-  // Function to check if a user was created today
-  const isCreatedToday = (userDate) => {
-    const userCreationDate = new Date(userDate);
-    const today = new Date();
-    return (
-      userCreationDate.getDate() === today.getDate() &&
-      userCreationDate.getMonth() === today.getMonth() &&
-      userCreationDate.getFullYear() === today.getFullYear()
-    );
-  };
-
-  // Function to check if a user was created this week
-  const isCreatedThisWeek = (userDate) => {
-    const userCreationDate = new Date(userDate);
-    const today = new Date();
-    return (
-      today.getTime() - userCreationDate.getTime() < 7 * 24 * 60 * 60 * 1000 &&
-      today.getDay() >= userCreationDate.getDay()
-    );
-  };
 
   // Function to check if a user was created this month
   const isCreatedThisMonth = (userDate) => {
@@ -53,43 +39,46 @@ function Home() {
   };
 
   // Filter users based on creation date
-  const usersCreatedToday = userList.filter((user) =>
-    isCreatedToday(user.createdAt)
-  );
-  const usersCreatedThisWeek = userList.filter((user) =>
-    isCreatedThisWeek(user.createdAt)
-  );
   const usersCreatedThisMonth = userList.filter((user) =>
     isCreatedThisMonth(user.createdAt)
   );
 
   // Filter admins based on creation date
-  const adminsCreatedToday = adminUserList.filter((user) =>
-    isCreatedToday(user.createdAt)
-  );
-  const adminsCreatedThisWeek = adminUserList.filter((user) =>
-    isCreatedThisWeek(user.createdAt)
-  );
   const adminsCreatedThisMonth = adminUserList.filter((user) =>
     isCreatedThisMonth(user.createdAt)
   );
 
-  // Filter orders based on creation date
-  // Filter Orders based on Status
-  // const ordersRecieved = orderList.filter(
-  //   (order) => order.status === 'Recieved'
-  // );
-  // const ordersInTheKitchen = orderList.filter(
-  //   (order) => order.status === 'In The Kitchen'
-  // );
-  // const ordersSentForDelivery = orderList.filter(
-  //   (order) => order.status === 'Sent For Delivery'
-  // );
-  // const ordersDelivered = orderList.filter(
-  //   (order) => order.status === 'Delivered'
-  // );
+  // Filter orders based on status
+  const ordersRecieved = orderList.filter(
+    (order) => order.status === 'Recieved'
+  );
+  const ordersInTheKitchen = orderList.filter(
+    (order) => order.status === 'In The Kitchen'
+  );
+  const ordersSentForDelivery = orderList.filter(
+    (order) => order.status === 'Sent For Delivery'
+  );
+  const ordersDelivered = orderList.filter(
+    (order) => order.status === 'Delivered'
+  );
 
   const CardList = [
+    {
+      title: 'Orders Recieved',
+      count: ordersRecieved.length,
+    },
+    {
+      title: 'Orders In The Kitchen',
+      count: ordersInTheKitchen.length,
+    },
+    {
+      title: 'Orders Sent For Delivery',
+      count: ordersSentForDelivery.length,
+    },
+    {
+      title: 'Orders Delivered',
+      count: ordersDelivered.length,
+    },
     {
       title: 'Total Users',
       count: totalUsers,
@@ -99,24 +88,8 @@ function Home() {
       count: totalAdmins,
     },
     {
-      title: 'Users Created Today',
-      count: usersCreatedToday.length,
-    },
-    {
-      title: 'Users Created This Week',
-      count: usersCreatedThisWeek.length,
-    },
-    {
       title: 'Users Created This Month',
       count: usersCreatedThisMonth.length,
-    },
-    {
-      title: 'Admins Created Today',
-      count: adminsCreatedToday.length,
-    },
-    {
-      title: 'Admins Created This Week',
-      count: adminsCreatedThisWeek.length,
     },
     {
       title: 'Admins Created This Month',
@@ -150,26 +123,45 @@ function Home() {
               Add New Stock
             </Button>
           </div>
-          {loading || adminLoading ? (
+          {loading || adminLoading || orderLoading || inventoryLoading ? (
             <div className="w-full flex flex-col items-center justify-center mt-10">
               <Loader />
             </div>
           ) : (
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-center">
-              {CardList.map((card, index) => (
-                <div
-                  key={index}
-                  className="w-full flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-md"
-                >
-                  <h1 className="text-xl font-bold text-orange-700">
-                    {card.title}
-                  </h1>
-                  <h1 className="text-3xl font-bold text-orange-600">
-                    {card.count}
+            <>
+              {inventoryList ? (
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-center">
+                  {Object.entries(inventoryList).map(([category, items]) => (
+                    <InventoryTable
+                      key={category}
+                      title={category}
+                      items={items}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full flex flex-col items-center justify-center mt-10">
+                  <h1 className="text-2xl font-bold text-orange-600">
+                    No Stock Available
                   </h1>
                 </div>
-              ))}
-            </div>
+              )}
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-center">
+                {CardList.map((card, index) => (
+                  <div
+                    key={index}
+                    className="w-full flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-md"
+                  >
+                    <h1 className="text-xl font-bold text-orange-700">
+                      {card.title}
+                    </h1>
+                    <h1 className="text-3xl font-bold text-orange-600">
+                      {card.count}
+                    </h1>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -181,7 +173,7 @@ function Home() {
         />
       )}
       {isInventoryModalVisible && (
-        <UpdateInventoryModal
+        <StockCreateModal
           onClose={() => {
             setIsInventoryModalVisible(false);
           }}

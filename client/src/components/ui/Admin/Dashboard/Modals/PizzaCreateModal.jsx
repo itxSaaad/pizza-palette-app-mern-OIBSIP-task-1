@@ -45,9 +45,11 @@ function PizzaCreateModal({ onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Create Pizza</h2>
+          <h2 className="w-full text-xl text-orange-500 font-bold border-b border-b-orange-400">
+            Create Pizza
+          </h2>
           <button
-            className="text-red-500 border-2 border-red-500 hover:bg-red-600 hover:text-white rounded-full p-1"
+            className="text-red-500 border-2 border-red-500 hover:bg-red-600 hover:text-white rounded-full p-1 ml-10"
             onClick={handleModalClose}
           >
             <FaTimes />
