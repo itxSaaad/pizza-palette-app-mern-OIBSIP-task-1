@@ -6,6 +6,7 @@ import cartReducer from './slices/cartSlice.js';
 import orderReducer from './slices/orderSlice.js';
 import pizzaReducer from './slices/pizzaSlice.js';
 import userReducer from './slices/userSlice.js';
+import inventoryReducer from './slices/inventorySlice.js';
 
 // Create Store
 
@@ -16,6 +17,7 @@ const store = configureStore({
     order: orderReducer,
     pizza: pizzaReducer,
     user: userReducer,
+    inventory: inventoryReducer,
   },
   devTools: true,
 });
