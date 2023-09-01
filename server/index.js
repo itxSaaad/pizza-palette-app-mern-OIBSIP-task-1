@@ -54,7 +54,7 @@ app.use('/api/admin', adminUserRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/pizzas', pizzaRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/inventory', inventoryRoutes);
+app.use('/api/stocks', inventoryRoutes);
 
 // Error Middleware
 app.use(notFound);

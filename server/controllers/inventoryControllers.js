@@ -16,7 +16,12 @@ const getAllStocks = asyncHandler(async (req, res) => {
   const veggie = await Veggie.find({});
 
   if (base && sauce && cheese && veggie) {
-    res.status(200).json({ base, sauce, cheese, veggie });
+    res.status(200).json({
+      bases: base,
+      sauces: sauce,
+      cheeses: cheese,
+      veggies: veggie,
+    });
   } else {
     res.status(404);
     throw new Error('No Stock Found!');
@@ -38,6 +43,57 @@ const getStockById = asyncHandler(async (req, res) => {
   } else {
     res.status(404);
     throw new Error('Stock Item Not Found!');
+  }
+});
+
+// @desc    Create Stock
+// @route   POST /api/stocks
+// @access  Admin
+
+const createStock = asyncHandler(async (req, res) => {
+  if (req.body.type === 'Base') {
+    const base = new Base({
+      item: req.body.name,
+      price: req.body.price,
+      quantity: req.body.quantity,
+      threshold: req.body.threshold,
+    });
+
+    const createdBase = await base.save();
+    res.status(201).json(createdBase);
+  } else if (req.body.type === 'Sauce') {
+    const sauce = new Sauce({
+      item: req.body.name,
+      price: req.body.price,
+      quantity: req.body.quantity,
+      threshold: req.body.threshold,
+    });
+
+    const createdSauce = await sauce.save();
+    res.status(201).json(createdSauce);
+  } else if (req.body.type === 'Cheese') {
+    const cheese = new Cheese({
+      item: req.body.name,
+      price: req.body.price,
+      quantity: req.body.quantity,
+      threshold: req.body.threshold,
+    });
+
+    const createdCheese = await cheese.save();
+    res.status(201).json(createdCheese);
+  } else if (req.body.type === 'Veggie') {
+    const veggie = new Veggie({
+      item: req.body.name,
+      price: req.body.price,
+      quantity: req.body.quantity,
+      threshold: req.body.threshold,
+    });
+
+    const createdVeggie = await veggie.save();
+    res.status(201).json(createdVeggie);
+  } else {
+    res.status(404);
+    throw new Error('Stock Type Not Found!');
   }
 });
 
@@ -83,5 +139,41 @@ const updateStockById = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Delete Stock by Id
+// @route   DELETE /api/stocks/:id
+// @access  Admin
+
+const deleteStockById = asyncHandler(async (req, res) => {
+  const base = await Base.findById(req.params.id);
+  const sauce = await Sauce.findById(req.params.id);
+  const cheese = await Cheese.findById(req.params.id);
+  const veggie = await Veggie.findById(req.params.id);
+
+  if (base || sauce || cheese || veggie) {
+    if (base) {
+      await base.remove();
+      res.status(200).json({ message: 'Base Deleted!' });
+    } else if (sauce) {
+      await sauce.remove();
+      res.status(200).json({ message: 'Sauce Deleted!' });
+    } else if (cheese) {
+      await cheese.remove();
+      res.status(200).json({ message: 'Cheese Deleted!' });
+    } else if (veggie) {
+      await veggie.remove();
+      res.status(200).json({ message: 'Veggie Deleted!' });
+    }
+  } else {
+    res.status(404);
+    throw new Error('Stock Item Not Found!');
+  }
+});
+
 // Export Controllers
-module.exports = { getAllStocks, getStockById, updateStockById };
+module.exports = {
+  getAllStocks,
+  getStockById,
+  createStock,
+  updateStockById,
+  deleteStockById,
+};
