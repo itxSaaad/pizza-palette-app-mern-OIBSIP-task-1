@@ -5,6 +5,7 @@ import {
   deletePizzaById,
   getPizzaById,
   listPizzas,
+  createPizza,
   updatePizzaById,
 } from '../asyncThunks/pizzaThunks';
 
@@ -13,10 +14,12 @@ const initialState = {
   pizzaInfo: null,
   pizzaList: [],
   pizzaListError: null,
+  pizzaCreateError: null,
   pizzaGetByIdError: null,
   pizzaUpdateByIdError: null,
   pizzaDeleteByIdError: null,
   pizzaListSuccess: false,
+  pizzaCreateSuccess: false,
   pizzaGetByIdSuccess: false,
   pizzaUpdateByIdSuccess: false,
   pizzaDeleteByIdSuccess: false,
@@ -43,6 +46,20 @@ const pizzaSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(createPizza.pending, (state) => {
+        state.loading = true;
+        state.pizzaCreateError = null;
+        state.pizzaCreateSuccess = false;
+      })
+      .addCase(createPizza.fulfilled, (state, action) => {
+        state.loading = false;
+        state.pizzaInfo = action.payload;
+        state.pizzaCreateSuccess = true;
+      })
+      .addCase(createPizza.rejected, (state, action) => {
+        state.loading = false;
+        state.pizzaCreateError = action.payload;
+      })
       .addCase(listPizzas.pending, (state) => {
         state.loading = true;
         state.pizzaListError = null;

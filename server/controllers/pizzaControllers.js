@@ -47,7 +47,7 @@ const createPizza = asyncHandler(async (req, res) => {
   const {
     name,
     description,
-    base,
+    bases,
     sauces,
     cheeses,
     veggies,
@@ -59,7 +59,7 @@ const createPizza = asyncHandler(async (req, res) => {
   if (
     !name ||
     !description ||
-    !base ||
+    !bases ||
     !sauces ||
     !cheeses ||
     !veggies ||
@@ -82,7 +82,7 @@ const createPizza = asyncHandler(async (req, res) => {
           const pizza = new Pizza({
             name,
             description,
-            base,
+            bases,
             sauces,
             cheeses,
             veggies,
@@ -99,7 +99,7 @@ const createPizza = asyncHandler(async (req, res) => {
               _id: createdPizza._id,
               name: createdPizza.name,
               description: createdPizza.description,
-              base: createdPizza.base,
+              bases: createdPizza.base,
               sauces: createdPizza.sauces,
               cheeses: createdPizza.cheeses,
               veggies: createdPizza.veggies,
@@ -117,7 +117,7 @@ const createPizza = asyncHandler(async (req, res) => {
           const pizza = new Pizza({
             name,
             description,
-            base,
+            bases,
             sauces,
             cheeses,
             veggies,
@@ -134,7 +134,7 @@ const createPizza = asyncHandler(async (req, res) => {
               _id: createdPizza._id,
               name: createdPizza.name,
               description: createdPizza.description,
-              base: createdPizza.base,
+              bases: createdPizza.base,
               sauces: createdPizza.sauces,
               cheeses: createdPizza.cheeses,
               veggies: createdPizza.veggies,

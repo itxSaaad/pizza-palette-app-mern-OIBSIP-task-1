@@ -10,7 +10,7 @@ const pizzaSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    base: [
+    bases: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Base',

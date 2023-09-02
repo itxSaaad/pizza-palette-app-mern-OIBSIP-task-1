@@ -3,6 +3,53 @@ import axios from 'axios';
 
 // Create Async Thunks
 
+// Create Pizza
+export const createPizza = createAsyncThunk(
+  'pizza/createPizza',
+  async (pizzaData, { rejectWithValue, getState }) => {
+    try {
+      const {
+        admin: { adminUserInfo },
+        user: { userInfo },
+      } = getState();
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${
+            adminUserInfo ? adminUserInfo.token : userInfo.token
+          }`,
+        },
+      };
+
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/pizzas`,
+        {
+          name: pizzaData.name,
+          description: pizzaData.description,
+          bases: pizzaData.bases,
+          sauces: pizzaData.sauces,
+          cheeses: pizzaData.cheeses,
+          veggies: pizzaData.veggies,
+          price: pizzaData.price,
+          size: pizzaData.size,
+          imageUrl: pizzaData.imageUrl,
+        },
+        config
+      );
+
+      return data;
+    } catch (error) {
+      return rejectWithValue({
+        status: error.response && error.response.status,
+        message:
+          error.response && error.response.data.message
+            ? error.response.data.message
+            : error.message,
+      });
+    }
+  }
+);
+
 // Fetch All Pizzas
 export const listPizzas = createAsyncThunk(
   'pizza/fetchAllPizzas',

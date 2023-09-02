@@ -80,7 +80,7 @@ function StockCreateModal({ onClose }) {
             <FaTimes />
           </button>
         </div>
-        <div className=" overflow-y-scrol">
+        <div>
           {loading ? (
             <Loader />
           ) : inventoryListError || inventoryCreateStockError ? (
@@ -91,7 +91,7 @@ function StockCreateModal({ onClose }) {
                 <h1 className="text-lg text-black font-bold">
                   Select Stock Type
                 </h1>
-                <div className="flex flex-row items-center justify-between space-x-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   {stockTypes.map((type, index) => (
                     <label
                       htmlFor={type}

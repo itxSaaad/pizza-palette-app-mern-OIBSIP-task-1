@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import { useState } from 'react';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { FaTrash } from 'react-icons/fa';
 
+// Import Components
 import Button from '../../Button';
 
 function Table({ data, columns, handleDelete, handleChange }) {
@@ -21,7 +22,6 @@ function Table({ data, columns, handleDelete, handleChange }) {
                 <th key={column}>{column.replace(/([A-Z])/g, ' $1').trim()}</th>
               ))}
               <th>Delete</th>
-              {handleChange && <th>Update</th>}
             </tr>
           </thead>
           <tbody className="bg-orange-600 text-orange-100">
@@ -45,7 +45,6 @@ function Table({ data, columns, handleDelete, handleChange }) {
                     )}
                   </td>
                 ))}
-
                 <td className="border border-orange-500">
                   <Button
                     variant="secondary"
@@ -55,17 +54,6 @@ function Table({ data, columns, handleDelete, handleChange }) {
                     <FaTrash className="text-red-500" />
                   </Button>
                 </td>
-                {handleChange && (
-                  <td className="border border-orange-500">
-                    <Button
-                      variant="secondary"
-                      className="rounded-md"
-                      onClick={() => handleChange(row._id)}
-                    >
-                      <FaEdit className="text-orange-500" />
-                    </Button>
-                  </td>
-                )}
               </tr>
             ))}
           </tbody>
