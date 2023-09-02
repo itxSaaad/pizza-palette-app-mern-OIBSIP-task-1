@@ -52,45 +52,93 @@ const getStockById = asyncHandler(async (req, res) => {
 
 const createStock = asyncHandler(async (req, res) => {
   if (req.body.type === 'Base') {
-    const base = new Base({
-      item: req.body.name,
-      price: req.body.price,
-      quantity: req.body.quantity,
-      threshold: req.body.threshold,
-    });
+    const { item, price, quantity, threshold } = req.body;
 
-    const createdBase = await base.save();
-    res.status(201).json(createdBase);
+    if (!item || !price || !quantity || !threshold) {
+      res.status(400);
+      throw new Error('Please Fill All Fields!');
+    } else {
+      if (quantity < threshold) {
+        res.status(400);
+        throw new Error('Quantity Cannot be less than Threshold!');
+      } else {
+        const base = new Base({
+          item: req.body.item,
+          price: req.body.price,
+          quantity: req.body.quantity,
+          threshold: req.body.threshold,
+        });
+
+        const createdBase = await base.save();
+        res.status(201).json(createdBase);
+      }
+    }
   } else if (req.body.type === 'Sauce') {
-    const sauce = new Sauce({
-      item: req.body.name,
-      price: req.body.price,
-      quantity: req.body.quantity,
-      threshold: req.body.threshold,
-    });
+    const { item, price, quantity, threshold } = req.body;
 
-    const createdSauce = await sauce.save();
-    res.status(201).json(createdSauce);
+    if (!item || !price || !quantity || !threshold) {
+      res.status(400);
+      throw new Error('Please Fill All Fields!');
+    } else {
+      if (quantity < threshold) {
+        res.status(400);
+        throw new Error('Quantity Cannot be less than Threshold!');
+      } else {
+        const sauce = new Sauce({
+          item: req.body.item,
+          price: req.body.price,
+          quantity: req.body.quantity,
+          threshold: req.body.threshold,
+        });
+
+        const createdSauce = await sauce.save();
+        res.status(201).json(createdSauce);
+      }
+    }
   } else if (req.body.type === 'Cheese') {
-    const cheese = new Cheese({
-      item: req.body.name,
-      price: req.body.price,
-      quantity: req.body.quantity,
-      threshold: req.body.threshold,
-    });
+    const { item, price, quantity, threshold } = req.body;
 
-    const createdCheese = await cheese.save();
-    res.status(201).json(createdCheese);
+    if (!item || !price || !quantity || !threshold) {
+      res.status(400);
+      throw new Error('Please Fill All Fields!');
+    } else {
+      if (quantity < threshold) {
+        res.status(400);
+        throw new Error('Quantity Cannot be less than Threshold!');
+      } else {
+        const cheese = new Cheese({
+          item: req.body.item,
+          price: req.body.price,
+          quantity: req.body.quantity,
+          threshold: req.body.threshold,
+        });
+
+        const createdCheese = await cheese.save();
+        res.status(201).json(createdCheese);
+      }
+    }
   } else if (req.body.type === 'Veggie') {
-    const veggie = new Veggie({
-      item: req.body.name,
-      price: req.body.price,
-      quantity: req.body.quantity,
-      threshold: req.body.threshold,
-    });
+    const { item, price, quantity, threshold } = req.body;
 
-    const createdVeggie = await veggie.save();
-    res.status(201).json(createdVeggie);
+    if (!item || !price || !quantity || !threshold) {
+      res.status(400);
+      throw new Error('Please Fill All Fields!');
+    } else {
+      if (quantity < threshold) {
+        res.status(400);
+        throw new Error('Quantity Cannot be less than Threshold!');
+      } else {
+        const veggie = new Veggie({
+          item: req.body.item,
+          price: req.body.price,
+          quantity: req.body.quantity,
+          threshold: req.body.threshold,
+        });
+
+        const createdVeggie = await veggie.save();
+        res.status(201).json(createdVeggie);
+      }
+    }
   } else {
     res.status(404);
     throw new Error('Stock Type Not Found!');

@@ -19,7 +19,7 @@ export const createStock = createAsyncThunk(
       };
 
       const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/api/stocks`,
+        `${import.meta.env.VITE_SERVER_URL}/stocks`,
         {
           type: stockData.type,
           item: stockData.item,
@@ -118,7 +118,7 @@ export const getStockById = createAsyncThunk(
       }
 
       const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/api/stocks/${id}`,
+        `${import.meta.env.VITE_SERVER_URL}/stocks/${id}`,
         config
       );
 
@@ -151,7 +151,7 @@ export const updateStockById = createAsyncThunk(
       };
 
       const { data } = await axios.put(
-        `${import.meta.env.VITE_SERVER_URL}/api/stocks/${id}`,
+        `${import.meta.env.VITE_SERVER_URL}/stocks/${id}`,
         config
       );
 
@@ -184,7 +184,7 @@ export const deleteStockById = createAsyncThunk(
       };
 
       const { data } = await axios.delete(
-        `${import.meta.env.VITE_SERVER_URL}/api/stocks/${id}`,
+        `${import.meta.env.VITE_SERVER_URL}/stocks/${id}`,
         config
       );
 

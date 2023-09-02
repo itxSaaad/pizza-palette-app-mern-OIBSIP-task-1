@@ -130,15 +130,57 @@ function Home() {
           ) : (
             <>
               {inventoryList ? (
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-center">
-                  {Object.entries(inventoryList).map(([category, items]) => (
-                    <InventoryTable
-                      key={category}
-                      title={category}
-                      items={items}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div>
+                    {Object.entries(inventoryList).map(
+                      ([category, items]) =>
+                        items.some(
+                          (item) => item.quantity < item.threshold
+                        ) && (
+                          <>
+                            <h1
+                              key={category}
+                              className="text-lg font-bold text-white bg-red-600 rounded-t-2xl py-1 px-2"
+                            >
+                              Low Stock Alert!
+                            </h1>
+                            <ul
+                              key={category}
+                              className="w-full flex flex-col items-center justify-center p-2 bg-red-500 rounded-b-2xl shadow-md border border-red-400 list-disc list-inside"
+                            >
+                              {items
+                                .filter(
+                                  (item) => item.quantity < item.threshold
+                                )
+                                .map((item) => (
+                                  <li
+                                    key={item.id}
+                                    className="text-md text-white list-item"
+                                  >
+                                    <span className="font-bold mr-1">
+                                      {item.item}
+                                    </span>
+                                    is low in stock. Current quantity:
+                                    <span className="font-bold mx-1">
+                                      {item.quantity}
+                                    </span>
+                                  </li>
+                                ))}
+                            </ul>
+                          </>
+                        )
+                    )}
+                  </div>
+                  <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 text-center">
+                    {Object.entries(inventoryList).map(([category, items]) => (
+                      <InventoryTable
+                        key={category}
+                        title={category}
+                        items={items}
+                      />
+                    ))}
+                  </div>
+                </>
               ) : (
                 <div className="w-full flex flex-col items-center justify-center mt-10">
                   <h1 className="text-2xl font-bold text-orange-600">
