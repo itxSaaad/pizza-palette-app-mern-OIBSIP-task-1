@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 // Import Thunks
 import {
+  createOrder,
   deleteOrderById,
   getOrderById,
   listOrders,
@@ -14,6 +15,7 @@ const initialState = {
   orderInfo: {},
   orderList: [],
   orderListByUserId: [],
+  orderCreateError: null,
   orderDetailsByIdError: null,
   orderListError: null,
   orderListByUserIdError: null,
@@ -22,6 +24,7 @@ const initialState = {
   orderDetailsByIdSuccess: false,
   orderListSuccess: false,
   orderListByUserIdSuccess: false,
+  orderCreateSuccess: false,
   orderUpdateByIdSuccess: false,
   orderDeleteByIdSuccess: false,
   loading: false,
@@ -51,6 +54,20 @@ const orderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(createOrder.pending, (state) => {
+        state.loading = true;
+        state.orderCreateSuccess = false;
+        state.orderCreateError = null;
+      })
+      .addCase(createOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orderCreateSuccess = true;
+        state.orderInfo = action.payload;
+      })
+      .addCase(createOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.orderCreateError = action.payload;
+      })
       .addCase(listOrders.pending, (state) => {
         state.loading = true;
         state.orderListSuccess = false;
@@ -73,7 +90,7 @@ const orderSlice = createSlice({
       .addCase(listOrdersByUserId.fulfilled, (state, action) => {
         state.loading = false;
         state.orderListByUserIdSuccess = true;
-        state.orderList = action.payload;
+        state.orderListByUserId = action.payload;
       })
       .addCase(listOrdersByUserId.rejected, (state, action) => {
         state.loading = false;

@@ -24,30 +24,28 @@ const orderSchema = new mongoose.Schema(
         },
       },
     ],
-    deliveryAddress: [
-      {
-        phoneNumber: {
-          type: String,
-          required: true,
-        },
-        address: {
-          type: String,
-          required: true,
-        },
-        city: {
-          type: String,
-          required: true,
-        },
-        postalCode: {
-          type: String,
-          required: true,
-        },
-        country: {
-          type: String,
-          required: true,
-        },
+    deliveryAddress: {
+      phoneNumber: {
+        type: String,
+        required: true,
       },
-    ],
+      address: {
+        type: String,
+        required: true,
+      },
+      city: {
+        type: String,
+        required: true,
+      },
+      postalCode: {
+        type: String,
+        required: true,
+      },
+      country: {
+        type: String,
+        required: true,
+      },
+    },
     salesTax: {
       type: Number,
       default: 0,

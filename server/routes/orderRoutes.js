@@ -9,6 +9,7 @@ const { protect, admin } = require('../middlewares/authMiddlewares');
 // Import Controllers
 const {
   createOrder,
+  createRazorpayOrder,
   getOrdersByUserId,
   getAllOrders,
   getOrderById,
@@ -23,6 +24,7 @@ const {
 // Private Routes
 router.route('/').post(protect, createOrder);
 router.route('/user').get(protect, getOrdersByUserId);
+router.route('/checkout').post(protect, createRazorpayOrder);
 
 // Admin + Private Routes
 router.route('/').get(protect, admin, getAllOrders);

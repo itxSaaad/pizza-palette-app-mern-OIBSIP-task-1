@@ -1,4 +1,6 @@
 const asyncHandler = require('express-async-handler');
+const mongoose = require('mongoose');
+const RazorPay = require('razorpay');
 
 // Import Utils
 const { updateInventoryQuantity } = require('../utils/inventoryUtils');
@@ -8,6 +10,41 @@ const Order = require('../schemas/orderSchema');
 const Pizza = require('../schemas/pizzaSchema');
 
 // Initialize Controllers
+
+// @desc Create Razorpay Order
+// @route POST /api/orders/checkout
+// @access Private
+
+const createRazorpayOrder = asyncHandler(async (req, res) => {
+  try {
+    const { amount, currency } = req.body;
+
+    const instance = new RazorPay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
+    const options = {
+      amount: amount * 100,
+      currency,
+      receipt: new mongoose.Types.ObjectId().toString(),
+      payment_capture: 1,
+    };
+
+    const order = await instance.orders.create(options);
+
+    if (order) {
+      res.status(200).json(order);
+    } else {
+      res.status(500);
+      throw new Error('Order Creation Failed!');
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500);
+    throw new Error(error);
+  }
+});
 
 // @desc    Create a new order
 // @route   POST /api/orders
@@ -54,29 +91,35 @@ const createOrder = asyncHandler(async (req, res) => {
               res.status(400);
               throw new Error('Invalid Payment Method');
             } else {
-              if (payment.method === 'stripe' && !stripePaymentIntentId) {
+              if (
+                payment.method === 'stripe' &&
+                !payment.stripePaymentIntentId
+              ) {
                 res.status(400);
                 throw new Error('Invalid Stripe Payment Intent Id');
               } else {
-                if (payment.method === 'razorpay' && !razorpayOrderId) {
+                if (payment.method === 'razorpay' && !payment.razorpayOrderId) {
                   res.status(400);
                   throw new Error('Invalid Razorpay Order Id');
                 } else {
                   // Iterate through orderItems to deduct items from inventory
                   for (const orderItem of orderItems) {
-                    const pizza = await Pizza.findById(orderItem.pizza);
-                    if (pizza) {
-                      // Deduct items from inventory
-                      await updateInventoryQuantity(pizza, orderItem.qty);
-                    } else {
-                      res.status(404);
-                      throw new Error('Pizza not found');
+                    const pizza = await Pizza.findById(orderItem._id);
+                    if (!pizza) {
+                      res.status(404).json({ message: 'Pizza Not Found!' });
+                      return;
                     }
+
+                    await updateInventoryQuantity(pizza, orderItem.qty);
                   }
 
                   const order = new Order({
                     user: req.user._id,
-                    orderItems,
+                    orderItems: orderItems.map((orderItem) => ({
+                      pizza: orderItem._id,
+                      qty: orderItem.qty,
+                      price: orderItem.price,
+                    })),
                     deliveryAddress,
                     salesTax,
                     deliveryCharges,
@@ -188,10 +231,9 @@ const updateOrderById = asyncHandler(async (req, res) => {
 // @access  Admin
 
 const deleteOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id);
+  const order = await Order.findByIdAndDelete(req.params.id);
 
   if (order) {
-    await order.remove();
     res.status(200).json({
       message: 'Order Deleted Successfully!',
     });
@@ -203,6 +245,7 @@ const deleteOrderById = asyncHandler(async (req, res) => {
 
 // Export Controllers
 module.exports = {
+  createRazorpayOrder,
   createOrder,
   getOrdersByUserId,
   getAllOrders,

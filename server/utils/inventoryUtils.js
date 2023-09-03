@@ -3,10 +3,26 @@ const { Base, Sauce, Cheese, Veggie } = require('../schemas/inventorySchema');
 
 // Update inventory quantity for a given item
 const updateInventoryQuantity = async (pizza, qty) => {
-  const { base, sauces, cheeses, veggies } = pizza;
+  const { bases, sauces, cheeses, veggies } = pizza;
+
+  const updateQuantity = async (item) => {
+    if (item) {
+      if (item.quantity >= qty) {
+        item.quantity -= qty;
+        const updateditem = await item.save();
+        return updateditem;
+      } else {
+        throw new Error(
+          `Not enough ${item.name} in inventory! Please update inventory!`
+        );
+      }
+    } else {
+      throw new Error('Item Not Found!');
+    }
+  };
 
   // Update base quantity
-  for (const baseId of base) {
+  for (const baseId of bases) {
     const baseItem = await Base.findById(baseId);
     await updateQuantity(baseItem);
   }
@@ -26,25 +42,6 @@ const updateInventoryQuantity = async (pizza, qty) => {
   for (const veggieId of veggies) {
     const veggieItem = await Veggie.findById(veggieId);
     await updateQuantity(veggieItem);
-  }
-};
-
-const updateQuantity = async (item) => {
-  if (item) {
-    if (item.quantity >= qty) {
-      item.quantity -= qty;
-      const updateditem = await item.save();
-      if (updateditem) {
-        res.status(200);
-        throw new Error(`Inventory Item ${item.item} Updated!`);
-      }
-    } else {
-      res.status(400);
-      throw new Error(`Not enough ${item.item} in stock!`);
-    }
-  } else {
-    res.status(404);
-    throw new Error('Inventory Item Not Found!');
   }
 };
 

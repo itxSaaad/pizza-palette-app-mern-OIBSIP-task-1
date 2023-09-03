@@ -3,6 +3,48 @@ import axios from 'axios';
 
 // Create THunks
 
+// Order Create
+export const createOrder = createAsyncThunk(
+  'order/createOrder',
+  async (orderData, { getState, rejectWithValue }) => {
+    try {
+      const {
+        user: { userInfo },
+      } = getState();
+
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/orders`,
+        {
+          orderItems: orderData.orderItems,
+          deliveryAddress: orderData.deliveryAddress,
+          salesTax: orderData.salesTax,
+          deliveryCharges: orderData.deliveryCharges,
+          totalPrice: orderData.totalPrice,
+          payment: orderData.payment,
+        },
+        config
+      );
+
+      return data;
+    } catch (error) {
+      return rejectWithValue({
+        status: error.response && error.response.status,
+        message:
+          error.response && error.response.data.message
+            ? error.response.data.message
+            : error.message,
+      });
+    }
+  }
+);
+
 // Order List By User Id
 export const listOrdersByUserId = createAsyncThunk(
   'order/listOrdersByUserId',
