@@ -14,6 +14,7 @@ function ShippingStep({ setCurrentStep }) {
   const cart = useSelector((state) => state.cart);
   const { shippingAddress, cartItems } = cart;
 
+  const [phoneNumber, setPhoneNumber] = useState(shippingAddress.phoneNumber);
   const [address, setAddress] = useState(shippingAddress.address);
   const [city, setCity] = useState(shippingAddress.city);
   const [postalCode, setPostalCode] = useState(shippingAddress.postalCode);
@@ -21,7 +22,9 @@ function ShippingStep({ setCurrentStep }) {
 
   const submitHandler = (e) => {
     e.preventDefault();
-    dispatch(saveShippingAddress({ address, city, postalCode, country }));
+    dispatch(
+      saveShippingAddress({ phoneNumber, address, city, postalCode, country })
+    );
     setCurrentStep('Payment');
   };
 
@@ -36,6 +39,26 @@ function ShippingStep({ setCurrentStep }) {
       {cartItems && cartItems.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            <div className="w-full">
+              <label htmlFor="phoneNumber" className="sr-only">
+                Phone Number
+              </label>
+
+              <div className="flex justify-center items-center w-full">
+                <input
+                  type="text"
+                  id="phoneNumber"
+                  value={phoneNumber}
+                  placeholder="Enter Phone Number"
+                  onChange={(e) => {
+                    setPhoneNumber(e.target.value);
+                  }}
+                  required
+                  className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
+                />
+              </div>
+            </div>
+
             <div className="w-full">
               <label htmlFor="address" className="sr-only">
                 Address

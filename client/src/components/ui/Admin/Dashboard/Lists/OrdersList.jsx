@@ -40,7 +40,7 @@ function OrdersList() {
 
   const successMessageDelete = orderDeleteByIdSuccess && {
     status: '200',
-    message: 'order Deleted Successfully!',
+    message: 'Order Deleted Successfully!',
   };
 
   useEffect(() => {

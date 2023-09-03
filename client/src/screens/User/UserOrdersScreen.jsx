@@ -34,7 +34,7 @@ function UserOrdersScreen() {
     if (adminUserInfo) {
       navigate('/admin/dashboard');
     }
-    if (userInfo && !orderListByUserId) {
+    if (userInfo && orderListByUserId.length < 1) {
       dispatch(listOrdersByUserId(userInfo._id));
     }
   }, [dispatch, navigate, userInfo, adminUserInfo, orderListByUserId]);

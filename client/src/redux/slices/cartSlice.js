@@ -30,6 +30,40 @@ export const addToCart = createAsyncThunk(
   }
 );
 
+// Create RazorPay Order
+export const createRazorPayOrder = createAsyncThunk(
+  'cart/createRazorPayOrder',
+  async ({ amount, currency }, { rejectWithValue, getState }) => {
+    try {
+      const {
+        user: { userInfo },
+      } = getState();
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/orders/checkout`,
+        { amount, currency },
+        config
+      );
+
+      return data;
+    } catch (error) {
+      return rejectWithValue({
+        status: error.response && error.response.status,
+        message:
+          error.response && error.response.data.message
+            ? error.response.data.message
+            : error.message,
+      });
+    }
+  }
+);
+
 // Initial State
 const initialState = {
   cartItems: localStorage.getItem('cartItems')
@@ -41,14 +75,20 @@ const initialState = {
   paymentMethod: localStorage.getItem('paymentMethod')
     ? JSON.parse(localStorage.getItem('paymentMethod'))
     : {},
+  orderRazorPayPaymentDetails: {},
+  orderGetRazorPayOrderDetails: {},
   cartAddItemError: null,
   cartRemoveItemError: null,
   cartSaveShippingAddressError: null,
   cartSavePaymentMethodError: null,
+  orderGetRazorPayOrderIdError: null,
+  orderRazorPayPaymentError: null,
   cartAddItemSuccess: false,
   cartRemoveItemSuccess: false,
   cartSaveShippingAddressSuccess: false,
   cartSavePaymentMethodSuccess: false,
+  orderGetRazorPayOrderIdSuccess: false,
+  orderRazorPayPaymentSuccess: false,
   loading: false,
 };
 
@@ -77,18 +117,28 @@ const cartSlice = createSlice({
         JSON.stringify(state.paymentMethod)
       );
     },
+    setRazorPayPaymentDetails(state, action) {
+      state.orderRazorPayPaymentDetails = action.payload;
+    },
     clearCartData(state) {
       state.cartItems = [];
       state.shippingAddress = {};
       state.paymentMethod = {};
+      state.orderRazorPayPaymentDetails = {};
+      state.orderGetRazorPayOrderDetails = {};
       state.cartAddItemError = null;
       state.cartRemoveItemError = null;
       state.cartSaveShippingAddressError = null;
       state.cartSavePaymentMethodError = null;
+      state.orderGetRazorPayOrderIdError = null;
+      state.orderRazorPayPaymentError = null;
       state.cartAddItemSuccess = false;
       state.cartRemoveItemSuccess = false;
       state.cartSaveShippingAddressSuccess = false;
       state.cartSavePaymentMethodSuccess = false;
+      state.orderGetRazorPayOrderIdSuccess = false;
+      state.orderRazorPayPaymentSuccess = false;
+      state.loading = false;
       localStorage.removeItem('cartItems');
       localStorage.removeItem('shippingAddress');
       localStorage.removeItem('paymentMethod');
@@ -118,6 +168,20 @@ const cartSlice = createSlice({
       .addCase(addToCart.rejected, (state, action) => {
         state.loading = false;
         state.cartAddItemError = action.payload.message;
+      })
+      .addCase(createRazorPayOrder.pending, (state) => {
+        state.loading = true;
+        state.orderGetRazorPayOrderIdSuccess = false;
+        state.orderGetRazorPayOrderIdError = null;
+      })
+      .addCase(createRazorPayOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orderGetRazorPayOrderIdSuccess = true;
+        state.orderGetRazorPayOrderDetails = action.payload;
+      })
+      .addCase(createRazorPayOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.orderGetRazorPayOrderIdError = action.payload;
       });
   },
 });
@@ -125,6 +189,7 @@ const cartSlice = createSlice({
 // Export Actions
 export const {
   clearCartData,
+  setRazorPayPaymentDetails,
   removeFromCart,
   saveShippingAddress,
   savePaymentMethod,

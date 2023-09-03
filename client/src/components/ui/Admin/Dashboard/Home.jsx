@@ -49,8 +49,8 @@ function Home() {
   );
 
   // Filter orders based on status
-  const ordersRecieved = orderList.filter(
-    (order) => order.status === 'Recieved'
+  const ordersReceived = orderList.filter(
+    (order) => order.status === 'Received'
   );
   const ordersInTheKitchen = orderList.filter(
     (order) => order.status === 'In The Kitchen'
@@ -64,8 +64,8 @@ function Home() {
 
   const CardList = [
     {
-      title: 'Orders Recieved',
-      count: ordersRecieved.length,
+      title: 'Orders Received',
+      count: ordersReceived.length,
     },
     {
       title: 'Orders In The Kitchen',

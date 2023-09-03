@@ -1,17 +1,33 @@
 import PropTypes from 'prop-types';
-import { useSelector, useDispatch } from 'react-redux';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 // Import Thunks
+import { createOrder } from '../../../redux/asyncThunks/orderThunks';
 import { clearCartData } from '../../../redux/slices/cartSlice';
 
 // Import Components
 import Button from '../Button';
+import Loader from '../Loader';
+import Message from '../Message';
+import RazorPayPaymentButton from './RazorPayPaymentButton';
 
 function PlaceOrderStep({ setCurrentStep }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const cart = useSelector((state) => state.cart);
-  const { shippingAddress, paymentMethod, cartItems } = cart;
+  const {
+    shippingAddress,
+    paymentMethod,
+    cartItems,
+    orderGetRazorPayOrderDetails,
+    orderRazorPayPaymentDetails,
+  } = cart;
+
+  const order = useSelector((state) => state.order);
+  const { loading, orderInfo, orderCreateSuccess, orderCreateError } = order;
 
   const orderSummary = [
     {
@@ -43,7 +59,7 @@ function PlaceOrderStep({ setCurrentStep }) {
       name: 'Total',
       value:
         cartItems &&
-        Number(
+        Math.round(
           (
             cartItems.reduce((acc, item) => acc + item.price * item.qty, 0) +
             (cartItems.reduce((acc, item) => acc + item.price * item.qty, 0) >
@@ -62,22 +78,53 @@ function PlaceOrderStep({ setCurrentStep }) {
   ];
 
   const handlePlaceOrder = () => {
-    setCurrentStep('Shipping');
-    dispatch(clearCartData());
+    dispatch(
+      createOrder({
+        orderItems: cartItems,
+        deliveryAddress: shippingAddress,
+        salesTax: orderSummary[2].value,
+        deliveryCharges: orderSummary[1].value,
+        totalPrice: orderSummary[3].value,
+        payment: {
+          method: paymentMethod.toLowerCase().replace(' ', ''),
+          razorpayOrderId: orderRazorPayPaymentDetails.razorPayPaymentId,
+          status: !orderRazorPayPaymentDetails === {} ? 'success' : 'pending',
+        },
+      })
+    );
   };
+
+  useEffect(() => {
+    if (orderCreateSuccess && orderInfo) {
+      dispatch(clearCartData());
+      navigate('/my-orders');
+      setCurrentStep('Shipping');
+    }
+  }, [dispatch, navigate, orderCreateSuccess, orderInfo, setCurrentStep]);
+
   return (
     <div className="flex flex-col justify-between items-center mb-4">
       <h1 className="text-center text-black text-xl leading-relaxed">
         Place Order
       </h1>
-      <div className="w-full flex flex-col items-center border border-orange-300 rounded-2xl p-4 mt-2 space-y-4 md:flex-row md:space-y-0 md:space-x-6">
-        {cartItems && cartItems.length > 0 ? (
-          <>
+      {orderCreateError && <Message>{orderCreateError}</Message>}
+      <>
+        {loading ? (
+          <Loader />
+        ) : cartItems && cartItems.length > 0 ? (
+          <div className="w-full flex flex-col items-center justify-center border border-orange-300 rounded-2xl p-4 mt-2 space-y-4 md:flex-row md:space-y-0 md:space-x-6">
             <div className="flex flex-col items-start justify-between w-full md:w-2/3">
               <div className="flex flex-col items-start justify-between w-full py-2">
                 <h2 className="text-center text-black text-xl leading-relaxed">
                   Shipping Address
                 </h2>
+
+                <p className="text-orange-500 text-md leading-relaxed">
+                  <span className="text-black text-md leading-relaxed mr-2">
+                    Phone:
+                  </span>
+                  {shippingAddress.phoneNumber}
+                </p>
 
                 <p className="text-orange-500 text-md leading-relaxed">
                   <span className="text-black text-md leading-relaxed mr-2">
@@ -153,15 +200,20 @@ function PlaceOrderStep({ setCurrentStep }) {
                   </div>
                 ))}
               </div>
+              <RazorPayPaymentButton
+                amount={orderSummary[3].value}
+                orderId={orderGetRazorPayOrderDetails.id}
+              />
               <Button
                 variant="primary"
+                disabled={orderRazorPayPaymentDetails === {}}
                 onClick={handlePlaceOrder}
-                className="w-full rounded-full"
+                className="w-full rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Place Order
               </Button>
             </div>
-          </>
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center w-full">
             <p className="text-center text-orange-500 text-xl leading-relaxed">
@@ -169,7 +221,7 @@ function PlaceOrderStep({ setCurrentStep }) {
             </p>
           </div>
         )}
-      </div>
+      </>
     </div>
   );
 }

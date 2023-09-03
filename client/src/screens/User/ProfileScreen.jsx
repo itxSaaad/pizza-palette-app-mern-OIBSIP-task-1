@@ -31,9 +31,9 @@ function ProfileScreen() {
 
   const order = useSelector((state) => state.order);
   const {
-    orderListByUserById,
     loading: orderLoading,
-    orderListByUserByIdError,
+    orderListByUserId,
+    orderListByUserIdError,
   } = order;
 
   const successMessage = userUpdateProfileSuccess && {
@@ -48,17 +48,17 @@ function ProfileScreen() {
     if (userInfo && !userDetails) {
       dispatch(getUserDetails(userInfo._id));
     }
-    if (userInfo && userDetails && !orderListByUserById) {
+    if (userInfo && userDetails && orderListByUserId < 1) {
       dispatch(listOrdersByUserId(userInfo._id));
     }
-  }, [dispatch, navigate, userInfo, userDetails, orderListByUserById]);
+  }, [dispatch, navigate, userInfo, userDetails, orderListByUserId]);
 
   return (
     <section className="min-h-screen flex flex-col sm:flex-row justify-center items-center pt-16 px-5 sm:px-16 space-y-5 sm:space-y-0 sm:space-x-5">
       {loading || orderLoading ? (
         <Loader />
-      ) : userDetailsError || orderListByUserByIdError ? (
-        <Message>{userDetailsError || orderListByUserByIdError}</Message>
+      ) : userDetailsError || orderListByUserIdError ? (
+        <Message>{userDetailsError || orderListByUserIdError}</Message>
       ) : (
         userDetails && (
           <>
@@ -85,12 +85,12 @@ function ProfileScreen() {
               )}
             </div>
             <div className="flex flex-col justify-center items-center w-full sm:w-2/3">
-              {orderListByUserById ? (
+              {orderListByUserId.length > 0 ? (
                 <>
                   <h1 className="text-2xl font-bold text-center mb-4">
                     My Orders
                   </h1>
-                  <UserOrdersTable orders={orderListByUserById} />
+                  <UserOrdersTable orders={orderListByUserId} />
                 </>
               ) : (
                 <div className="w-full text-4xl text-center font-bold text-orange-600 border-2 border-orange-500 rounded-2xl p-4">

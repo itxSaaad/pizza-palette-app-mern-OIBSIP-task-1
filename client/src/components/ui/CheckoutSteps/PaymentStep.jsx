@@ -3,16 +3,30 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Actions
-import { savePaymentMethod } from '../../../redux/slices/cartSlice';
+import {
+  createRazorPayOrder,
+  savePaymentMethod,
+} from '../../../redux/slices/cartSlice';
 
 // Import Components
 import Button from '../Button';
+import Loader from '../Loader';
+import Message from '../Message';
 
 function PaymentStep({ setCurrentStep }) {
   const dispatch = useDispatch();
 
   const cart = useSelector((state) => state.cart);
-  const { shippingAddress, cartItems } = cart;
+  const {
+    shippingAddress,
+    cartItems,
+    orderGetRazorPayOrderDetails,
+    orderGetRazorPayOrderIdError,
+    orderGetRazorPayOrderIdSuccess,
+  } = cart;
+
+  const order = useSelector((state) => state.order);
+  const { loading } = order;
 
   const [paymentMethod, setPaymentMethod] = useState(cart.paymentMethod || '');
 
@@ -24,9 +38,39 @@ function PaymentStep({ setCurrentStep }) {
 
   const submitHandler = (e) => {
     e.preventDefault();
+
+    const amount =
+      cartItems &&
+      Math.round(
+        (
+          cartItems.reduce((acc, item) => acc + item.price * item.qty, 0) +
+          (cartItems.reduce((acc, item) => acc + item.price * item.qty, 0) > 100
+            ? 0
+            : 10) +
+          Number(
+            (
+              0.15 *
+              cartItems.reduce((acc, item) => acc + item.price * item.qty, 0)
+            ).toFixed(2)
+          )
+        ).toFixed(2)
+      );
+
+    console.log(amount);
+
     dispatch(savePaymentMethod(paymentMethod));
-    setCurrentStep('Place Order');
+    dispatch(createRazorPayOrder({ amount, currency: 'USD' }));
   };
+
+  useEffect(() => {
+    if (orderGetRazorPayOrderIdSuccess && orderGetRazorPayOrderDetails) {
+      setCurrentStep('Place Order');
+    }
+  }, [
+    orderGetRazorPayOrderIdSuccess,
+    orderGetRazorPayOrderDetails,
+    setCurrentStep,
+  ]);
   return (
     <form onSubmit={submitHandler} className="w-full p-4">
       <p className="text-center text-black text-xl leading-relaxed">
@@ -34,8 +78,13 @@ function PaymentStep({ setCurrentStep }) {
         <br />
         <span className="text-sm text-orange-500">Select Payment Method</span>
       </p>
-      {cartItems && cartItems.length > 0 ? (
+      {loading ? (
+        <Loader />
+      ) : cartItems && cartItems.length > 0 ? (
         <>
+          {orderGetRazorPayOrderIdError && (
+            <Message>{orderGetRazorPayOrderIdError}</Message>
+          )}
           <div className="flex flex-col items-center justify-center mt-4">
             <div className="flex items-center justify-center">
               <input

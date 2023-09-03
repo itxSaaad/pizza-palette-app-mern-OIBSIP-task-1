@@ -51,7 +51,7 @@ function UserOrdersTable({ orders }) {
           <thead className="bg-orange-400 h-10 uppercase font-bold text-white">
             <tr>
               <th>Order ID</th>
-              <th>Name</th>
+              <th>User ID</th>
               <th>Total Price</th>
               <th>Status</th>
               <th>Date</th>
@@ -59,12 +59,12 @@ function UserOrdersTable({ orders }) {
           </thead>
           <tbody className="bg-orange-100 text-orange-500">
             {orders.slice(startIndex, endIndex).map((order) => (
-              <tr key={order.id}>
+              <tr key={order._id}>
                 <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
-                  {order.id}
+                  {order._id}
                 </td>
                 <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
-                  {order.name}
+                  {order.user}
                 </td>
                 <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
                   ${order.totalPrice}
@@ -73,7 +73,7 @@ function UserOrdersTable({ orders }) {
                   {getStatusIcon(order.status)}
                 </td>
                 <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
-                  {order.date}
+                  {order.createdAt.substring(0, 10)}
                 </td>
               </tr>
             ))}
