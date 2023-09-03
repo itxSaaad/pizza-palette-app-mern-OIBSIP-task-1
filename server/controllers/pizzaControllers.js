@@ -78,7 +78,9 @@ const createPizza = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error('Price Must Be Greater Than 0!');
       } else {
-        if (req.user._id === Admin.findById(req.user._id)) {
+        const adminUser = await Admin.findById(req.user._id);
+        const user = await User.findById(req.user._id);
+        if (adminUser) {
           const pizza = new Pizza({
             name,
             description,
@@ -99,7 +101,7 @@ const createPizza = asyncHandler(async (req, res) => {
               _id: createdPizza._id,
               name: createdPizza.name,
               description: createdPizza.description,
-              bases: createdPizza.base,
+              bases: createdPizza.bases,
               sauces: createdPizza.sauces,
               cheeses: createdPizza.cheeses,
               veggies: createdPizza.veggies,
@@ -113,7 +115,8 @@ const createPizza = asyncHandler(async (req, res) => {
             res.status(500);
             throw new Error('Internal Server Error!');
           }
-        } else {
+        }
+        if (user) {
           const pizza = new Pizza({
             name,
             description,
@@ -134,7 +137,7 @@ const createPizza = asyncHandler(async (req, res) => {
               _id: createdPizza._id,
               name: createdPizza.name,
               description: createdPizza.description,
-              bases: createdPizza.base,
+              bases: createdPizza.bases,
               sauces: createdPizza.sauces,
               cheeses: createdPizza.cheeses,
               veggies: createdPizza.veggies,
@@ -144,10 +147,11 @@ const createPizza = asyncHandler(async (req, res) => {
               imageUrl: createdPizza.imageUrl,
               message: 'Pizza Created Successfully!',
             });
-          } else {
-            res.status(500);
-            throw new Error('Internal Server Error!');
           }
+        }
+        if (!adminUser && !user) {
+          res.status(404);
+          throw new Error('User Not Found!');
         }
       }
     }

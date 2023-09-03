@@ -52,7 +52,7 @@ export const createPizza = createAsyncThunk(
 
 // Fetch All Pizzas
 export const listPizzas = createAsyncThunk(
-  'pizza/fetchAllPizzas',
+  'pizza/listPizzas',
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await axios.get(
@@ -74,7 +74,7 @@ export const listPizzas = createAsyncThunk(
 
 // Fetch Single Pizza
 export const getPizzaById = createAsyncThunk(
-  'pizza/fetchSinglePizza',
+  'pizza/getPizzaById',
   async (id, { rejectWithValue }) => {
     try {
       const { data } = await axios.get(

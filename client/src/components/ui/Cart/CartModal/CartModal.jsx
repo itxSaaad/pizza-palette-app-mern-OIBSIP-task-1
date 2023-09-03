@@ -1,25 +1,21 @@
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { FaMoneyCheckAlt, FaShoppingCart, FaTimes } from 'react-icons/fa';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-
-// Import Thunks
-import { removeFromCart } from '../../../../redux/slices/cartSlice';
 
 // Import Components
 import Button from '../../Button';
 import Loader from '../../Loader';
 import CartItemList from './CartItemList';
+import Message from '../../Message';
 
 function CartModal({ onClose }) {
   const [modalVisible, setModalVisible] = useState(false);
   const navigate = useNavigate();
 
-  const dispatch = useDispatch();
-
   const cart = useSelector((state) => state.cart);
-  const { loading, cartItems } = cart;
+  const { loading, cartItems, cartAddItemError, cartRemoveItemError } = cart;
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -28,29 +24,12 @@ function CartModal({ onClose }) {
     }, 300);
   };
 
-  const handleQuantityChange = (item, newQuantity) => {
-    const updatedCart = cartItems.map((cartItem) => {
-      if (cartItem.name === item.name) {
-        return {
-          ...cartItem,
-          quantity: newQuantity,
-        };
-      }
-      return cartItem;
-    });
-    console.log(updatedCart);
-  };
-
   const handleCheckout = () => {
     setModalVisible(false);
     setTimeout(() => {
       onClose();
     }, 300);
     navigate('/checkout');
-  };
-
-  const removeItemFromCart = (id) => {
-    dispatch(removeFromCart(id));
   };
 
   useEffect(() => {
@@ -86,13 +65,12 @@ function CartModal({ onClose }) {
           <Loader />
         ) : (
           <>
-            {cartItems ? (
+            {(cartAddItemError || cartRemoveItemError) && (
+              <Message>{cartAddItemError || cartRemoveItemError}</Message>
+            )}
+            {cartItems && cartItems.length > 0 ? (
               <div className="space-y-4">
-                <CartItemList
-                  cartItems={cartItems}
-                  handleQuantityChange={handleQuantityChange}
-                  removeItemFromCart={removeItemFromCart}
-                />
+                <CartItemList />
                 <div className="mt-4">
                   <p className="text-lg font-semibold">
                     Total Cost: $
@@ -114,7 +92,7 @@ function CartModal({ onClose }) {
                   </p>
                   <Button
                     variant="primary"
-                    className="mt-4 rounded-full"
+                    className="mt-4 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleCheckout}
                     disabled={cartItems.length === 0}
                   >

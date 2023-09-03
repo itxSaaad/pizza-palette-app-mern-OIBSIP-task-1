@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // Create Thunks
@@ -7,16 +7,15 @@ export const addToCart = createAsyncThunk(
   async ({ id, qty }, { rejectWithValue }) => {
     try {
       const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/api/pizzas/${id}`
+        `${import.meta.env.VITE_SERVER_URL}/pizzas/${id}`
       );
 
       return {
-        id: data._id,
+        _id: data._id,
         name: data.name,
-        description: data.description,
-        image: data.imageUrl,
+        imageUrl: data.imageUrl,
         price: data.price,
-        pizzaSize: data.size,
+        size: data.size,
         qty,
       };
     } catch (error) {
@@ -35,7 +34,7 @@ export const addToCart = createAsyncThunk(
 const initialState = {
   cartItems: localStorage.getItem('cartItems')
     ? JSON.parse(localStorage.getItem('cartItems'))
-    : null,
+    : [],
   shippingAddress: localStorage.getItem('shippingAddress')
     ? JSON.parse(localStorage.getItem('shippingAddress'))
     : {},
@@ -60,7 +59,7 @@ const cartSlice = createSlice({
   reducers: {
     removeFromCart(state, action) {
       state.cartItems = state.cartItems.filter(
-        (item) => item.id !== action.payload
+        (item) => item._id !== action.payload
       );
       localStorage.setItem('cartItems', JSON.stringify(state.cartItems));
     },
@@ -79,9 +78,9 @@ const cartSlice = createSlice({
       );
     },
     clearCartData(state) {
-      localStorage.removeItem('cartItems');
-      localStorage.removeItem('shippingAddress');
-      localStorage.removeItem('paymentMethod');
+      state.cartItems = [];
+      state.shippingAddress = {};
+      state.paymentMethod = {};
       state.cartAddItemError = null;
       state.cartRemoveItemError = null;
       state.cartSaveShippingAddressError = null;
@@ -90,6 +89,9 @@ const cartSlice = createSlice({
       state.cartRemoveItemSuccess = false;
       state.cartSaveShippingAddressSuccess = false;
       state.cartSavePaymentMethodSuccess = false;
+      localStorage.removeItem('cartItems');
+      localStorage.removeItem('shippingAddress');
+      localStorage.removeItem('paymentMethod');
     },
   },
   extraReducers: (builder) => {
@@ -102,18 +104,15 @@ const cartSlice = createSlice({
       .addCase(addToCart.fulfilled, (state, action) => {
         state.loading = false;
         state.cartAddItemSuccess = true;
-
         const item = action.payload;
-        const existItem = state.cartItems.find((x) => x.id === item.id);
-
+        const existItem = state.cartItems.find((x) => x._id === item._id);
         if (existItem) {
           state.cartItems = state.cartItems.map((x) =>
-            x.id === existItem.id ? item : x
+            x._id === existItem._id ? item : x
           );
         } else {
           state.cartItems = [...state.cartItems, item];
         }
-
         localStorage.setItem('cartItems', JSON.stringify(state.cartItems));
       })
       .addCase(addToCart.rejected, (state, action) => {

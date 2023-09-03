@@ -1,20 +1,14 @@
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
-import {
-  FaMoneyCheckAlt,
-  FaPlus,
-  FaShoppingCart,
-  FaTimes,
-} from 'react-icons/fa';
+import { FaPlus, FaTimes } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 
 // Import Thunks
+import { listInventory } from '../../../../../redux/asyncThunks/inventoryThunks';
 import {
   createPizza,
   listPizzas,
 } from '../../../../../redux/asyncThunks/pizzaThunks';
-import { listInventory } from '../../../../../redux/asyncThunks/inventoryThunks';
 
 // Import Components
 import Button from '../../../Button';

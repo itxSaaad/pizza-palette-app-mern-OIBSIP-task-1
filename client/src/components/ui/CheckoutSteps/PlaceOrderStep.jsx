@@ -1,10 +1,15 @@
 import PropTypes from 'prop-types';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+
+// Import Thunks
+import { clearCartData } from '../../../redux/slices/cartSlice';
 
 // Import Components
 import Button from '../Button';
 
 function PlaceOrderStep({ setCurrentStep }) {
+  const dispatch = useDispatch();
+
   const cart = useSelector((state) => state.cart);
   const { shippingAddress, paymentMethod, cartItems } = cart;
 
@@ -13,14 +18,13 @@ function PlaceOrderStep({ setCurrentStep }) {
       name: 'Items Price',
       value:
         cartItems &&
-        cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
+        cartItems.reduce((acc, item) => acc + item.price * item.qty, 0),
     },
     {
       name: 'Delivery Charges',
       value:
         cartItems &&
-        cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0) >
-          100
+        cartItems.reduce((acc, item) => acc + item.price * item.qty, 0) > 100
           ? 0
           : 10,
     },
@@ -31,7 +35,7 @@ function PlaceOrderStep({ setCurrentStep }) {
         Number(
           (
             0.15 *
-            cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
+            cartItems.reduce((acc, item) => acc + item.price * item.qty, 0)
           ).toFixed(2)
         ),
     },
@@ -41,23 +45,15 @@ function PlaceOrderStep({ setCurrentStep }) {
         cartItems &&
         Number(
           (
-            cartItems.reduce(
-              (acc, item) => acc + item.price * item.quantity,
-              0
-            ) +
-            (cartItems.reduce(
-              (acc, item) => acc + item.price * item.quantity,
-              0
-            ) > 100
+            cartItems.reduce((acc, item) => acc + item.price * item.qty, 0) +
+            (cartItems.reduce((acc, item) => acc + item.price * item.qty, 0) >
+            100
               ? 0
               : 10) +
             Number(
               (
                 0.15 *
-                cartItems.reduce(
-                  (acc, item) => acc + item.price * item.quantity,
-                  0
-                )
+                cartItems.reduce((acc, item) => acc + item.price * item.qty, 0)
               ).toFixed(2)
             )
           ).toFixed(2)
@@ -67,6 +63,7 @@ function PlaceOrderStep({ setCurrentStep }) {
 
   const handlePlaceOrder = () => {
     setCurrentStep('Shipping');
+    dispatch(clearCartData());
   };
   return (
     <div className="flex flex-col justify-between items-center mb-4">
@@ -74,7 +71,7 @@ function PlaceOrderStep({ setCurrentStep }) {
         Place Order
       </h1>
       <div className="w-full flex flex-col items-center border border-orange-300 rounded-2xl p-4 mt-2 space-y-4 md:flex-row md:space-y-0 md:space-x-6">
-        {cartItems ? (
+        {cartItems && cartItems.length > 0 ? (
           <>
             <div className="flex flex-col items-start justify-between w-full md:w-2/3">
               <div className="flex flex-col items-start justify-between w-full py-2">
@@ -109,22 +106,27 @@ function PlaceOrderStep({ setCurrentStep }) {
                 <div className="flex flex-col items-start justify-between w-full space-y-2">
                   {cartItems.map((item) => (
                     <div
-                      key={item.name}
+                      key={item._id}
                       className="flex flex-col sm:flex-row items-center justify-between w-full space-x-5 border-b border-orange-300 py-2"
                     >
                       <img
-                        src={item.image}
+                        src={item.imageUrl}
                         alt={item.name}
                         className="w-16 h-16 rounded-2xl"
                       />
-                      <div className="flex flex-col sm:flex-row items-start justify-between w-full">
-                        <p className="text-orange-500 text-md leading-relaxed">
-                          {item.name}
-                        </p>
-
+                      <div className="flex flex-col sm:flex-row items-center justify-between w-full">
+                        <div>
+                          <p className="text-orange-500 text-md leading-relaxed">
+                            {item.name}
+                          </p>
+                          <p>
+                            Price: ${item.price} | Size:{' '}
+                            {item.size.charAt(0).toUpperCase() +
+                              item.size.slice(1)}
+                          </p>
+                        </div>
                         <p className="text-black text-md leading-relaxed">
-                          {item.quantity} x ${item.price}= $
-                          {item.price * item.quantity}
+                          {item.qty} x ${item.price}= ${item.price * item.qty}
                         </p>
                       </div>
                     </div>

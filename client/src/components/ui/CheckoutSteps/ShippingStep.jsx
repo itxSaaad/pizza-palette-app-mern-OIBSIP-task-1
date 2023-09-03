@@ -33,7 +33,7 @@ function ShippingStep({ setCurrentStep }) {
         <span className="text-sm text-orange-500">Enter Shipping Details</span>
       </p>
 
-      {cartItems ? (
+      {cartItems && cartItems.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
             <div className="w-full">

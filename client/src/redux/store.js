@@ -9,7 +9,6 @@ import userReducer from './slices/userSlice.js';
 import inventoryReducer from './slices/inventorySlice.js';
 
 // Create Store
-
 const store = configureStore({
   reducer: {
     admin: adminReducer,

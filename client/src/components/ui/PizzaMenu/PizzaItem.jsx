@@ -1,6 +1,12 @@
 import Proptypes from 'prop-types';
+import { useState } from 'react';
+import { FaMinus, FaPlus } from 'react-icons/fa';
+
+// Import Components
+import AddtoCartButton from '../Cart/AddToCartButton';
 
 function PizzaItem({ pizza }) {
+  const [qty, setQty] = useState(1);
   return (
     <div
       key={pizza._id}
@@ -20,6 +26,36 @@ function PizzaItem({ pizza }) {
           </span>
         </div>
         <p className="text-sm text-gray-700">{pizza.description}</p>
+        <p className="text-sm text-gray-700">
+          <span className="font-bold">Size: </span>
+          {pizza.size.charAt(0).toUpperCase() + pizza.size.slice(1)}
+        </p>
+        <div className="flex justify-between items-center w-full space-x-1 mt-2">
+          <AddtoCartButton id={pizza._id} qty={qty} />
+          <div className="flex justify-between items-center space-x-2">
+            <button
+              className="text-red-500"
+              onClick={() => {
+                if (qty > 1) {
+                  setQty(qty - 1);
+                }
+              }}
+            >
+              <FaMinus />
+            </button>
+            <p>Qty: {qty}</p>
+            <button
+              className="text-green-500"
+              onClick={() => {
+                if (qty < 10) {
+                  setQty(qty + 1);
+                }
+              }}
+            >
+              <FaPlus />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

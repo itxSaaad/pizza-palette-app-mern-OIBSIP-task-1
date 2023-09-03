@@ -34,7 +34,7 @@ function PaymentStep({ setCurrentStep }) {
         <br />
         <span className="text-sm text-orange-500">Select Payment Method</span>
       </p>
-      {cartItems ? (
+      {cartItems && cartItems.length > 0 ? (
         <>
           <div className="flex flex-col items-center justify-center mt-4">
             <div className="flex items-center justify-center">

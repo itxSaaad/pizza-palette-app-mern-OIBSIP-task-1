@@ -19,9 +19,9 @@ const {
 
 // Public Routes
 router.route('/').get(getAllPizzas);
+router.get('/:id', getPizzaById);
 
 // Private Routes
-router.get('/:id', protect, getPizzaById);
 
 // Admin + Private Routes
 router.post('/', protect, admin, createPizza);

@@ -15,6 +15,9 @@ function MenuScreen() {
   const pizza = useSelector((state) => state.pizza);
   const { loading, pizzaList, pizzaListError } = pizza;
 
+  const cart = useSelector((state) => state.cart);
+  const { cartAddItemError } = cart;
+
   useEffect(() => {
     dispatch(listPizzas({}));
   }, [dispatch]);
@@ -26,11 +29,11 @@ function MenuScreen() {
   }, [dispatch, pizzaList]);
 
   return (
-    <section className="min-h-screen flex flex-col justify-center items-center pt-14 px-10 sm:px-16 bg-orange-200">
+    <section className="min-h-screen flex flex-col justify-center items-center pt-16 px-10 sm:px-16 bg-orange-200">
       {loading ? (
         <Loader />
-      ) : pizzaListError ? (
-        <Message>{pizzaListError}</Message>
+      ) : pizzaListError || cartAddItemError ? (
+        <Message>{pizzaListError || cartAddItemError}</Message>
       ) : pizzaList.length > 0 ? (
         <>
           <h1 className="text-4xl font-bold text-orange-600 mb-8">
