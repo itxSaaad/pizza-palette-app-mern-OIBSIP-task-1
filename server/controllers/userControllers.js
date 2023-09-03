@@ -6,7 +6,8 @@ const asyncHandler = require('express-async-handler');
 const generateToken = require('../utils/generateToken');
 
 // Import Middlewares
-const sendEmail = require('../middlewares/nodemailerMiddleware');
+// const sendEmail = require('../middlewares/nodemailerMiddleware');
+const sendEmail = require('../middlewares/brevoMiddleware');
 
 // Import Schema
 const User = require('../schemas/userSchema');
@@ -98,7 +99,7 @@ const registerUser = asyncHandler(async (req, res) => {
             // Send the verification email
             const emailSent = await sendEmail(
               (mailOptions = {
-                from: process.env.NODEMAILER_EMAIL,
+                from: process.env.SENDER_EMAIL,
                 to: email,
                 subject: 'Please Confirm your Account!',
                 text: `Hey ${name},\n\nAccount Successfully Created!\n\nPlease use the following code within the next 10 minutes to activate your account: ${verificationCode}\n\nThanks,\nTeam Pizza Palette.\n\nP.S. If you did not create an account, please ignore this email. `,
@@ -215,7 +216,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
         // Send the reset email
         const emailSent = await sendEmail(
           (mailOptions = {
-            from: process.env.NODEMAILER_EMAIL,
+            from: process.env.SENDER_EMAIL,
             to: user.email,
             subject: 'Password Reset Request',
             text: `Please use the following code within the next 10 minutes to reset your password: ${resetToken}`,

@@ -6,7 +6,8 @@ const asyncHandler = require('express-async-handler');
 const generateToken = require('../utils/generateToken');
 
 // Import Middlewares
-const sendEmail = require('../middlewares/nodemailerMiddleware');
+// const sendEmail = require('../middlewares/nodemailerMiddleware');
+const sendEmail = require('../middlewares/brevoMiddleware');
 
 // Import Schema
 const Admin = require('../schemas/adminUserSchema');
@@ -104,7 +105,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
 
             const emailSentToAdmin = await sendEmail(
               (mailOptions = {
-                from: process.env.NODEMAILER_EMAIL,
+                from: process.env.SENDER_EMAIL,
                 to: adminUser.email,
                 subject: 'Admin Account Created Successfully!',
                 text: `Hello ${name},\n\nYour Admin Account has been created successfully. Please wait for the Admin to approve your account.\n\nThank You,\nTeam Pizza Delivery!`,
@@ -113,8 +114,8 @@ const registerAdmin = asyncHandler(async (req, res) => {
 
             const emailSentToSuperAdmin = await sendEmail(
               (mailOptions = {
-                from: process.env.NODEMAILER_EMAIL,
-                to: process.env.NODEMAILER_SUPERADMIN_EMAIL,
+                from: process.env.SENDER_EMAIL,
+                to: process.env.SUPERADMIN_EMAIL,
                 subject: 'New Admin Account Approval!',
                 text: `Hello Super Admin,\n\nA new Admin Account has been created successfully. Please approve the account.\n\nThank You,\nTeam Pizza Delivery!`,
               })
