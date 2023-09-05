@@ -124,6 +124,9 @@ const cartSlice = createSlice({
       state.cartItems = [];
       state.shippingAddress = {};
       state.paymentMethod = {};
+      localStorage.removeItem('cartItems');
+      localStorage.removeItem('shippingAddress');
+      localStorage.removeItem('paymentMethod');
       state.orderRazorPayPaymentDetails = {};
       state.orderGetRazorPayOrderDetails = {};
       state.cartAddItemError = null;
@@ -139,9 +142,6 @@ const cartSlice = createSlice({
       state.orderGetRazorPayOrderIdSuccess = false;
       state.orderRazorPayPaymentSuccess = false;
       state.loading = false;
-      localStorage.removeItem('cartItems');
-      localStorage.removeItem('shippingAddress');
-      localStorage.removeItem('paymentMethod');
     },
   },
   extraReducers: (builder) => {

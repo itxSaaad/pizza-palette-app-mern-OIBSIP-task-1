@@ -30,7 +30,7 @@ router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword', resetPassword);
 
 // Private Routes
-router.get('/verify', protect, verifyUser);
+router.post('/verify', protect, verifyUser);
 router
   .route('/profile')
   .get(protect, getUserProfile)

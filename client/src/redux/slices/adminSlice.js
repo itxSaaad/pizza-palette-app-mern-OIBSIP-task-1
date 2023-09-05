@@ -47,11 +47,26 @@ const adminSlice = createSlice({
   reducers: {
     clearAdminUserData: (state) => {
       localStorage.removeItem('adminUserInfo');
+      localStorage.removeItem('adminUserDetails');
       state.adminUserInfo = null;
+      state.adminUserDetails = null;
+      state.adminUserList = [];
       state.adminUserLoginError = null;
       state.adminUserRegisterError = null;
+      state.adminUserListsError = null;
+      state.adminUserDetailsError = null;
+      state.adminUserUpdateProfileError = null;
+      state.adminUserDetailsByIdError = null;
+      state.adminUserUpdateProfileByIdError = null;
+      state.adminUserDeleteByIdError = null;
       state.adminUserLoginSuccess = false;
       state.adminUserRegisterSuccess = false;
+      state.adminUserListsSuccess = false;
+      state.adminUserDetailsSuccess = false;
+      state.adminUserUpdateProfileSuccess = false;
+      state.adminUserDetailsByIdSuccess = false;
+      state.adminUserUpdateProfileByIdSuccess = false;
+      state.adminUserDeleteByIdSuccess = false;
       state.loading = false;
     },
   },

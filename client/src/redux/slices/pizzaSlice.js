@@ -32,12 +32,15 @@ const pizzaSlice = createSlice({
   initialState,
   reducers: {
     clearPizzaData: (state) => {
+      state.pizzaList = [];
       state.pizzaInfo = null;
       state.pizzaListError = null;
+      state.pizzaCreateError = null;
       state.pizzaGetByIdError = null;
       state.pizzaUpdateByIdError = null;
       state.pizzaDeleteByIdError = null;
       state.pizzaListSuccess = false;
+      state.pizzaCreateSuccess = false;
       state.pizzaGetByIdSuccess = false;
       state.pizzaUpdateByIdSuccess = false;
       state.pizzaDeleteByIdSuccess = false;
