@@ -1,11 +1,13 @@
 const Brevo = require('@getbrevo/brevo');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const defaultClient = Brevo.ApiClient.instance;
 
 // Configure API key authorization: api-key
 var apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey =
-  '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';
+apiKey.apiKey = `${process.env.BREVO_API_KEY}`;
 
 var apiInstance = new Brevo.TransactionalEmailsApi();
 

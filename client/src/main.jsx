@@ -11,14 +11,15 @@ import store from './redux/store.js';
 // Import Screens
 import AdminDashboardScreen from './screens/Admin/AdminDashboardScreen.jsx';
 import AdminLoginScreen from './screens/Admin/AdminLoginScreen.jsx';
+import AdminRegisterScreen from './screens/Admin/AdminRegisterScreen.jsx';
 import HomeScreen from './screens/HomeScreen.jsx';
 import MenuScreen from './screens/MenuScreen.jsx';
 import CheckoutScreen from './screens/User/CheckoutScreen.jsx';
+import ForgetPasswordScreen from './screens/User/ForgetPasswordScreen.jsx';
 import ProfileScreen from './screens/User/ProfileScreen.jsx';
 import UserLoginScreen from './screens/User/UserLoginScreen.jsx';
 import UserOrdersScreen from './screens/User/UserOrdersScreen.jsx';
 import UserRegisterScreen from './screens/User/UserRegisterScreen.jsx';
-import AdminRegisterScreen from './screens/Admin/AdminRegisterScreen.jsx';
 
 // Create Router
 const router = createBrowserRouter([
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: '/register',
         element: <UserRegisterScreen />,
+      },
+      {
+        path: '/forget-pwd',
+        element: <ForgetPasswordScreen />,
       },
       {
         path: '/profile',
