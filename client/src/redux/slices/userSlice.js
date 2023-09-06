@@ -31,6 +31,8 @@ const initialState = {
   userListError: null,
   userVerifyEmailError: null,
   userForgotPasswordError: null,
+  userPasswordResetEmail: null,
+  userPasswordResetOTP: null,
   userResetPasswordError: null,
   userDetailsByIdError: null,
   userUpdateProfileByIdError: null,
@@ -54,12 +56,19 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
+    setPasswordResetEmail: (state, action) => {
+      state.userPasswordResetEmail = action.payload;
+    },
+    setPasswordResetOTP: (state, action) => {
+      state.userPasswordResetOTP = action.payload;
+    },
     clearUserData: (state) => {
       localStorage.removeItem('userInfo');
       localStorage.removeItem('userDetails');
       state.userInfo = null;
       state.userDetails = null;
       state.userList = [];
+      state.userPasswordResetEmail = null;
       state.userLoginError = null;
       state.userRegisterError = null;
       state.userDetailsError = null;
@@ -247,7 +256,8 @@ const userSlice = createSlice({
 });
 
 // Export Actions
-export const { clearUserData } = userSlice.actions;
+export const { clearUserData, setPasswordResetEmail, setPasswordResetOTP } =
+  userSlice.actions;
 
 // Export Reducer
 export default userSlice.reducer;

@@ -273,7 +273,7 @@ const resetPassword = asyncHandler(async (req, res) => {
       });
 
       if (user) {
-        if (user.resetPasswordExpire < Date.now()) {
+        if (user.resetPasswordExpire > Date.now()) {
           if (user.resetPasswordToken === resetToken) {
             if (newPassword !== confirmNewPassword) {
               res.status(400);
