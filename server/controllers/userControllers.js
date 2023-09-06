@@ -6,8 +6,7 @@ const asyncHandler = require('express-async-handler');
 const generateToken = require('../utils/generateToken');
 
 // Import Middlewares
-// const sendEmail = require('../middlewares/nodemailerMiddleware');
-const sendEmail = require('../middlewares/brevoMiddleware');
+const sendEmail = require('../middlewares/nodemailerMiddleware');
 
 // Import Schema
 const User = require('../schemas/userSchema');

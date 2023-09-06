@@ -1,18 +1,24 @@
 const nodemailer = require('nodemailer');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false,
+  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.NODEMAILER_EMAIL,
-    pass: process.env.NODEMAILER_PASSWORD,
+    user: `${process.env.SENDER_EMAIL}`,
+    pass: `${process.env.SENDER_PASSWORD}`,
   },
 });
 
 const sendEmail = async (mailOptions) => {
   try {
-    await transporter.sendMail(mailOptions);
+    const response = await transporter.sendMail(mailOptions);
+
+    return response;
   } catch (error) {
     console.error('Error sending email:', error);
     throw new Error('Email could not be sent!');
