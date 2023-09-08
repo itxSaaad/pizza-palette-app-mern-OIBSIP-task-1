@@ -88,7 +88,7 @@ function PlaceOrderStep({ setCurrentStep }) {
         payment: {
           method: paymentMethod.toLowerCase().replace(' ', ''),
           razorpayOrderId: orderRazorPayPaymentDetails.razorPayPaymentId,
-          status: !orderRazorPayPaymentDetails === {} ? 'success' : 'pending',
+          status: !orderRazorPayPaymentDetails == {} ? 'success' : 'pending',
         },
       })
     );
@@ -206,7 +206,7 @@ function PlaceOrderStep({ setCurrentStep }) {
               />
               <Button
                 variant="primary"
-                disabled={orderRazorPayPaymentDetails === {}}
+                disabled={orderRazorPayPaymentDetails == {}}
                 onClick={handlePlaceOrder}
                 className="w-full rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >

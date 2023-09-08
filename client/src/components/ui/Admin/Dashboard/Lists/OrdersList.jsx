@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import {
   deleteOrderById,
   listOrders,
+  updateOrderById,
 } from '../../../../../redux/asyncThunks/orderThunks';
 
 // Import Components
@@ -32,7 +33,19 @@ function OrdersList() {
     orderListError,
     orderDeleteByIdError,
     orderDeleteByIdSuccess,
+    orderUpdateByIdError,
+    orderUpdateByIdSuccess,
   } = order;
+
+  const ordersReceived =
+    orderList && orderList.filter((order) => order.status === 'Received');
+  const ordersInTheKitchen =
+    orderList && orderList.filter((order) => order.status === 'In the Kitchen');
+  const ordersSentForDelivery =
+    orderList &&
+    orderList.filter((order) => order.status === 'Sent for Delivery');
+  const ordersDelivered =
+    orderList && orderList.filter((order) => order.status === 'Delivered');
 
   const handleDelete = (id) => {
     dispatch(deleteOrderById(id)).then(() => dispatch(listOrders({})));
@@ -41,6 +54,20 @@ function OrdersList() {
   const successMessageDelete = orderDeleteByIdSuccess && {
     status: '200',
     message: 'Order Deleted Successfully!',
+  };
+
+  const handleUpdate = (id, selectedStatus) => {
+    dispatch(
+      updateOrderById({
+        id,
+        status: selectedStatus,
+      })
+    ).then(() => dispatch(listOrders({})));
+  };
+
+  const successMessageUpdate = orderUpdateByIdSuccess && {
+    status: '200',
+    message: 'Order Updated Successfully!',
   };
 
   useEffect(() => {
@@ -56,17 +83,89 @@ function OrdersList() {
         <Loader />
       ) : (
         <>
-          {(orderListError || orderDeleteByIdError) && (
-            <Message>{orderListError || orderDeleteByIdError}</Message>
+          {(orderListError || orderDeleteByIdError || orderUpdateByIdError) && (
+            <Message>
+              {orderListError || orderDeleteByIdError || orderUpdateByIdError}
+            </Message>
           )}
-          {successMessageDelete && <Message>{successMessageDelete}</Message>}
+          {(successMessageDelete || successMessageUpdate) && (
+            <Message>{successMessageDelete || successMessageUpdate}</Message>
+          )}
           <div className="mt-4">
             {orderList.length > 0 ? (
-              <Table
-                data={orderList}
-                columns={orderColumns}
-                handleDelete={handleDelete}
-              />
+              <>
+                {ordersReceived.length > 0 ? (
+                  <div className="mb-4">
+                    <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                      Received Orders
+                    </h1>
+                    <Table
+                      data={ordersReceived}
+                      columns={orderColumns}
+                      handleDelete={handleDelete}
+                      handleChange={handleUpdate}
+                    />
+                  </div>
+                ) : (
+                  <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
+                    No Orders Received Yet..
+                  </h2>
+                )}
+                {ordersInTheKitchen.length > 0 ? (
+                  <div className="mb-4">
+                    <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                      Orders In The Kitchen
+                    </h1>
+
+                    <Table
+                      data={ordersInTheKitchen}
+                      columns={orderColumns}
+                      handleDelete={handleDelete}
+                      handleChange={handleUpdate}
+                    />
+                  </div>
+                ) : (
+                  <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
+                    No Orders In The Kitchen..
+                  </h2>
+                )}
+                {ordersSentForDelivery.length > 0 ? (
+                  <div className="mb-4">
+                    <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                      Orders Sent For Delivery
+                    </h1>
+
+                    <Table
+                      data={ordersSentForDelivery}
+                      columns={orderColumns}
+                      handleDelete={handleDelete}
+                      handleChange={handleUpdate}
+                    />
+                  </div>
+                ) : (
+                  <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
+                    No Orders Sent For Delivery..
+                  </h2>
+                )}
+                {ordersDelivered.length > 0 ? (
+                  <div className="mb-4">
+                    <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                      Orders Delivered
+                    </h1>
+
+                    <Table
+                      data={ordersDelivered}
+                      columns={orderColumns}
+                      handleDelete={handleDelete}
+                      handleChange={handleUpdate}
+                    />
+                  </div>
+                ) : (
+                  <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
+                    No Orders Delivered..
+                  </h2>
+                )}
+              </>
             ) : (
               <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
                 No Orders Found..

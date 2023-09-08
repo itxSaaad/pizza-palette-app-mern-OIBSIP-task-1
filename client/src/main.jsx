@@ -9,6 +9,7 @@ import './index.css';
 import store from './redux/store.js';
 
 // Import Screens
+import AboutScreen from './screens/AboutScreen.jsx';
 import AdminDashboardScreen from './screens/Admin/AdminDashboardScreen.jsx';
 import AdminLoginScreen from './screens/Admin/AdminLoginScreen.jsx';
 import AdminRegisterScreen from './screens/Admin/AdminRegisterScreen.jsx';
@@ -17,6 +18,7 @@ import MenuScreen from './screens/MenuScreen.jsx';
 import CheckoutScreen from './screens/User/CheckoutScreen.jsx';
 import ForgetPasswordScreen from './screens/User/ForgetPasswordScreen.jsx';
 import ProfileScreen from './screens/User/ProfileScreen.jsx';
+import UserCreateCustomPizzaScreen from './screens/User/UserCreateCustomPizzaScreen.jsx';
 import UserLoginScreen from './screens/User/UserLoginScreen.jsx';
 import UserOrdersScreen from './screens/User/UserOrdersScreen.jsx';
 import UserRegisterScreen from './screens/User/UserRegisterScreen.jsx';
@@ -43,9 +45,14 @@ const router = createBrowserRouter([
         path: '/forget-pwd',
         element: <ForgetPasswordScreen />,
       },
+
       {
         path: '/profile',
         element: <ProfileScreen />,
+      },
+      {
+        path: '/custom-pizza',
+        element: <UserCreateCustomPizzaScreen />,
       },
       {
         path: '/my-orders',
@@ -70,6 +77,10 @@ const router = createBrowserRouter([
       {
         path: '/menu',
         element: <MenuScreen />,
+      },
+      {
+        path: '/about',
+        element: <AboutScreen />,
       },
     ],
   },

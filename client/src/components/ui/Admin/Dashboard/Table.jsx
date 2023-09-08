@@ -40,6 +40,40 @@ function Table({ data, columns, handleDelete, handleChange }) {
                         checked={row[column]}
                         onChange={() => handleChange(row._id)}
                       />
+                    ) : column === 'status' ? (
+                      <select
+                        className="bg-orange-700 text-orange-100 rounded-md p-2"
+                        defaultValue={row[column]}
+                        onChange={(e) => {
+                          handleChange(row._id, e.target.value);
+                          console.log('Id', row._id, 'Value', e.target.value);
+                        }}
+                      >
+                        <option
+                          value="Recieved"
+                          selected={row[column] === 'Recieved'}
+                        >
+                          Received
+                        </option>
+                        <option
+                          value="In the Kitchen"
+                          selected={row[column] === 'In the Kitchen'}
+                        >
+                          In the Kitchen
+                        </option>
+                        <option
+                          value="Sent for Delivery"
+                          selected={row[column] === 'Sent for Delivery'}
+                        >
+                          Sent for Delivery
+                        </option>
+                        <option
+                          value="Delivered"
+                          selected={row[column] === 'Delivered'}
+                        >
+                          Delivered
+                        </option>
+                      </select>
                     ) : (
                       row[column]
                     )}

@@ -53,10 +53,10 @@ function Home() {
     (order) => order.status === 'Received'
   );
   const ordersInTheKitchen = orderList.filter(
-    (order) => order.status === 'In The Kitchen'
+    (order) => order.status === 'In the Kitchen'
   );
   const ordersSentForDelivery = orderList.filter(
-    (order) => order.status === 'Sent For Delivery'
+    (order) => order.status === 'Sent for Delivery'
   );
   const ordersDelivered = orderList.filter(
     (order) => order.status === 'Delivered'
