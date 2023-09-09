@@ -35,6 +35,9 @@ function PizzasList() {
     message: 'pizza Deleted Successfully!',
   };
 
+  const PizzaByAdmin = pizzaList.filter((pizza) => pizza.createdBy === 'admin');
+  const customPizzas = pizzaList.filter((pizza) => pizza.createdBy === 'user');
+
   useEffect(() => {
     if (!pizzaList) {
       dispatch(listPizzas({}));
@@ -54,11 +57,40 @@ function PizzasList() {
           {successMessageDelete && <Message>{successMessageDelete}</Message>}
           <div className="mt-4">
             {pizzaList.length > 0 ? (
-              <Table
-                data={pizzaList}
-                columns={pizzaColumns}
-                handleDelete={handleDelete}
-              />
+              <>
+                {PizzaByAdmin.length > 0 ? (
+                  <div className="mb-4">
+                    <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                      Pizzas By Admin
+                    </h1>
+                    <Table
+                      data={PizzaByAdmin}
+                      columns={pizzaColumns}
+                      handleDelete={handleDelete}
+                    />
+                  </div>
+                ) : (
+                  <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
+                    No Pizzas Created By Admin Found..
+                  </h2>
+                )}
+                {customPizzas.length > 0 ? (
+                  <div className="mb-4">
+                    <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                      Custom Pizzas
+                    </h1>
+                    <Table
+                      data={customPizzas}
+                      columns={pizzaColumns}
+                      handleDelete={handleDelete}
+                    />
+                  </div>
+                ) : (
+                  <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
+                    No Custom Pizzas Found..
+                  </h2>
+                )}
+              </>
             ) : (
               <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
                 No Pizzas Found..

@@ -19,7 +19,11 @@ function Table({ data, columns, handleDelete, handleChange }) {
           <thead className="bg-orange-700 h-10 uppercase font-bold">
             <tr>
               {columns.map((column) => (
-                <th key={column}>{column.replace(/([A-Z])/g, ' $1').trim()}</th>
+                <>
+                  <th key={column}>
+                    {column.replace(/([A-Z])/g, ' $1').trim()}
+                  </th>
+                </>
               ))}
               <th>Delete</th>
             </tr>
@@ -40,6 +44,8 @@ function Table({ data, columns, handleDelete, handleChange }) {
                         checked={row[column]}
                         onChange={() => handleChange(row._id)}
                       />
+                    ) : column === 'isVerified' ? (
+                      <> {row[column] ? 'Verified' : 'Not Verified'}</>
                     ) : column === 'status' ? (
                       <select
                         className="bg-orange-700 text-orange-100 rounded-md p-2"
@@ -74,6 +80,27 @@ function Table({ data, columns, handleDelete, handleChange }) {
                           Delivered
                         </option>
                       </select>
+                    ) : column === 'orderItems' ? (
+                      <table className="bg-orange-700 w-full table-auto border-collapse border-2 border-orange-700 rounded-lg text-center overflow-hidden whitespace-no-wrap">
+                        <thead>
+                          <tr>
+                            <th>Pizza ID</th>
+                            <th>Quantity</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {row[column].map((item) => (
+                            <tr key={item._id}>
+                              <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
+                                {item.pizza}
+                              </td>
+                              <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
+                                {item.qty}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     ) : (
                       row[column]
                     )}

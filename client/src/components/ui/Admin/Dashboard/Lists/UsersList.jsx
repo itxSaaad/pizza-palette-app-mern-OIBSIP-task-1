@@ -13,7 +13,7 @@ import Message from '../../../Message';
 import Table from '../Table';
 
 function UsersList() {
-  const userColumns = ['_id', 'name', 'email', 'numberOfOrders'];
+  const userColumns = ['_id', 'name', 'email', 'numberOfOrders', 'isVerified'];
 
   const dispatch = useDispatch();
 

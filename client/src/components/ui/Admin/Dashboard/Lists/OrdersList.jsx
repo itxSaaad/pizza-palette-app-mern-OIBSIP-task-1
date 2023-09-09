@@ -21,6 +21,7 @@ function OrdersList() {
     'salesTax',
     'deliveryCharges',
     'totalPrice',
+    'orderItems',
     'deliveredAt',
   ];
 
