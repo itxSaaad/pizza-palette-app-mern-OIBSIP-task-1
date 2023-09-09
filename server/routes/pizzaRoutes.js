@@ -22,9 +22,9 @@ router.route('/').get(getAllPizzas);
 router.get('/:id', getPizzaById);
 
 // Private Routes
+router.post('/', protect, createPizza);
 
 // Admin + Private Routes
-router.post('/', protect, admin, createPizza);
 router
   .route('/:id')
   .put(protect, admin, updatePizzaById)

@@ -12,9 +12,7 @@ const User = require('../schemas/userSchema');
 // @access  Public
 
 const getAllPizzas = asyncHandler(async (req, res) => {
-  const pizzas = await Pizza.find({
-    createdBy: 'admin',
-  });
+  const pizzas = await Pizza.find({});
 
   if (pizzas) {
     res.status(200).json(pizzas);
