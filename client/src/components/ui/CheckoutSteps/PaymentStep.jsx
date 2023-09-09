@@ -56,8 +56,6 @@ function PaymentStep({ setCurrentStep }) {
         ).toFixed(2)
       );
 
-    console.log(amount);
-
     dispatch(savePaymentMethod(paymentMethod));
     dispatch(createRazorPayOrder({ amount, currency: 'USD' }));
   };

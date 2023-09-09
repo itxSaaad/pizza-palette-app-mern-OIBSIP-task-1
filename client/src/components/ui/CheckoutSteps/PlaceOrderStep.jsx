@@ -200,7 +200,7 @@ function PlaceOrderStep({ setCurrentStep }) {
                   </div>
                 ))}
               </div>
-              {!orderGetRazorPayOrderDetails && (
+              {!orderRazorPayPaymentDetails.razorPayPaymentId && (
                 <RazorPayPaymentButton
                   amount={orderSummary[3].value}
                   orderId={orderGetRazorPayOrderDetails.id}
@@ -208,7 +208,10 @@ function PlaceOrderStep({ setCurrentStep }) {
               )}
               <Button
                 variant="primary"
-                disabled={!orderRazorPayPaymentDetails}
+                disabled={
+                  !orderRazorPayPaymentDetails.razorPayPaymentId ||
+                  orderRazorPayPaymentDetails.status === 'pending'
+                }
                 onClick={handlePlaceOrder}
                 className="w-full rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
