@@ -11,9 +11,17 @@ const sendEmail = require('../middlewares/nodemailerMiddleware');
 // Import Schema
 const User = require('../schemas/userSchema');
 
-// Function to generate a random 6-digit confirmation code
-const generateverificationCode = () => {
-  return Math.floor(100000 + Math.random() * 900000);
+// Function to generate a random 6-digit confirmation code thats not in users Schema already
+const generateVerificationCode = async () => {
+  let code;
+  let user;
+
+  do {
+    code = Math.floor(100000 + Math.random() * 900000).toString();
+    user = await User.findOne({ verificationCode: code });
+  } while (user);
+
+  return code;
 };
 
 // Initialize Controllers
@@ -93,7 +101,7 @@ const registerUser = asyncHandler(async (req, res) => {
             hashedPassword = await bcrypt.hash(password, salt);
 
             // Generate a verification token
-            const verificationCode = generateverificationCode();
+            const verificationCode = await generateVerificationCode();
 
             // Send the verification email
             const emailSent = await sendEmail(
@@ -157,7 +165,7 @@ const verifyUser = asyncHandler(async (req, res) => {
       if (user) {
         if (user.verificationCode === verificationCode) {
           user.isVerified = true;
-          user.verificationCode = '';
+          user.verificationCode = null;
 
           const verifiedUser = await user.save();
 

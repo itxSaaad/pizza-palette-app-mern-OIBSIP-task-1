@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema(
     verificationCode: {
       type: String,
       unique: true,
+      default: null,
     },
 
     // Password Reset

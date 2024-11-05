@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "pizza-delivery-system-app-client",
   "private": true,
   "version": "0.0.0",
   "type": "module",

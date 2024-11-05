@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "pizza-delivery-system-app-server",
   "version": "1.0.0",
   "description": "Backend for Pizza Delivery System.",
   "main": "index.js",
