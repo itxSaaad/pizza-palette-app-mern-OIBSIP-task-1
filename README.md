@@ -1,20 +1,20 @@
 # Pizza Delivery System App - MERN
 
-> Pizza Delivery System App (MERN - MongoDB, Express, React, Node.js) is a comprehensive web application that enables users to customize and order pizzas online. This project showcases end-to-end development, including user authentication, custom pizza creation, payment integration, real-time order processing, admin control, and email notifications.
+> Pizza Delivery System App (MERN - MongoDB, Express, React, Node.js) is a comprehensive web application that enables users to customize and order pizzas online. This project showcases a full-stack development approach with a focus on user experience, functionality, and security. The app includes a user-friendly frontend interface for ordering pizzas, an admin dashboard for managing orders and inventory, and a secure backend server for processing orders and payments.
 
 <br />
 <div align="center">
   <p align="center">
     <br />
-    <a href="https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP">
+    <a href="https://github.com/itxSaaad/pizza-palette-app-mern-OIBSIP-task-1">
     <strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://pizza-delivery-system-app-mern-oibsip.vercel.app/">View Demo</a>
+    <a href="https://pizza-palette-app-mern.vercel.app/">View Demo</a>
     ·
-    <a href="https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP/issues">Report Bug</a>
+    <a href="https://github.com/itxSaaad/pizza-palette-app-mern-OIBSIP-task-1/issues">Report Bug</a>
     ·
-    <a href="https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP/issues">Request Feature</a>
+    <a href="https://github.com/itxSaaad/pizza-palette-app-mern-OIBSIP-task-1/issues">Request Feature</a>
   </p>
 </div>
 
@@ -26,17 +26,19 @@
 
 ## Live Preview Project
 
-[Live Preview](https://pizza-delivery-system-app-mern-oibsip.vercel.app/)
+[Live Preview](https://pizza-palette-app-mern.vercel.app/)
 
 ## Features
 
-- **User Authentication:** Secure registration and login system with JWT tokens for enhanced authorization.
-- **Custom Pizza Creation:** Intuitive UI for customizing pizza base, sauce, cheese, and toppings.
-- **Payment Integration:** Seamless payment processing using the Razorpay API in test mode.
-- **Real-time Order Processing:** Live inventory updates upon order placement for accurate stock management.
-- **Admin Control:** Dedicated admin panel for inventory management, order status updates, and notifications.
-- **Notifications:** Automated admin email alerts for low inventory levels, ensuring timely restocking.
-- **Responsive Design:** User-friendly interfaces designed for various screen sizes.
+- **User & Admin Authentication:** Secure login and registration system with role-based access control for users and administrators.
+- **Pizza Management System:** Full CRUD operations for pizzas, allowing both admins and users to create custom pizzas with various ingredients (bases, sauces, cheeses, veggies).
+- **Inventory Management:** Complete tracking system for pizza ingredients with quantity monitoring, threshold alerts, and price management for bases, sauces, cheeses, and vegetables.
+- **Order Processing System:** End-to-end order management with order creation, status tracking, and delivery monitoring functionality.
+- **Payment Integration:** Secure payment processing through Razorpay API with order checkout capabilities and payment verification.
+- **Multi-level Access Control:** Differentiated capabilities for users and admins, with specific permissions for pizza creation, order management, and inventory control.
+- **Order History & Tracking:** Users can view their order history and track current order status through the delivery process.
+- **Admin Dashboard:** Comprehensive order management system allowing admins to view all orders, update order status, and manage inventory levels.
+- **Automatic Inventory Deduction:** System automatically updates ingredient quantities when orders are placed to maintain accurate inventory levels.
 
 ## Built With
 
@@ -45,7 +47,7 @@
 - **Database:** MongoDB (Atlas) (Mongoose) (MongoDB Compass)
 - **Payment:** Razorpay API (Test Mode)
 - **Authentication:** JSON Web Tokens (JWT)
-- **Email Notifications:** Nodemailer, SendGrid API
+- **Email Notifications:** Nodemailer
 - **Version Control:** Git and GitHub
 
 ## Getting Started
@@ -57,43 +59,92 @@
 
 ### Installation
 
-1.Clone the repo
+1. **Clone the repository**
 
-```sh
-git clone https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP.git
-```
+   ```sh
+      git clone https://github.com/itxSaaad/pizza-palette-app-mern-OIBSIP-task-1.git
+      cd pizza-palette-app-mern-OIBSIP-task-1
+   ```
 
-2.Install NPM packages
+2. **Install dependencies**
 
-```sh
-npm install
-```
+   ```sh
+      # Install server dependencies
+      npm install
 
-3.Create a `.env` file in the root directory and add the following
+      # Install client dependencies
+      cd client
+      npm install
+      cd ..
+   ```
 
-```sh
-NODE_ENV = development
-PORT = 5000
-MONGO_URI = <your_mongodb_uri>
-JWT_SECRET = <your_jwt_secret>
-SALT = <your_salt>
-NODEMAILER_EMAIL = <your_nodemailer_email>
-NODEMAILER_PASSWORD = <your_nodemailer_password>
-NODEMAILER_SUPERADMIN_EMAIL = <your_nodemailer_superadmin_email>
-```
+3. **Configure environment variables**
 
-4.Create a `.env` file in the client directory and add the following
+   Create a `.env` file in the root directory:
 
-```sh
-VITE_SERVER_URL = <your_server_url>
-VITE_CLIENT_URL = <your_client_url>
-```
+   ```sh
+       # Server Configuration
+       NODE_ENV=development
+       PORT=5000
 
-5.Run the app
+       # MongoDB Connection
+       MONGO_URI=your_mongodb_uri
 
-```sh
-npm run dev
-```
+       # Authentication
+       JWT_SECRET=your_jwt_secret
+       SALT=10
+
+       # Email Configuration
+       SENDER_EMAIL=your_email@example.com
+       SENDER_PASSWORD=your_email_password
+       SUPERADMIN_EMAIL=admin@example.com
+
+       # Payment Gateway
+       RAZORPAY_KEY_ID=your_razorpay_key_id
+       RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+   ```
+
+   Create a `.env` file in the client directory:
+
+   ```sh
+       VITE_SERVER_URL=http://localhost:5000
+       VITE_CLIENT_URL=http://localhost:3000
+       VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
+   ```
+
+4. **Seed the database (Optional)**
+
+   Populate the database with initial data:
+
+   ```sh
+       npm run data:import
+   ```
+
+   To reset the database:
+
+   ```sh
+       npm run data:destroy
+   ```
+
+5. **Start the application**
+
+   ```sh
+      # Run both server and client
+      npm run dev
+
+      # Run server only
+      npm run server
+
+      # Run client only
+      npm run client
+   ```
+
+6. **Access the application**
+
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend API: [http://localhost:5000](http://localhost:5000)
+
+> **Note:** Make sure MongoDB is running locally or you're using MongoDB Atlas with the correct connection string.
 
 ## Contributing
 
@@ -113,7 +164,7 @@ Don't forget to give the project a star! Thanks again!
 
 - Twitter: [@itxSaaad](https://twitter.com/itxSaaad)
 - LinkedIn: [@itxSaaad](https://www.linkedin.com/in/itxsaaad/)
-- Bento: [@itxSaaad](https://bento.me/itxsaaad)
+- Portfolio: [Muhammad Saad Faisal](https://codesbysaaad.tech/)
 - Email: [saadstudent.cs@gmail.com](mailto:saadstudent.cs@gmail.com)
 
 ## License
@@ -128,13 +179,13 @@ Give ⭐️ if you like this project!
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
-[contributors-shield]: https://img.shields.io/github/contributors/itxSaaad/pizza-delivery-system-app-mern-OIBSIP.svg?style=for-the-badge
-[contributors-url]: https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/itxSaaad/pizza-delivery-system-app-mern-OIBSIP.svg?style=for-the-badge
-[forks-url]: https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP/network/members
-[stars-shield]: https://img.shields.io/github/stars/itxSaaad/pizza-delivery-system-app-mern-OIBSIP.svg?style=for-the-badge
-[stars-url]: https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP/stargazers
-[issues-shield]: https://img.shields.io/github/issues/itxSaaad/pizza-delivery-system-app-mern-OIBSIP.svg?style=for-the-badge
-[issues-url]: https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP/issues
-[license-shield]: https://img.shields.io/github/license/itxSaaad/pizza-delivery-system-app-mern-OIBSIP.svg?style=for-the-badge
-[license-url]: https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP/blob/main/LICENSE.md
+[contributors-shield]: https://img.shields.io/github/contributors/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1.svg?style=for-the-badge
+[contributors-url]: https://github.com/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1.svg?style=for-the-badge
+[forks-url]: https://github.com/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1/network/members
+[stars-shield]: https://img.shields.io/github/stars/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1.svg?style=for-the-badge
+[stars-url]: https://github.com/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1/stargazers
+[issues-shield]: https://img.shields.io/github/issues/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1.svg?style=for-the-badge
+[issues-url]: https://github.com/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1/issues
+[license-shield]: https://img.shields.io/github/license/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1.svg?style=for-the-badge
+[license-url]: https://github.com/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1/blob/main/LICENSE.md

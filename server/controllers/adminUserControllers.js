@@ -8,7 +8,6 @@ const generateToken = require('../utils/generateToken');
 // Import Middlewares
 const sendEmail = require('../middlewares/nodemailerMiddleware');
 
-
 // Import Schema
 const Admin = require('../schemas/adminUserSchema');
 
