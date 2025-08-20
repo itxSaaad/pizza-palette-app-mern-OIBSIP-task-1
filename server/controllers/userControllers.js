@@ -75,8 +75,7 @@ const authUser = asyncHandler(async (req, res) => {
 // @access  Public
 
 const registerUser = asyncHandler(async (req, res) => {
-  let { name, email, password, confirmPassword, phoneNumber, address } =
-    req.body;
+  let { name, email, password, confirmPassword, phoneNumber, address } = req.body;
 
   if (!name || !email || !password || !confirmPassword) {
     res.status(400);
@@ -104,14 +103,15 @@ const registerUser = asyncHandler(async (req, res) => {
             const verificationCode = await generateVerificationCode();
 
             // Send the verification email
-            const emailSent = await sendEmail(
-              (mailOptions = {
-                from: process.env.SENDER_EMAIL,
-                to: email,
-                subject: 'Please Confirm your Account!',
-                text: `Hey ${name},\n\nAccount Successfully Created!\n\nPlease use the following code within the next 10 minutes to activate your account: ${verificationCode}\n\nThanks,\nTeam Pizza Palette.\n\nP.S. If you did not create an account, please ignore this email. `,
-              })
-            );
+            const emailSent = await sendEmail({
+              to: email,
+              subject: 'Please Confirm your Account!',
+              templateOptions: {
+                title: 'Confirm Your Account',
+                greeting: `Hey ${name},`,
+                message: `Account Successfully Created!<br><br><b>Your verification code:</b> <span style="font-size:1.3em;letter-spacing:2px;background:#f3f3f3;padding:4px 12px;border-radius:4px;">${verificationCode}</span><br><br>Please use this code within the next 10 minutes to activate your account.<br><br>P.S. If you did not create an account, please ignore this email.`,
+              },
+            });
 
             if (emailSent) {
               user = await User.create({
@@ -216,19 +216,20 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
       if (user) {
         // Generate a reset token
-        const resetToken = generateverificationCode();
+        const resetToken = await generateVerificationCode();
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpire = Date.now() + 600000; // 10 minutes
 
         // Send the reset email
-        const emailSent = await sendEmail(
-          (mailOptions = {
-            from: process.env.SENDER_EMAIL,
-            to: user.email,
-            subject: 'Password Reset Request',
-            text: `Please use the following code within the next 10 minutes to reset your password: ${resetToken}`,
-          })
-        );
+        const emailSent = await sendEmail({
+          to: user.email,
+          subject: 'Password Reset Request',
+          templateOptions: {
+            title: 'Password Reset Request',
+            greeting: `Hi ${user.name || ''},`,
+            message: `You requested a password reset.<br><br><b>Your reset code:</b> <span style="font-size:1.3em;letter-spacing:2px;background:#f3f3f3;padding:4px 12px;border-radius:4px;">${resetToken}</span><br><br>Please use this code within the next 10 minutes to reset your password.`,
+          },
+        });
 
         if (emailSent) {
           const resetUserPwd = await user.save();
@@ -369,8 +370,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user) {
-    let { name, email, phoneNumber, address, password, confirmPassword } =
-      req.body;
+    let { name, email, phoneNumber, address, password, confirmPassword } = req.body;
 
     if (emailValidator.validate(email)) {
       let match = false;

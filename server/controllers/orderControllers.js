@@ -8,6 +8,8 @@ const { updateInventoryQuantity } = require('../utils/inventoryUtils');
 // Import Schemas
 const Order = require('../schemas/orderSchema');
 const Pizza = require('../schemas/pizzaSchema');
+const User = require('../schemas/userSchema');
+const sendEmail = require('../middlewares/nodemailerMiddleware');
 
 // Initialize Controllers
 
@@ -51,14 +53,7 @@ const createRazorpayOrder = asyncHandler(async (req, res) => {
 // @access  Private
 
 const createOrder = asyncHandler(async (req, res) => {
-  const {
-    orderItems,
-    deliveryAddress,
-    salesTax,
-    deliveryCharges,
-    totalPrice,
-    payment,
-  } = req.body;
+  const { orderItems, deliveryAddress, salesTax, deliveryCharges, totalPrice, payment } = req.body;
 
   if (!orderItems && !Array.isArray(orderItems) && orderItems.length === 0) {
     res.status(400);
@@ -91,10 +86,7 @@ const createOrder = asyncHandler(async (req, res) => {
               res.status(400);
               throw new Error('Invalid Payment Method');
             } else {
-              if (
-                payment.method === 'stripe' &&
-                !payment.stripePaymentIntentId
-              ) {
+              if (payment.method === 'stripe' && !payment.stripePaymentIntentId) {
                 res.status(400);
                 throw new Error('Invalid Stripe Payment Intent Id');
               } else {
@@ -130,6 +122,30 @@ const createOrder = asyncHandler(async (req, res) => {
                   const createdOrder = await order.save();
 
                   if (createdOrder) {
+                    // Send Email Notification to User
+                    const user = await User.findById(req.user._id);
+                    if (user && user.email) {
+                      const emailSubject = 'Order Confirmation';
+                      const emailBody = `
+                        <h1>Thank you for your order!</h1>
+                        <p>Your order has been successfully created.</p>
+                        <p>Order Details:</p>
+                        <ul>
+                          ${orderItems
+                            .map((item) => `<li>${item.qty} x ${item.name}</li>`)
+                            .join('')}
+                        </ul>
+                        <p>Total Price: ${totalPrice}</p>
+                        <p>Delivery Address: ${deliveryAddress.address}, ${deliveryAddress.city}, ${
+                        deliveryAddress.postalCode
+                      }, ${deliveryAddress.country}</p>
+                        <p>We will notify you once your order is out for delivery.</p>
+                        <p>Thank you for choosing our service!</p>
+                      `;
+
+                      await sendEmail(user.email, emailSubject, emailBody);
+                    }
+
                     res.status(200).json({
                       createdOrder,
                       message: 'Order Created Successfully!',
@@ -205,6 +221,19 @@ const updateOrderById = asyncHandler(async (req, res) => {
 
     if (order.status === 'Delivered') {
       order.deliveredAt = Date.now();
+      // Send delivery email to user
+      const user = await User.findById(order.user);
+      if (user && user.email) {
+        await sendEmail({
+          to: user.email,
+          subject: 'Your Pizza Order Has Been Delivered!',
+          templateOptions: {
+            title: 'Order Delivered',
+            greeting: `Hi ${user.name || ''},`,
+            message: `Your order <b>${order._id}</b> has been delivered!<br><br>We hope you enjoy your meal. Thank you for choosing Pizza Palette!`,
+          },
+        });
+      }
     } else {
       order.deliveredAt = undefined;
     }

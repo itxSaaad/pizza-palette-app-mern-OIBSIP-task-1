@@ -29,10 +29,7 @@ const authAdmin = asyncHandler(async (req, res) => {
 
       if (adminUser) {
         if (adminUser.isApproved) {
-          const passwordsMatch = await bcrypt.compare(
-            password,
-            adminUser.password
-          );
+          const passwordsMatch = await bcrypt.compare(password, adminUser.password);
 
           if (adminUser.email === email && passwordsMatch) {
             res.status(200).json({
@@ -102,23 +99,25 @@ const registerAdmin = asyncHandler(async (req, res) => {
               isApproved: false,
             });
 
-            const emailSentToAdmin = await sendEmail(
-              (mailOptions = {
-                from: process.env.SENDER_EMAIL,
-                to: adminUser.email,
-                subject: 'Admin Account Created Successfully!',
-                text: `Hello ${name},\n\nYour Admin Account has been created successfully. Please wait for the Admin to approve your account.\n\nThank You,\nTeam Pizza Delivery!`,
-              })
-            );
+            const emailSentToAdmin = await sendEmail({
+              to: email,
+              subject: 'Admin Account Created Successfully!',
+              templateOptions: {
+                title: 'Admin Account Created',
+                greeting: `Hello ${name},`,
+                message: `Your Admin Account has been created successfully.<br><br>Please wait for the Super Admin to approve your account.`,
+              },
+            });
 
-            const emailSentToSuperAdmin = await sendEmail(
-              (mailOptions = {
-                from: process.env.SENDER_EMAIL,
-                to: process.env.SUPERADMIN_EMAIL,
-                subject: 'New Admin Account Approval!',
-                text: `Hello Super Admin,\n\nA new Admin Account has been created successfully. Please approve the account.\n\nThank You,\nTeam Pizza Delivery!`,
-              })
-            );
+            const emailSentToSuperAdmin = await sendEmail({
+              to: process.env.SUPERADMIN_EMAIL,
+              subject: 'New Admin Account Approval!',
+              templateOptions: {
+                title: 'New Admin Account Approval',
+                greeting: `Hello Super Admin,`,
+                message: `A new Admin Account for <b>${name} (${email})</b> has been created.<br><br>Please review and approve the account.`,
+              },
+            });
 
             if (emailSentToAdmin && emailSentToSuperAdmin) {
               const savedAdmin = await newAdmin.save();
