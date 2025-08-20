@@ -10,7 +10,7 @@ const Pizza = require('./schemas/pizzaSchema');
 const Order = require('./schemas/orderSchema');
 const { Base, Sauce, Cheese, Veggie } = require('./schemas/inventorySchema');
 
-const { users, admin } = require('./data/users');
+const { users, admins } = require('./data/users');
 const pizzas = require('./data/pizzas');
 const { base, sauce, cheese, veggie } = require('./data/inventory');
 
@@ -21,24 +21,15 @@ connectDb();
 
 const importData = async () => {
   try {
-    await Order.deleteMany();
-    await Pizza.deleteMany();
-    await User.deleteMany();
-    await Admin.deleteMany();
-    await Base.deleteMany();
-    await Sauce.deleteMany();
-    await Cheese.deleteMany();
-    await Veggie.deleteMany();
+    await User.insertMany(users);
+    await Admin.insertMany(admins);
+    await Base.insertMany(base);
+    await Sauce.insertMany(sauce);
+    await Cheese.insertMany(cheese);
+    await Veggie.insertMany(veggie);
+    await Pizza.insertMany(pizzas);
 
-    const createdUsers = await User.insertMany(users);
-    const createdAdmin = await Admin.create(admin);
-    const createdBase = await Base.insertMany(base);
-    const createdSauce = await Sauce.insertMany(sauce);
-    const createdCheese = await Cheese.insertMany(cheese);
-    const createdVeggie = await Veggie.insertMany(veggie);
-    // const createdPizzas = await Pizza.insertMany(pizzas);
-
-    console.log('Data Imported!'.green.inverse);
+    console.log('Dummy Data Created!'.green.inverse);
     process.exit();
   } catch (error) {
     console.error(`${error}`.red.inverse);
