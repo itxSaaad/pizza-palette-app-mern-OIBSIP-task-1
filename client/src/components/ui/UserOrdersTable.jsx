@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FaBoxOpen,
   FaCheck,
@@ -9,11 +10,15 @@ import {
   FaUtensils,
 } from 'react-icons/fa';
 
+// Import Constants
+import { ORDER_STATUS, getOrderStatusColor } from '../../constants';
+
 import Button from './Button';
 
 function UserOrdersTable({ orders }) {
   const ordersPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const navigate = useNavigate();
 
   // Calculate starting and ending indices for the current page
   const startIndex = (currentPage - 1) * ordersPerPage;
@@ -21,19 +26,19 @@ function UserOrdersTable({ orders }) {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Received':
+      case ORDER_STATUS.RECEIVED:
         return (
           <FaBoxOpen className="inline-flex items-center justify-center text-green-600" />
         );
-      case 'In the Kitchen':
+      case ORDER_STATUS.IN_KITCHEN:
         return (
           <FaUtensils className="inline-flex items-center justify-center text-blue-600" />
         );
-      case 'Sent for Delivery':
+      case ORDER_STATUS.OUT_FOR_DELIVERY:
         return (
           <FaTruck className="inline-flex items-center justify-center text-red-600" />
         );
-      case 'Delivered':
+      case ORDER_STATUS.DELIVERED:
         return (
           <FaCheck className="inline-flex items-center justify-center text-green-600" />
         );
@@ -59,7 +64,11 @@ function UserOrdersTable({ orders }) {
           </thead>
           <tbody className="bg-orange-100 text-orange-500">
             {orders.slice(startIndex, endIndex).map((order) => (
-              <tr key={order._id}>
+              <tr 
+                key={order._id}
+                onClick={() => navigate(`/my-orders/${order._id}`)}
+                className="cursor-pointer hover:bg-orange-200 transition-colors"
+              >
                 <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
                   {order._id}
                 </td>
@@ -110,7 +119,7 @@ function UserOrdersTable({ orders }) {
       <div className="flex flex-col sm:flex-row items-center justify-center my-4">
         <span className="bg-orange-500 text-white px-2 py-1 rounded-full">
           <FaBoxOpen className="inline-block mr-1" />
-          Recieved
+          {ORDER_STATUS.RECEIVED}
         </span>
 
         <FaChevronRight className="hidden sm:inline-block text-orange-400 mx-2" />
@@ -118,7 +127,7 @@ function UserOrdersTable({ orders }) {
 
         <span className="bg-orange-500 text-white px-2 py-1 rounded-full">
           <FaUtensils className="inline-block mr-1" />
-          In the Kitchen
+          {ORDER_STATUS.IN_KITCHEN}
         </span>
 
         <FaChevronRight className="hidden sm:inline-block text-orange-400 mx-2" />
@@ -126,7 +135,7 @@ function UserOrdersTable({ orders }) {
 
         <span className="bg-orange-500 text-white px-2 py-1 rounded-full">
           <FaTruck className="inline-block mr-1" />
-          Sent for Delivery
+          {ORDER_STATUS.OUT_FOR_DELIVERY}
         </span>
 
         <FaChevronRight className="hidden sm:inline-block text-orange-400 mx-2" />
@@ -134,7 +143,7 @@ function UserOrdersTable({ orders }) {
 
         <span className="bg-orange-500 text-white px-2 py-1 rounded-full">
           <FaCheck className="inline-block mr-1" />
-          Delivered
+          {ORDER_STATUS.DELIVERED}
         </span>
       </div>
     </>

@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 import { FaPlusCircle, FaTimes } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 
+// Import Constants
+import { INVENTORY_TYPES } from '../../../../../constants';
+
 // Import Thunks
 import {
   createStock,
@@ -21,8 +24,6 @@ function StockCreateModal({ onClose }) {
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
   const [threshold, setThreshold] = useState('');
-
-  const stockTypes = ['Base', 'Sauce', 'Cheese', 'Veggie'];
 
   const dispatch = useDispatch();
 
@@ -92,7 +93,7 @@ function StockCreateModal({ onClose }) {
                   Select Stock Type
                 </h1>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  {stockTypes.map((type, index) => (
+                  {INVENTORY_TYPES.map((type, index) => (
                     <label
                       htmlFor={type}
                       key={index}

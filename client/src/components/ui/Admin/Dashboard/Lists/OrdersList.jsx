@@ -1,11 +1,15 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 
+// Import Constants
+import { ORDER_STATUS } from '../../../../../constants';
+
 // Import Thunks
 import {
   deleteOrderById,
   listOrders,
   updateOrderById,
+  updateOrderPaymentStatus,
 } from '../../../../../redux/asyncThunks/orderThunks';
 
 // Import Components
@@ -18,6 +22,7 @@ function OrdersList() {
     '_id',
     'user',
     'status',
+    'paymentStatus',
     'salesTax',
     'deliveryCharges',
     'totalPrice',
@@ -39,14 +44,14 @@ function OrdersList() {
   } = order;
 
   const ordersReceived =
-    orderList && orderList.filter((order) => order.status === 'Received');
+    orderList && orderList.filter((order) => order.status === ORDER_STATUS.RECEIVED);
   const ordersInTheKitchen =
-    orderList && orderList.filter((order) => order.status === 'In the Kitchen');
+    orderList && orderList.filter((order) => order.status === ORDER_STATUS.IN_KITCHEN);
   const ordersSentForDelivery =
     orderList &&
-    orderList.filter((order) => order.status === 'Sent for Delivery');
+    orderList.filter((order) => order.status === ORDER_STATUS.OUT_FOR_DELIVERY);
   const ordersDelivered =
-    orderList && orderList.filter((order) => order.status === 'Delivered');
+    orderList && orderList.filter((order) => order.status === ORDER_STATUS.DELIVERED);
 
   const handleDelete = (id) => {
     dispatch(deleteOrderById(id)).then(() => dispatch(listOrders({})));
@@ -57,13 +62,24 @@ function OrdersList() {
     message: 'Order Deleted Successfully!',
   };
 
-  const handleUpdate = (id, selectedStatus) => {
-    dispatch(
-      updateOrderById({
-        id,
-        status: selectedStatus,
-      })
-    ).then(() => dispatch(listOrders({})));
+  const handleUpdate = (id, selectedValue, updateType = 'status') => {
+    if (updateType === 'payment') {
+      // Update payment status
+      dispatch(
+        updateOrderPaymentStatus({
+          orderId: id,
+          paymentStatus: selectedValue,
+        })
+      ).then(() => dispatch(listOrders({})));
+    } else {
+      // Update order status
+      dispatch(
+        updateOrderById({
+          id,
+          status: selectedValue,
+        })
+      ).then(() => dispatch(listOrders({})));
+    }
   };
 
   const successMessageUpdate = orderUpdateByIdSuccess && {

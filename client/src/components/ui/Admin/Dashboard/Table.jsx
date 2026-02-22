@@ -2,6 +2,9 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
 
+// Import Constants
+import { ORDER_STATUS, PAYMENT_STATUS } from '../../../../constants';
+
 // Import Components
 import Button from '../../Button';
 
@@ -56,30 +59,50 @@ function Table({ data, columns, handleDelete, handleChange }) {
                         }}
                       >
                         <option
-                          value="Recieved"
-                          selected={row[column] === 'Recieved'}
+                          value={ORDER_STATUS.RECEIVED}
+                          selected={row[column] === ORDER_STATUS.RECEIVED}
                         >
-                          Received
+                          {ORDER_STATUS.RECEIVED}
                         </option>
                         <option
-                          value="In the Kitchen"
-                          selected={row[column] === 'In the Kitchen'}
+                          value={ORDER_STATUS.IN_KITCHEN}
+                          selected={row[column] === ORDER_STATUS.IN_KITCHEN}
                         >
-                          In the Kitchen
+                          {ORDER_STATUS.IN_KITCHEN}
                         </option>
                         <option
-                          value="Sent for Delivery"
-                          selected={row[column] === 'Sent for Delivery'}
+                          value={ORDER_STATUS.OUT_FOR_DELIVERY}
+                          selected={row[column] === ORDER_STATUS.OUT_FOR_DELIVERY}
                         >
-                          Sent for Delivery
+                          {ORDER_STATUS.OUT_FOR_DELIVERY}
                         </option>
                         <option
-                          value="Delivered"
-                          selected={row[column] === 'Delivered'}
+                          value={ORDER_STATUS.DELIVERED}
+                          selected={row[column] === ORDER_STATUS.DELIVERED}
                         >
-                          Delivered
+                          {ORDER_STATUS.DELIVERED}
                         </option>
                       </select>
+                    ) : column === 'paymentStatus' ? (
+                      <div className="flex flex-col items-center">
+                        <select
+                          className="bg-orange-700 text-orange-100 rounded-md p-2"
+                          defaultValue={row.payment?.status}
+                          onChange={(e) => {
+                            handleChange(row._id, e.target.value, 'payment');
+                          }}
+                          disabled={row.payment?.method !== 'cod'}
+                        >
+                          <option value={PAYMENT_STATUS.PENDING}>Pending</option>
+                          <option value={PAYMENT_STATUS.PAID}>Paid</option>
+                          <option value={PAYMENT_STATUS.FAILED}>Failed</option>
+                        </select>
+                        {row.payment?.method !== 'cod' && (
+                          <span className="text-xs text-orange-200 block mt-1">
+                            (Only COD editable)
+                          </span>
+                        )}
+                      </div>
                     ) : column === 'orderItems' ? (
                       <table className="bg-orange-700 w-full table-auto border-collapse border-2 border-orange-700 rounded-lg text-center overflow-hidden whitespace-no-wrap">
                         <thead>

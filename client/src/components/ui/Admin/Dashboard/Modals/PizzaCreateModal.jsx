@@ -10,6 +10,9 @@ import {
   listPizzas,
 } from '../../../../../redux/asyncThunks/pizzaThunks';
 
+// Import Constants
+import { PIZZA_SIZE_OPTIONS } from '../../../../../constants';
+
 // Import Components
 import Button from '../../../Button';
 import Loader from '../../../Loader';
@@ -24,10 +27,7 @@ function PizzaCreateModal({ onClose }) {
   const [cheeses, setCheeses] = useState([]);
   const [veggies, setVeggies] = useState([]);
   const [price, setPrice] = useState('');
-  const [size, setSize] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-
-  const PizzaSizes = ['small', 'medium', 'large', 'extra-large'];
 
   const dispatch = useDispatch();
 
@@ -65,7 +65,6 @@ function PizzaCreateModal({ onClose }) {
       cheeses,
       veggies,
       price,
-      size,
       imageUrl,
     };
 
@@ -194,22 +193,22 @@ function PizzaCreateModal({ onClose }) {
                 <div className="w-full flex flex-col items-center justify-center bg-orange-100 rounded-md p-4">
                   <h1 className="text-xl font-bold text-orange-300">Size</h1>
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    {PizzaSizes.map((size, index) => (
+                    {PIZZA_SIZE_OPTIONS.map((option, index) => (
                       <label
                         key={index}
-                        htmlFor={size}
+                        htmlFor={option.value}
                         className="flex flex-row items-center justify-center text-white rounded-full bg-orange-500 p-2"
                       >
                         <input
                           type="radio"
                           className="mr-2"
                           name="size"
-                          id={size}
-                          value={size}
+                          id={option.value}
+                          value={option.value}
                           onChange={(e) => setSize(e.target.value)}
                           required
                         />
-                        {size.charAt(0).toUpperCase() + size.slice(1)}
+                        {option.label}
                       </label>
                     ))}
                   </div>
