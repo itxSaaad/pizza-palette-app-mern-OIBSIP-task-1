@@ -41,10 +41,9 @@ function CheckoutScreen() {
   useEffect(() => {
     if (!userInfo && !adminUserInfo) {
       navigate('/login');
+    } else if (!cartItems || cartItems.length === 0) {
+      navigate('/menu');
     }
-    // else if (!cartItems) {
-    //   navigate('/menu');
-    // }
   }, [navigate, userInfo, adminUserInfo, cartItems]);
 
   return (
