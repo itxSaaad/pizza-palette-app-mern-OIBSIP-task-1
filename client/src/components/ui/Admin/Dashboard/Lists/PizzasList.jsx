@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+// Import Constants
+import { USER_ROLES } from '../../../../../constants';
+
 // Import Thunks
 import {
   deletePizzaById,
@@ -13,7 +16,7 @@ import Message from '../../../Message';
 import Table from '../Table';
 
 function PizzasList() {
-  const pizzaColumns = ['_id', 'name', 'price', 'size'];
+  const pizzaColumns = ['_id', 'name', 'price'];
 
   const dispatch = useDispatch();
 
@@ -35,8 +38,8 @@ function PizzasList() {
     message: 'pizza Deleted Successfully!',
   };
 
-  const PizzaByAdmin = pizzaList.filter((pizza) => pizza.createdBy === 'admin');
-  const customPizzas = pizzaList.filter((pizza) => pizza.createdBy === 'user');
+  const PizzaByAdmin = pizzaList.filter((pizza) => pizza.createdBy === USER_ROLES.ADMIN);
+  const customPizzas = pizzaList.filter((pizza) => pizza.createdBy === USER_ROLES.USER);
 
   useEffect(() => {
     if (!pizzaList) {

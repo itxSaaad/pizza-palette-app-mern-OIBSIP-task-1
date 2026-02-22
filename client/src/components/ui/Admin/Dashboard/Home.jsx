@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 
+// Import Constants
+import { ORDER_STATUS } from '../../../../constants';
+
 // Import Components
 import Button from '../../Button';
 import Loader from '../../Loader';
@@ -50,16 +53,16 @@ function Home() {
 
   // Filter orders based on status
   const ordersReceived = orderList.filter(
-    (order) => order.status === 'Received'
+    (order) => order.status === ORDER_STATUS.RECEIVED
   );
   const ordersInTheKitchen = orderList.filter(
-    (order) => order.status === 'In the Kitchen'
+    (order) => order.status === ORDER_STATUS.IN_KITCHEN
   );
   const ordersSentForDelivery = orderList.filter(
-    (order) => order.status === 'Sent for Delivery'
+    (order) => order.status === ORDER_STATUS.OUT_FOR_DELIVERY
   );
   const ordersDelivered = orderList.filter(
-    (order) => order.status === 'Delivered'
+    (order) => order.status === ORDER_STATUS.DELIVERED
   );
 
   const CardList = [
