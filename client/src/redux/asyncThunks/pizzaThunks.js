@@ -1,6 +1,31 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+/**
+ * Extract standardized error from API response
+ */
+const extractErrorMessage = (error) => {
+  if (error.response?.data?.error) {
+    return error.response.data.error;
+  }
+
+  if (error.response?.data?.message) {
+    return {
+      code: 'API_ERROR',
+      message: error.response.data.message,
+      status: error.response.status,
+      details: [],
+    };
+  }
+
+  return {
+    code: 'NETWORK_ERROR',
+    message: error.message || 'Network error occurred',
+    status: error.response?.status || 500,
+    details: [],
+  };
+};
+
 // Create Async Thunks
 
 // Create Pizza
@@ -15,9 +40,7 @@ export const createPizza = createAsyncThunk(
 
       const config = {
         headers: {
-          Authorization: `Bearer ${
-            adminUserInfo ? adminUserInfo.token : userInfo.token
-          }`,
+          Authorization: `Bearer ${adminUserInfo ? adminUserInfo.token : userInfo.token}`,
         },
       };
 
@@ -37,59 +60,34 @@ export const createPizza = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
 // Fetch All Pizzas
-export const listPizzas = createAsyncThunk(
-  'pizza/listPizzas',
-  async (_, { rejectWithValue }) => {
-    try {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/pizzas`
-      );
+export const listPizzas = createAsyncThunk('pizza/listPizzas', async (_, { rejectWithValue }) => {
+  try {
+    const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas`);
 
-      return data;
-    } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
-    }
+    return data.data || data;
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error));
   }
-);
+});
 
 // Fetch Single Pizza
 export const getPizzaById = createAsyncThunk(
   'pizza/getPizzaById',
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/pizzas/${id}`
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas/${id}`);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -98,18 +96,7 @@ export const getPizzaById = createAsyncThunk(
 export const updatePizzaById = createAsyncThunk(
   'pizza/updatePizzaById',
   async (
-    {
-      id,
-      name,
-      description,
-      base,
-      sauces,
-      cheeses,
-      veggies,
-      price,
-      size,
-      imageUrl,
-    },
+    { id, name, description, base, sauces, cheeses, veggies, price, size, imageUrl },
     { rejectWithValue, getState }
   ) => {
     try {
@@ -139,15 +126,9 @@ export const updatePizzaById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -172,15 +153,9 @@ export const deletePizzaById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
