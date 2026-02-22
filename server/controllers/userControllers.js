@@ -4,6 +4,7 @@ const asyncHandler = require('express-async-handler');
 
 // Import Utils
 const generateToken = require('../utils/generateToken');
+const { parsePaginationParams, parseSortParams, buildPaginationResponse } = require('../utils/paginationUtils');
 
 // Import Middlewares
 const sendEmail = require('../middlewares/nodemailerMiddleware');
@@ -33,40 +34,30 @@ const generateVerificationCode = async () => {
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    res.status(400);
-    throw new Error('All Fields Are Required!');
-  } else {
-    if (emailValidator.validate(email)) {
-      let user = await User.findOne({ email: email });
+  const user = await User.findOne({ email });
 
-      if (user) {
-        const passwordsMatch = await bcrypt.compare(password, user.password);
+  if (user) {
+    const passwordsMatch = await bcrypt.compare(password, user.password);
 
-        if (user.email === email && passwordsMatch) {
-          res.status(200).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-            address: user.address,
-            orders: user.orders,
-            isVerified: user.isVerified,
-            token: generateToken(user._id),
-            message: 'Login Successful!',
-          });
-        } else {
-          res.status(401);
-          throw new Error('Invalid Email or Password!');
-        }
-      } else {
-        res.status(401);
-        throw new Error('Invalid Email or Password!');
-      }
+    if (passwordsMatch) {
+      res.status(200).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        address: user.address,
+        orders: user.orders,
+        isVerified: user.isVerified,
+        token: generateToken(user._id),
+        message: 'Login Successful!',
+      });
     } else {
-      res.status(400);
-      throw new Error('Invalid Email Address!');
+      res.status(401);
+      throw new Error('Invalid Email or Password!');
     }
+  } else {
+    res.status(401);
+    throw new Error('Invalid Email or Password!');
   }
 });
 
@@ -75,77 +66,59 @@ const authUser = asyncHandler(async (req, res) => {
 // @access  Public
 
 const registerUser = asyncHandler(async (req, res) => {
-  let { name, email, password, confirmPassword, phoneNumber, address } = req.body;
+  const { name, email, password, phoneNumber, address } = req.body;
 
-  if (!name || !email || !password || !confirmPassword) {
+  const userExists = await User.findOne({ email });
+
+  if (userExists) {
     res.status(400);
-    throw new Error('All Fields Are Required!');
-  } else {
-    if (emailValidator.validate(req.body.email)) {
-      let user = await User.findOne({ email: email });
-
-      if (user) {
-        res.status(400);
-        throw new Error('User Already Exists!');
-      } else {
-        if (password !== confirmPassword) {
-          res.status(400);
-          throw new Error('Passwords Do Not Match!');
-        } else {
-          if (password.length < 8) {
-            res.status(400);
-            throw new Error('Password Must Be At Least 8 Characters Long!');
-          } else {
-            const salt = await bcrypt.genSalt(10);
-            hashedPassword = await bcrypt.hash(password, salt);
-
-            // Generate a verification token
-            const verificationCode = await generateVerificationCode();
-
-            // Send the verification email
-            const emailSent = await sendEmail({
-              to: email,
-              subject: 'Please Confirm your Account!',
-              templateOptions: {
-                title: 'Confirm Your Account',
-                greeting: `Hey ${name},`,
-                message: `Account Successfully Created!<br><br><b>Your verification code:</b> <span style="font-size:1.3em;letter-spacing:2px;background:#f3f3f3;padding:4px 12px;border-radius:4px;">${verificationCode}</span><br><br>Please use this code within the next 10 minutes to activate your account.<br><br>P.S. If you did not create an account, please ignore this email.`,
-              },
-            });
-
-            if (emailSent) {
-              user = await User.create({
-                name,
-                email,
-                password: hashedPassword,
-                phoneNumber,
-                address,
-                verificationCode,
-              });
-
-              res.status(200).json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                phoneNumber: user.phoneNumber,
-                address: user.address,
-                orders: user.orders,
-                isVerified: user.isVerified,
-                token: generateToken(user._id),
-                message: 'User Registered Successfully!',
-              });
-            } else {
-              res.status(400);
-              throw new Error('Error Sending Confirmation Code!');
-            }
-          }
-        }
-      }
-    } else {
-      res.status(400);
-      throw new Error('Invalid Email Address!');
-    }
+    throw new Error('User Already Exists!');
   }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const verificationCode = await generateVerificationCode();
+  
+  const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationCode}`;
+
+  const emailSent = await sendEmail({
+    to: email,
+    subject: 'Please Confirm your Account!',
+    templateOptions: {
+      title: 'Confirm Your Account',
+      greeting: `Hey ${name},`,
+      message: `Account Successfully Created!<br><br><b>Your verification code:</b> <span style="font-size:1.3em;letter-spacing:2px;background:#f3f3f3;padding:4px 12px;border-radius:4px;">${verificationCode}</span><br><br>Please use this code within the next 10 minutes to activate your account, or click the button below to verify your email automatically.<br><br>P.S. If you did not create an account, please ignore this email.`,
+      actionUrl: verifyUrl,
+      actionText: 'Verify Email'
+    },
+  });
+
+  if (!emailSent) {
+    res.status(400);
+    throw new Error('Error Sending Confirmation Code!');
+  }
+
+  const user = await User.create({
+    name,
+    email,
+    password: hashedPassword,
+    phoneNumber,
+    address,
+    verificationCode,
+  });
+
+  res.status(200).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    phoneNumber: user.phoneNumber,
+    address: user.address,
+    orders: user.orders,
+    isVerified: user.isVerified,
+    token: generateToken(user._id),
+    message: 'User Registered Successfully!',
+  });
 });
 
 // @desc    Verify a user
@@ -155,49 +128,34 @@ const registerUser = asyncHandler(async (req, res) => {
 const verifyUser = asyncHandler(async (req, res) => {
   const { email, verificationCode } = req.body;
 
-  if (!email || !verificationCode) {
+  const user = await User.findOne({ email, _id: req.user._id });
+
+  if (!user) {
     res.status(400);
-    throw new Error('All Fields Are Required!');
-  } else {
-    if (emailValidator.validate(email)) {
-      const user = await User.findOne({ email, _id: req.user._id });
-
-      if (user) {
-        if (user.verificationCode === verificationCode) {
-          user.isVerified = true;
-          user.verificationCode = null;
-
-          const verifiedUser = await user.save();
-
-          if (verifiedUser) {
-            res.status(200).json({
-              _id: verifiedUser._id,
-              name: verifiedUser.name,
-              email: verifiedUser.email,
-              phoneNumber: verifiedUser.phoneNumber,
-              address: verifiedUser.address,
-              orders: verifiedUser.orders,
-              isVerified: verifiedUser.isVerified,
-              token: generateToken(verifiedUser._id),
-              message: 'User Verified Successfully!',
-            });
-          } else {
-            res.status(400);
-            throw new Error('Error Verifying User!');
-          }
-        } else {
-          res.status(400);
-          throw new Error('Invalid Confirmation Code!');
-        }
-      } else {
-        res.status(400);
-        throw new Error('Invalid Email Address!');
-      }
-    } else {
-      res.status(400);
-      throw new Error('Invalid Email Address!');
-    }
+    throw new Error('Invalid Email Address!');
   }
+
+  if (user.verificationCode !== verificationCode) {
+    res.status(400);
+    throw new Error('Invalid Confirmation Code!');
+  }
+
+  user.isVerified = true;
+  user.verificationCode = null;
+
+  const verifiedUser = await user.save();
+
+  res.status(200).json({
+    _id: verifiedUser._id,
+    name: verifiedUser.name,
+    email: verifiedUser.email,
+    phoneNumber: verifiedUser.phoneNumber,
+    address: verifiedUser.address,
+    orders: verifiedUser.orders,
+    isVerified: verifiedUser.isVerified,
+    token: generateToken(verifiedUser._id),
+    message: 'User Verified Successfully!',
+  });
 });
 
 // @desc Forgot Password
@@ -207,62 +165,49 @@ const verifyUser = asyncHandler(async (req, res) => {
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
-  if (!email) {
+  const user = await User.findOne({ email });
+
+  if (!user) {
     res.status(400);
-    throw new Error('Email Address Is Required!');
-  } else {
-    if (emailValidator.validate(email)) {
-      const user = await User.findOne({ email });
-
-      if (user) {
-        // Generate a reset token
-        const resetToken = await generateVerificationCode();
-        user.resetPasswordToken = resetToken;
-        user.resetPasswordExpire = Date.now() + 600000; // 10 minutes
-
-        // Send the reset email
-        const emailSent = await sendEmail({
-          to: user.email,
-          subject: 'Password Reset Request',
-          templateOptions: {
-            title: 'Password Reset Request',
-            greeting: `Hi ${user.name || ''},`,
-            message: `You requested a password reset.<br><br><b>Your reset code:</b> <span style="font-size:1.3em;letter-spacing:2px;background:#f3f3f3;padding:4px 12px;border-radius:4px;">${resetToken}</span><br><br>Please use this code within the next 10 minutes to reset your password.`,
-          },
-        });
-
-        if (emailSent) {
-          const resetUserPwd = await user.save();
-
-          if (resetUserPwd) {
-            res.status(200).json({
-              _id: resetUserPwd._id,
-              name: resetUserPwd.name,
-              email: resetUserPwd.email,
-              phoneNumber: resetUserPwd.phoneNumber,
-              address: resetUserPwd.address,
-              orders: resetUserPwd.orders,
-              isVerified: resetUserPwd.isVerified,
-              token: generateToken(resetUserPwd._id),
-              message: 'Password Reset Email Sent Successfully!',
-            });
-          } else {
-            res.status(400);
-            throw new Error('Error Updating User!');
-          }
-        } else {
-          res.status(400);
-          throw new Error('Error Sending Password Reset Email!');
-        }
-      } else {
-        res.status(400);
-        throw new Error('Invalid Email Address!');
-      }
-    } else {
-      res.status(400);
-      throw new Error('Invalid Email Address!');
-    }
+    throw new Error('Invalid Email Address!');
   }
+
+  const resetToken = await generateVerificationCode();
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordExpire = Date.now() + 600000;
+  
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+  const emailSent = await sendEmail({
+    to: user.email,
+    subject: 'Password Reset Request',
+    templateOptions: {
+      title: 'Password Reset Request',
+      greeting: `Hi ${user.name || ''},`,
+      message: `You requested a password reset.<br><br><b>Your reset code:</b> <span style="font-size:1.3em;letter-spacing:2px;background:#f3f3f3;padding:4px 12px;border-radius:4px;">${resetToken}</span><br><br>Please use this code within the next 10 minutes to reset your password, or click the button below to reset your password directly.`,
+      actionUrl: resetUrl,
+      actionText: 'Reset Password'
+    },
+  });
+
+  if (!emailSent) {
+    res.status(400);
+    throw new Error('Error Sending Password Reset Email!');
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    phoneNumber: user.phoneNumber,
+    address: user.address,
+    orders: user.orders,
+    isVerified: user.isVerified,
+    token: generateToken(user._id),
+    message: 'Password Reset Email Sent Successfully!',
+  });
 });
 
 // @desc Reset Password
@@ -270,72 +215,45 @@ const forgotPassword = asyncHandler(async (req, res) => {
 // @access Public
 
 const resetPassword = asyncHandler(async (req, res) => {
-  const { email, resetToken, newPassword, confirmNewPassword } = req.body;
+  const { email, resetToken, newPassword } = req.body;
 
-  if (!email || !resetToken || !newPassword || !confirmNewPassword) {
-    res.status(400);
-    throw new Error('All Fields Are Required!');
-  } else {
-    if (emailValidator.validate(email)) {
-      const user = await User.findOne({
-        email,
-      });
+  const user = await User.findOne({ email });
 
-      if (user) {
-        if (user.resetPasswordExpire > Date.now()) {
-          if (user.resetPasswordToken === resetToken) {
-            if (newPassword !== confirmNewPassword) {
-              res.status(400);
-              throw new Error('Passwords Do Not Match!');
-            } else {
-              if (newPassword.length < 8) {
-                res.status(400);
-                throw new Error('Password Must Be At Least 8 Characters Long!');
-              } else {
-                const salt = await bcrypt.genSalt(10);
-                hashedPassword = await bcrypt.hash(newPassword, salt);
-
-                user.password = hashedPassword;
-                user.resetPasswordToken = undefined;
-                user.resetPasswordExpire = undefined;
-
-                const updatedUser = await user.save();
-
-                if (updatedUser) {
-                  res.status(200).json({
-                    _id: updatedUser._id,
-                    name: updatedUser.name,
-                    email: updatedUser.email,
-                    phoneNumber: updatedUser.phoneNumber,
-                    address: updatedUser.address,
-                    orders: updatedUser.orders,
-                    isVerified: updatedUser.isVerified,
-                    token: generateToken(updatedUser._id),
-                    message: 'Password Reset Successful!',
-                  });
-                } else {
-                  res.status(400);
-                  throw new Error('Error Resetting Password!');
-                }
-              }
-            }
-          } else {
-            res.status(400);
-            throw new Error('Invalid Reset Token!');
-          }
-        } else {
-          res.status(400);
-          throw new Error('Reset Token Expired!');
-        }
-      } else {
-        res.status(404);
-        throw new Error('User Not Found!');
-      }
-    } else {
-      res.status(400);
-      throw new Error('Invalid Email Address!');
-    }
+  if (!user) {
+    res.status(404);
+    throw new Error('User Not Found!');
   }
+
+  if (user.resetPasswordExpire <= Date.now()) {
+    res.status(400);
+    throw new Error('Reset Token Expired!');
+  }
+
+  if (user.resetPasswordToken !== resetToken) {
+    res.status(400);
+    throw new Error('Invalid Reset Token!');
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+  user.password = hashedPassword;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  const updatedUser = await user.save();
+
+  res.status(200).json({
+    _id: updatedUser._id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    phoneNumber: updatedUser.phoneNumber,
+    address: updatedUser.address,
+    orders: updatedUser.orders,
+    isVerified: updatedUser.isVerified,
+    token: generateToken(updatedUser._id),
+    message: 'Password Reset Successful!',
+  });
 });
 
 // @desc    Get user profile
@@ -369,68 +287,37 @@ const getUserProfile = asyncHandler(async (req, res) => {
 const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
-  if (user) {
-    let { name, email, phoneNumber, address, password, confirmPassword } = req.body;
-
-    if (emailValidator.validate(email)) {
-      let match = false;
-
-      if (password !== '') {
-        match = await bcrypt.compare(password, user.password);
-      }
-
-      if (user.email === email && match) {
-        res.status(400);
-        throw new Error('You Have Not Made Any Changes!');
-      } else {
-        if (password !== '' && password !== confirmPassword) {
-          res.status(400);
-          throw new Error('Passwords Do Not Match!');
-        } else {
-          if (password.length < 8) {
-            res.status(400);
-            throw new Error('Password Must Be At Least 8 Characters Long!');
-          } else {
-            if (password !== '') {
-              const salt = await bcrypt.genSalt(Number(process.env.SALT));
-              const hashedPassword = await bcrypt.hash(password, salt);
-              user.password = hashedPassword;
-            }
-
-            user.name = name || user.name;
-            user.email = email || user.email;
-            user.phoneNumber = phoneNumber || user.phoneNumber;
-            user.address = address || user.address;
-
-            const updatedUser = await user.save();
-
-            if (updatedUser) {
-              res.status(200).json({
-                _id: updatedUser._id,
-                name: updatedUser.name,
-                email: updatedUser.email,
-                phoneNumber: updatedUser.phoneNumber,
-                address: updatedUser.address,
-                orders: updatedUser.orders,
-                isVerified: updatedUser.isVerified,
-                token: generateToken(updatedUser._id),
-                message: 'User Profile Updated Successfully!',
-              });
-            } else {
-              res.status(400);
-              throw new Error('Error Updating User Profile!');
-            }
-          }
-        }
-      }
-    } else {
-      res.status(400);
-      throw new Error('Invalid Email or Password!');
-    }
-  } else {
+  if (!user) {
     res.status(404);
     throw new Error('User Not Found!');
   }
+
+  const { name, email, phoneNumber, address, password } = req.body;
+
+  if (password && password !== '') {
+    const salt = await bcrypt.genSalt(Number(process.env.SALT));
+    const hashedPassword = await bcrypt.hash(password, salt);
+    user.password = hashedPassword;
+  }
+
+  user.name = name || user.name;
+  user.email = email || user.email;
+  user.phoneNumber = phoneNumber || user.phoneNumber;
+  user.address = address || user.address;
+
+  const updatedUser = await user.save();
+
+  res.status(200).json({
+    _id: updatedUser._id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    phoneNumber: updatedUser.phoneNumber,
+    address: updatedUser.address,
+    orders: updatedUser.orders,
+    isVerified: updatedUser.isVerified,
+    token: generateToken(updatedUser._id),
+    message: 'User Profile Updated Successfully!',
+  });
 });
 
 // @desc    Get all Users
@@ -438,14 +325,31 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find({});
-
-  if (users) {
-    res.status(200).json(users);
-  } else {
-    res.status(404);
-    throw new Error('Users Not Found!');
+  const { page, limit, skip } = parsePaginationParams(req.query);
+  const sort = parseSortParams(req.query, '-createdAt');
+  
+  // Build filter
+  const filter = {};
+  if (req.query.isVerified !== undefined) {
+    filter.isVerified = req.query.isVerified === 'true';
   }
+  if (req.query.search) {
+    filter.$or = [
+      { name: { $regex: req.query.search, $options: 'i' } },
+      { email: { $regex: req.query.search, $options: 'i' } }
+    ];
+  }
+
+  const [users, total] = await Promise.all([
+    User.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .select('-password -verificationCode -resetPasswordToken -__v'),
+    User.countDocuments(filter)
+  ]);
+
+  res.status(200).json(buildPaginationResponse(users, total, page, limit));
 });
 
 // @desc    Get User by ID
@@ -470,41 +374,31 @@ const getUserById = asyncHandler(async (req, res) => {
 const updateUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
-  if (user) {
-    let { name, email, phoneNumber, address } = req.body;
-
-    if (emailValidator.validate(email)) {
-      user.name = name || user.name;
-      user.email = email || user.email;
-      user.phoneNumber = phoneNumber || user.phoneNumber;
-      user.address = address || user.address;
-
-      const updatedUser = await user.save();
-
-      if (updatedUser) {
-        res.status(200).json({
-          _id: updatedUser._id,
-          name: updatedUser.name,
-          email: updatedUser.email,
-          phoneNumber: updatedUser.phoneNumber,
-          address: updatedUser.address,
-          orders: updatedUser.orders,
-          isVerified: updatedUser.isVerified,
-          token: generateToken(updatedUser._id),
-          message: 'User Updated Successfully!',
-        });
-      } else {
-        res.status(400);
-        throw new Error('Error Updating User!');
-      }
-    } else {
-      res.status(400);
-      throw new Error('Invalid Email Address!');
-    }
-  } else {
+  if (!user) {
     res.status(404);
     throw new Error('User Not Found!');
   }
+
+  const { name, email, phoneNumber, address } = req.body;
+
+  user.name = name || user.name;
+  user.email = email || user.email;
+  user.phoneNumber = phoneNumber || user.phoneNumber;
+  user.address = address || user.address;
+
+  const updatedUser = await user.save();
+
+  res.status(200).json({
+    _id: updatedUser._id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    phoneNumber: updatedUser.phoneNumber,
+    address: updatedUser.address,
+    orders: updatedUser.orders,
+    isVerified: updatedUser.isVerified,
+    token: generateToken(updatedUser._id),
+    message: 'User Updated Successfully!',
+  });
 });
 
 // @desc    Delete a User By Id

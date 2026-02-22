@@ -1,5 +1,8 @@
 const asyncHandler = require('express-async-handler');
 
+// Import Constants
+const { INVENTORY_TYPES } = require('../constants');
+
 // Import Schemas
 const { Base, Sauce, Cheese, Veggie } = require('../schemas/inventorySchema');
 
@@ -51,98 +54,29 @@ const getStockById = asyncHandler(async (req, res) => {
 // @access  Admin
 
 const createStock = asyncHandler(async (req, res) => {
-  if (req.body.type === 'Base') {
-    const { item, price, quantity, threshold } = req.body;
+  const { type, item, price, quantity, threshold } = req.body;
 
-    if (!item || !price || !quantity || !threshold) {
-      res.status(400);
-      throw new Error('Please Fill All Fields!');
-    } else {
-      if (quantity < threshold) {
-        res.status(400);
-        throw new Error('Quantity Cannot be less than Threshold!');
-      } else {
-        const base = new Base({
-          item: req.body.item,
-          price: req.body.price,
-          quantity: req.body.quantity,
-          threshold: req.body.threshold,
-        });
+  let createdStock;
 
-        const createdBase = await base.save();
-        res.status(201).json(createdBase);
-      }
-    }
-  } else if (req.body.type === 'Sauce') {
-    const { item, price, quantity, threshold } = req.body;
-
-    if (!item || !price || !quantity || !threshold) {
-      res.status(400);
-      throw new Error('Please Fill All Fields!');
-    } else {
-      if (quantity < threshold) {
-        res.status(400);
-        throw new Error('Quantity Cannot be less than Threshold!');
-      } else {
-        const sauce = new Sauce({
-          item: req.body.item,
-          price: req.body.price,
-          quantity: req.body.quantity,
-          threshold: req.body.threshold,
-        });
-
-        const createdSauce = await sauce.save();
-        res.status(201).json(createdSauce);
-      }
-    }
-  } else if (req.body.type === 'Cheese') {
-    const { item, price, quantity, threshold } = req.body;
-
-    if (!item || !price || !quantity || !threshold) {
-      res.status(400);
-      throw new Error('Please Fill All Fields!');
-    } else {
-      if (quantity < threshold) {
-        res.status(400);
-        throw new Error('Quantity Cannot be less than Threshold!');
-      } else {
-        const cheese = new Cheese({
-          item: req.body.item,
-          price: req.body.price,
-          quantity: req.body.quantity,
-          threshold: req.body.threshold,
-        });
-
-        const createdCheese = await cheese.save();
-        res.status(201).json(createdCheese);
-      }
-    }
-  } else if (req.body.type === 'Veggie') {
-    const { item, price, quantity, threshold } = req.body;
-
-    if (!item || !price || !quantity || !threshold) {
-      res.status(400);
-      throw new Error('Please Fill All Fields!');
-    } else {
-      if (quantity < threshold) {
-        res.status(400);
-        throw new Error('Quantity Cannot be less than Threshold!');
-      } else {
-        const veggie = new Veggie({
-          item: req.body.item,
-          price: req.body.price,
-          quantity: req.body.quantity,
-          threshold: req.body.threshold,
-        });
-
-        const createdVeggie = await veggie.save();
-        res.status(201).json(createdVeggie);
-      }
-    }
-  } else {
-    res.status(404);
-    throw new Error('Stock Type Not Found!');
+  switch (type) {
+    case INVENTORY_TYPES[0]: // 'Base'
+      createdStock = await Base.create({ item, price, quantity, threshold });
+      break;
+    case INVENTORY_TYPES[1]: // 'Sauce'
+      createdStock = await Sauce.create({ item, price, quantity, threshold });
+      break;
+    case INVENTORY_TYPES[2]: // 'Cheese'
+      createdStock = await Cheese.create({ item, price, quantity, threshold });
+      break;
+    case INVENTORY_TYPES[3]: // 'Veggie'
+      createdStock = await Veggie.create({ item, price, quantity, threshold });
+      break;
+    default:
+      res.status(404);
+      throw new Error('Stock Type Not Found!');
   }
+
+  res.status(201).json(createdStock);
 });
 
 // @desc Update Stock by Id
@@ -199,16 +133,16 @@ const deleteStockById = asyncHandler(async (req, res) => {
 
   if (base || sauce || cheese || veggie) {
     if (base) {
-      await base.remove();
+      await base.deleteOne();
       res.status(200).json({ message: 'Base Deleted!' });
     } else if (sauce) {
-      await sauce.remove();
+      await sauce.deleteOne();
       res.status(200).json({ message: 'Sauce Deleted!' });
     } else if (cheese) {
-      await cheese.remove();
+      await cheese.deleteOne();
       res.status(200).json({ message: 'Cheese Deleted!' });
     } else if (veggie) {
-      await veggie.remove();
+      await veggie.deleteOne();
       res.status(200).json({ message: 'Veggie Deleted!' });
     }
   } else {

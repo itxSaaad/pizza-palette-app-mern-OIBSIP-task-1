@@ -1,5 +1,9 @@
 const asyncHandler = require('express-async-handler');
 
+// Import Utils
+const { parsePaginationParams, parseSortParams, buildPaginationResponse } = require('../utils/paginationUtils');
+const { USER_ROLES } = require('../constants');
+
 // Import Schema
 const Pizza = require('../schemas/pizzaSchema');
 const Admin = require('../schemas/adminUserSchema');
@@ -12,14 +16,34 @@ const User = require('../schemas/userSchema');
 // @access  Public
 
 const getAllPizzas = asyncHandler(async (req, res) => {
-  const pizzas = await Pizza.find({});
-
-  if (pizzas) {
-    res.status(200).json(pizzas);
-  } else {
-    res.status(404);
-    throw new Error('Pizzas Not Found!');
+  const { page, limit, skip } = parsePaginationParams(req.query);
+  const sort = parseSortParams(req.query, '-createdAt');
+  
+  // Build filter
+  const filter = {};
+  if (req.query.size) {
+    filter.size = req.query.size;
   }
+  if (req.query.createdBy) {
+    filter.createdBy = req.query.createdBy;
+  }
+  if (req.query.minPrice) {
+    filter.price = { ...filter.price, $gte: parseFloat(req.query.minPrice) };
+  }
+  if (req.query.maxPrice) {
+    filter.price = { ...filter.price, $lte: parseFloat(req.query.maxPrice) };
+  }
+
+  const [pizzas, total] = await Promise.all([
+    Pizza.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .select('-__v'),
+    Pizza.countDocuments(filter)
+  ]);
+
+  res.status(200).json(buildPaginationResponse(pizzas, total, page, limit));
 });
 
 // @desc    Get Pizza by Id
@@ -42,7 +66,19 @@ const getPizzaById = asyncHandler(async (req, res) => {
 // @access Private/Admin
 
 const createPizza = asyncHandler(async (req, res) => {
-  const {
+  const { name, description, bases, sauces, cheeses, veggies, price, imageUrl } = req.body;
+
+  const adminUser = await Admin.findById(req.user._id);
+  const user = await User.findById(req.user._id);
+
+  if (!adminUser && !user) {
+    res.status(404);
+    throw new Error('User Not Found!');
+  }
+
+  const createdBy = adminUser ? USER_ROLES.ADMIN : USER_ROLES.USER;
+
+  const pizza = new Pizza({
     name,
     description,
     bases,
@@ -50,110 +86,25 @@ const createPizza = asyncHandler(async (req, res) => {
     cheeses,
     veggies,
     price,
-    size,
+    createdBy,
     imageUrl,
-  } = req.body;
+  });
 
-  if (
-    !name ||
-    !description ||
-    !bases ||
-    !sauces ||
-    !cheeses ||
-    !veggies ||
-    !price ||
-    !size ||
-    !imageUrl
-  ) {
-    res.status(400);
-    throw new Error('Please Fill All Fields!');
-  } else {
-    if (isNaN(price)) {
-      res.status(400);
-      throw new Error('Price Must Be A Number!');
-    } else {
-      if (price < 0) {
-        res.status(400);
-        throw new Error('Price Must Be Greater Than 0!');
-      } else {
-        const adminUser = await Admin.findById(req.user._id);
-        const user = await User.findById(req.user._id);
-        if (adminUser) {
-          const pizza = new Pizza({
-            name,
-            description,
-            bases,
-            sauces,
-            cheeses,
-            veggies,
-            price,
-            size,
-            createdBy: 'admin',
-            imageUrl,
-          });
+  const createdPizza = await pizza.save();
 
-          const createdPizza = await pizza.save();
-
-          if (createdPizza) {
-            res.status(201).json({
-              _id: createdPizza._id,
-              name: createdPizza.name,
-              description: createdPizza.description,
-              bases: createdPizza.bases,
-              sauces: createdPizza.sauces,
-              cheeses: createdPizza.cheeses,
-              veggies: createdPizza.veggies,
-              price: createdPizza.price,
-              size: createdPizza.size,
-              createdBy: createdPizza.createdBy,
-              imageUrl: createdPizza.imageUrl,
-              message: 'Pizza Created Successfully!',
-            });
-          } else {
-            res.status(500);
-            throw new Error('Internal Server Error!');
-          }
-        }
-        if (user) {
-          const pizza = new Pizza({
-            name,
-            description,
-            bases,
-            sauces,
-            cheeses,
-            veggies,
-            price,
-            size,
-            createdBy: 'user',
-            imageUrl,
-          });
-
-          const createdPizza = await pizza.save();
-
-          if (createdPizza) {
-            res.status(201).json({
-              _id: createdPizza._id,
-              name: createdPizza.name,
-              description: createdPizza.description,
-              bases: createdPizza.bases,
-              sauces: createdPizza.sauces,
-              cheeses: createdPizza.cheeses,
-              veggies: createdPizza.veggies,
-              price: createdPizza.price,
-              size: createdPizza.size,
-              createdBy: createdPizza.createdBy,
-              imageUrl: createdPizza.imageUrl,
-              message: 'Pizza Created Successfully!',
-            });
-          }
-        }
-        if (!adminUser && !user) {
-          res.status(404);
-          throw new Error('User Not Found!');
-        }
-      }
-    }
-  }
+  res.status(201).json({
+    _id: createdPizza._id,
+    name: createdPizza.name,
+    description: createdPizza.description,
+    bases: createdPizza.bases,
+    sauces: createdPizza.sauces,
+    cheeses: createdPizza.cheeses,
+    veggies: createdPizza.veggies,
+    price: createdPizza.price,
+    createdBy: createdPizza.createdBy,
+    imageUrl: createdPizza.imageUrl,
+    message: 'Pizza Created Successfully!',
+  });
 });
 
 // @desc    Update Pizza By Id
@@ -166,12 +117,11 @@ const updatePizzaById = asyncHandler(async (req, res) => {
   if (pizza) {
     pizza.name = req.body.name || pizza.name;
     pizza.description = req.body.description || pizza.description;
-    pizza.base = req.body.base || pizza.base;
+    pizza.bases = req.body.bases || pizza.bases;
     pizza.sauces = req.body.sauces || pizza.sauces;
     pizza.cheeses = req.body.cheeses || pizza.cheeses;
     pizza.veggies = req.body.veggies || pizza.veggies;
     pizza.price = req.body.price || pizza.price;
-    pizza.size = req.body.size || pizza.size;
     pizza.imageUrl = req.body.imageUrl || pizza.imageUrl;
 
     const updatedPizza = await pizza.save();
@@ -181,12 +131,11 @@ const updatePizzaById = asyncHandler(async (req, res) => {
         _id: updatedPizza._id,
         name: updatedPizza.name,
         description: updatedPizza.description,
-        base: updatedPizza.base,
+        bases: updatedPizza.bases,
         sauces: updatedPizza.sauces,
         cheeses: updatedPizza.cheeses,
         veggies: updatedPizza.veggies,
         price: updatedPizza.price,
-        size: updatedPizza.size,
         imageUrl: updatedPizza.imageUrl,
         message: 'Pizza Updated Successfully!',
       });
