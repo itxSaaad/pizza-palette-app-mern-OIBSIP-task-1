@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { ORDER_STATUS_VALUES, PAYMENT_METHODS } = require('../constants');
 
 const orderSchema = new mongoose.Schema(
   {
@@ -12,6 +13,11 @@ const orderSchema = new mongoose.Schema(
         pizza: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'Pizza',
+          required: true,
+        },
+        size: {
+          type: String,
+          enum: ['small', 'medium', 'large', 'extra-large'],
           required: true,
         },
         qty: {
@@ -61,17 +67,20 @@ const orderSchema = new mongoose.Schema(
     payment: {
       method: {
         type: String,
-        enum: ['stripe', 'razorpay'],
+        enum: PAYMENT_METHODS,
         required: true,
       },
-      stripePaymentIntentId: { type: String }, // For Stripe payments
-      razorpayOrderId: { type: String }, // For Razorpay payments
-      status: { type: String }, // Payment status
+      stripeSessionId: { type: String },
+      stripePaymentIntentId: { type: String },
+      status: { 
+        type: String,
+        default: 'pending'
+      },
     },
     status: {
       type: String,
-      enum: ['Received', 'In the Kitchen', 'Sent for Delivery', 'Delivered'],
-      default: 'Received',
+      enum: ORDER_STATUS_VALUES,
+      default: ORDER_STATUS_VALUES[0],
     },
     deliveredAt: {
       type: Date,
@@ -81,5 +90,12 @@ const orderSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Add indexes for frequently queried fields
+orderSchema.index({ user: 1 });
+orderSchema.index({ status: 1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Order', orderSchema);
