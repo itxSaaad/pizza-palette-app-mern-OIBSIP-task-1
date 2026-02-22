@@ -20,15 +20,9 @@ export const loginAdmin = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -50,15 +44,9 @@ export const registerAdmin = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -66,10 +54,7 @@ export const registerAdmin = createAsyncThunk(
 // Admin Update Profile
 export const updateAdminProfile = createAsyncThunk(
   'admin/updateProfile',
-  async (
-    { name, email, password, confirmPassword },
-    { rejectWithValue, getState }
-  ) => {
+  async ({ name, email, password, confirmPassword }, { rejectWithValue, getState }) => {
     try {
       const {
         admin: { adminUserInfo },
@@ -89,15 +74,9 @@ export const updateAdminProfile = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -117,20 +96,11 @@ export const getAdminUserDetails = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/admin/profile`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin/profile`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -150,20 +120,11 @@ export const listAdminUsers = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/admin`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -183,20 +144,11 @@ export const getAdminUserDetailsById = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/admin/${id}`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -204,10 +156,7 @@ export const getAdminUserDetailsById = createAsyncThunk(
 // Admin Update User By ID
 export const updateAdminUserById = createAsyncThunk(
   'admin/updateUserById',
-  async (
-    { id, name, email, role, permissions, isApproved },
-    { rejectWithValue, getState }
-  ) => {
+  async ({ id, name, email, role, permissions, isApproved }, { rejectWithValue, getState }) => {
     try {
       const {
         admin: { adminUserInfo },
@@ -226,15 +175,9 @@ export const updateAdminUserById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -254,20 +197,11 @@ export const deleteAdminUserById = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.delete(
-        `${import.meta.env.VITE_SERVER_URL}/admin/${id}`,
-        config
-      );
+      const { data } = await axios.delete(`${import.meta.env.VITE_SERVER_URL}/admin/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );

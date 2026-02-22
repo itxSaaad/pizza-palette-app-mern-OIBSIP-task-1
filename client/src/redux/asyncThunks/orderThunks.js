@@ -1,6 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { extractErrorMessage } from '../../utils/errorUtils';
+
 // Create THunks
 
 // Order Create
@@ -32,15 +34,9 @@ export const createOrder = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -60,20 +56,11 @@ export const listOrdersByUserId = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/orders/user`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/orders/user`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -93,20 +80,11 @@ export const listOrders = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/orders`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/orders`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -116,30 +94,31 @@ export const getOrderById = createAsyncThunk(
   'order/getOrderById',
   async (id, { getState, rejectWithValue }) => {
     try {
-      const {
-        admin: { adminUserInfo },
-      } = getState();
+      const state = getState();
+      const userToken = state.user?.userInfo?.token;
+      const adminToken = state.admin?.adminUserInfo?.token;
+      
+      // Use admin token if available, otherwise use user token
+      const token = adminToken || userToken;
+      
+      if (!token) {
+        return rejectWithValue({
+          message: 'Authentication required. Please log in.',
+          code: 'UNAUTHORIZED'
+        });
+      }
 
       const config = {
         headers: {
-          Authorization: `Bearer ${adminUserInfo.token}`,
+          Authorization: `Bearer ${token}`,
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/orders/${id}`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/orders/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -165,15 +144,9 @@ export const updateOrderById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -198,15 +171,38 @@ export const deleteOrderById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
+    }
+  }
+);
+
+// Update Order Payment Status (Admin - for COD orders)
+export const updateOrderPaymentStatus = createAsyncThunk(
+  'order/updatePaymentStatus',
+  async ({ orderId, paymentStatus }, { rejectWithValue, getState }) => {
+    try {
+      const {
+        admin: { adminUserInfo },
+      } = getState();
+
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminUserInfo.token}`,
+        },
+      };
+
+      const { data } = await axios.patch(
+        `${import.meta.env.VITE_SERVER_URL}/orders/${orderId}/payment-status`,
+        { paymentStatus },
+        config
+      );
+
+      return data.data;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
