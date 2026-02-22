@@ -13,7 +13,7 @@ const updateInventoryQuantity = async (pizza, qty) => {
         return updateditem;
       } else {
         throw new Error(
-          `Not enough ${item.name} in inventory! Please update inventory!`
+          `Not enough ${item.item} in inventory! Please update inventory!`
         );
       }
     } else {
