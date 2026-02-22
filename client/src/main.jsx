@@ -8,6 +8,11 @@ import App from './App.jsx';
 import './index.css';
 import store from './redux/store.js';
 
+// Import Route Protection
+import ProtectedRoute from './components/route/ProtectedRoute.jsx';
+import AdminRoute from './components/route/AdminRoute.jsx';
+import UserRoute from './components/route/UserRoute.jsx';
+
 // Import Screens
 import AboutScreen from './screens/AboutScreen.jsx';
 import AdminDashboardScreen from './screens/Admin/AdminDashboardScreen.jsx';
@@ -22,6 +27,11 @@ import UserCreateCustomPizzaScreen from './screens/User/UserCreateCustomPizzaScr
 import UserLoginScreen from './screens/User/UserLoginScreen.jsx';
 import UserOrdersScreen from './screens/User/UserOrdersScreen.jsx';
 import UserRegisterScreen from './screens/User/UserRegisterScreen.jsx';
+import VerifyEmailScreen from './screens/User/VerifyEmailScreen.jsx';
+import ResetPasswordScreen from './screens/User/ResetPasswordScreen.jsx';
+import OrderDetailScreen from './screens/User/OrderDetailScreen.jsx';
+import CheckoutSuccessScreen from './screens/CheckoutSuccessScreen.jsx';
+import CheckoutCancelScreen from './screens/CheckoutCancelScreen.jsx';
 
 // Create Router
 const router = createBrowserRouter([
@@ -45,26 +55,70 @@ const router = createBrowserRouter([
         path: '/forget-pwd',
         element: <ForgetPasswordScreen />,
       },
+      {
+        path: '/verify-email',
+        element: <VerifyEmailScreen />,
+      },
+      {
+        path: '/reset-password',
+        element: <ResetPasswordScreen />,
+      },
+      {
+        path: '/checkout/success',
+        element: <CheckoutSuccessScreen />,
+      },
+      {
+        path: '/checkout/cancel',
+        element: <CheckoutCancelScreen />,
+      },
 
       {
         path: '/profile',
-        element: <ProfileScreen />,
+        element: (
+          <ProtectedRoute>
+            <ProfileScreen />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/custom-pizza',
-        element: <UserCreateCustomPizzaScreen />,
+        element: (
+          <UserRoute>
+            <UserCreateCustomPizzaScreen />
+          </UserRoute>
+        ),
       },
       {
         path: '/my-orders',
-        element: <UserOrdersScreen />,
+        element: (
+          <UserRoute>
+            <UserOrdersScreen />
+          </UserRoute>
+        ),
+      },
+      {
+        path: '/my-orders/:orderId',
+        element: (
+          <UserRoute>
+            <OrderDetailScreen />
+          </UserRoute>
+        ),
       },
       {
         path: '/checkout',
-        element: <CheckoutScreen />,
+        element: (
+          <ProtectedRoute>
+            <CheckoutScreen />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/admin/dashboard',
-        element: <AdminDashboardScreen />,
+        element: (
+          <AdminRoute>
+            <AdminDashboardScreen />
+          </AdminRoute>
+        ),
       },
       {
         path: '/admin/login',

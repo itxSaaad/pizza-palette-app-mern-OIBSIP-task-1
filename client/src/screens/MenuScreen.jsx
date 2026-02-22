@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
+// Import Constants
+import { USER_ROLES } from '../constants';
+
 // Import Thunks
 import { listPizzas } from '../redux/asyncThunks/pizzaThunks';
 import { getUserDetails } from '../redux/asyncThunks/userThunks';
@@ -62,7 +65,7 @@ function MenuScreen() {
             </div>
             <PizzaList
               pizzaList={pizzaList.filter(
-                (pizza) => pizza.createdBy === 'admin'
+                (pizza) => pizza.createdBy === USER_ROLES.ADMIN
               )}
             />
           </>
