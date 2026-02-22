@@ -15,7 +15,7 @@ const validateEnv = () => {
     'STRIPE_WEBHOOK_SECRET',
     'NODE_ENV',
     'PORT',
-    'FRONTEND_URL'
+    'FRONTEND_URL',
   ];
 
   const missing = [];
