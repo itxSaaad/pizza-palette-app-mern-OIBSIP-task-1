@@ -30,34 +30,165 @@
 
 ## Features
 
-- **User & Admin Authentication:** Secure login and registration system with role-based access control for users and administrators.
-- **Pizza Management System:** Full CRUD operations for pizzas, allowing both admins and users to create custom pizzas with various ingredients (bases, sauces, cheeses, veggies).
-- **Inventory Management:** Complete tracking system for pizza ingredients with quantity monitoring, threshold alerts, and price management for bases, sauces, cheeses, and vegetables.
-- **Order Processing System:** End-to-end order management with order creation, status tracking, and delivery monitoring functionality.
-- **Payment Integration:** Secure payment processing through Razorpay API with order checkout capabilities and payment verification.
-- **Multi-level Access Control:** Differentiated capabilities for users and admins, with specific permissions for pizza creation, order management, and inventory control.
-- **Order History & Tracking:** Users can view their order history and track current order status through the delivery process.
-- **Admin Dashboard:** Comprehensive order management system allowing admins to view all orders, update order status, and manage inventory levels.
-- **Automatic Inventory Deduction:** System automatically updates ingredient quantities when orders are placed to maintain accurate inventory levels.
+### User Features
+- ✅ **User Authentication:** Secure registration and login with JWT tokens
+- ✅ **Email Verification:** Email-based account verification system
+- ✅ **Custom Pizza Creation:** Build your own pizza with custom ingredients
+- ✅ **Pizza Browsing:** View all available pizzas with details
+- ✅ **Shopping Cart:** Add items, update quantities, remove items
+- ✅ **Secure Checkout:** Razorpay payment integration
+- ✅ **Order History:** Track past and current orders
+- ✅ **Order Status Tracking:** Real-time order status updates
+- ✅ **Profile Management:** Update user information
+- ✅ **Password Reset:** Forgot password functionality
 
-## Built With
+### Admin Features
+- ✅ **Admin Authentication:** Secure admin login with approval system
+- ✅ **Dashboard Analytics:** View key metrics (users, orders, revenue)
+- ✅ **User Management:** View and manage all users
+- ✅ **Pizza Management:** Full CRUD operations on pizzas
+- ✅ **Inventory Management:** Track and update ingredient stock
+- ✅ **Order Management:** View and update all orders
+- ✅ **Order Status Updates:** Change order status with email notifications
+- ✅ **Low Stock Alerts:** Automatic alerts for low inventory
+- ✅ **Admin Approval System:** New admins require approval
 
-- **Frontend:** React.js (Vite.js) (Tailwind CSS) (React Router) (@reduxjs/toolkit) (React Redux) ()
-- **Backend:** Node.js (Express) (bcryptjs) (cors) (dotenv) (express-async-handler) (jsonwebtoken)
-- **Database:** MongoDB (Atlas) (Mongoose) (MongoDB Compass)
-- **Payment:** Razorpay API (Test Mode)
-- **Authentication:** JSON Web Tokens (JWT)
-- **Email Notifications:** Nodemailer
-- **Version Control:** Git and GitHub
+### Technical Features
+- ✅ **Enterprise Error Handling:** Standardized API error responses with codes
+- ✅ **Centralized Constants:** Single source of truth for enums and types
+- ✅ **Email Notifications:** Automated emails for orders and account actions
+- ✅ **Inventory Deduction:** Automatic stock updates on orders
+- ✅ **Payment Verification:** Secure Razorpay signature verification
+- ✅ **Responsive Design:** Mobile-first, works on all devices
+- ✅ **Security:** JWT auth, password hashing, input validation, rate limiting
+
+## Documentation
+
+📚 **[Complete Documentation](./docs/README.md)**
+
+### Quick Links
+
+- **[Setup Guide](./docs/SETUP.md)** - Complete installation and configuration
+- **[API Reference](./docs/API.md)** - All API endpoints with examples
+- **[Architecture](./docs/ARCHITECTURE.md)** - System design and data flows
+- **[Error Handling](./docs/ERROR_HANDLING.md)** - Error handling patterns
+- **[Constants](./docs/CONSTANTS.md)** - Constants and enums reference
+- **[Testing](./docs/TESTING.md)** - Testing guide with test credentials
+- **[Deployment](./docs/DEPLOYMENT.md)** - Deploy to Vercel (production)
+- **[Contributing](./docs/CONTRIBUTING.md)** - Contribution guidelines
+- **[Changelog](./docs/CHANGELOG.md)** - Version history
+
+### Quick References
+
+- **[Test Credentials](./TEST_CREDENTIALS.md)** - Login credentials for testing
+- **[Razorpay Setup](./RAZORPAY_SETUP.md)** - Payment gateway configuration
+
+---
+
+## Tech Stack
+
+### Frontend
+- **React 18** - UI library
+- **Vite 4** - Build tool and dev server
+- **Redux Toolkit** - State management
+- **React Router v6** - Client-side routing
+- **Tailwind CSS** - Utility-first CSS framework
+- **Axios** - HTTP client
+- **React Icons** - Icon library
+
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **MongoDB** - NoSQL database
+- **Mongoose** - MongoDB ODM
+- **JWT** - Authentication
+- **bcryptjs** - Password hashing
+- **express-validator** - Input validation
+- **Nodemailer** - Email sending
+- **Razorpay SDK** - Payment processing
+
+### Security & Middleware
+- **Helmet** - Security headers
+- **express-mongo-sanitize** - NoSQL injection prevention
+- **express-rate-limit** - Rate limiting
+- **CORS** - Cross-origin resource sharing
+
+### Deployment
+- **Vercel** - Frontend and backend hosting
+- **MongoDB Atlas** - Cloud database
+- **GitHub** - Version control and CI/CD
+
+---
+
+## Architecture
+
+### High-Level Overview
+
+```
+User Browser
+     ↓
+React Frontend (Vercel)
+     ↓
+Express Backend (Vercel Serverless)
+     ↓
+MongoDB Atlas
+     ↓
+Razorpay Payment Gateway
+```
+
+### Key Design Patterns
+
+- **RESTful API** - Standard REST architecture
+- **JWT Authentication** - Stateless token-based auth
+- **Redux State Management** - Centralized state
+- **Error Handling** - Standardized error responses with codes
+- **Constants Management** - Duplicated constants (frontend/backend)
+- **Middleware Pipeline** - Modular request processing
+
+See [Architecture Documentation](./docs/ARCHITECTURE.md) for detailed diagrams and explanations.
+
+---
+
+## Error Handling
+
+Version 2.0.0 introduces enterprise-grade error handling:
+
+### Standardized Error Response
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "User-friendly error message",
+    "details": [
+      { "field": "email", "message": "Email is required" }
+    ],
+    "timestamp": "2026-02-22T...",
+    "path": "/api/users/register",
+    "requestId": "req_unique_id"
+  }
+}
+```
+
+### Features
+- **Error Codes** - Machine-readable codes (e.g., `AUTH_1001`, `VALIDATION_3001`)
+- **Field-Level Details** - Specific validation errors per field
+- **Request Tracking** - Unique request IDs for debugging
+- **User-Friendly Messages** - Clear, actionable error messages
+
+See [Error Handling Guide](./docs/ERROR_HANDLING.md) for complete reference.
 
 ## Getting Started
 
+> **📖 For detailed setup instructions, see the [Setup Guide](./docs/SETUP.md)**
+
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/en/) - JavaScript runtime built on Chrome's V8 JavaScript engine
-- [NPM](https://www.npmjs.com/) - Node Package Manager
+- **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
+- **MongoDB** - Local installation or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account
+- **Razorpay Account** - [Sign up](https://razorpay.com/) for test keys
 
-### Installation
+### Quick Start
 
 1. **Clone the repository**
 
@@ -80,51 +211,23 @@
 
 3. **Configure environment variables**
 
-   Create a `.env` file in the root directory:
-
    ```sh
-       # Server Configuration
-       NODE_ENV=development
-       PORT=5000
-
-       # MongoDB Connection
-       MONGO_URI=your_mongodb_uri
-
-       # Authentication
-       JWT_SECRET=your_jwt_secret
-       SALT=10
-
-       # Email Configuration
-       SENDER_EMAIL=your_email@example.com
-       SENDER_PASSWORD=your_email_password
-       SUPERADMIN_EMAIL=admin@example.com
-
-       # Payment Gateway
-       RAZORPAY_KEY_ID=your_razorpay_key_id
-       RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+   # Copy example files
+   cp .env.example .env
+   cd client && cp .env.example .env && cd ..
+   
+   # Edit .env files with your credentials
    ```
 
-   Create a `.env` file in the client directory:
+   **Required variables:** See [Setup Guide](./docs/SETUP.md#environment-configuration) for complete list
+
+4. **Seed the database**
 
    ```sh
-       VITE_SERVER_URL=http://localhost:5000
-       VITE_CLIENT_URL=http://localhost:3000
-       VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
+   npm run seed
    ```
 
-4. **Seed the database (Optional)**
-
-   Populate the database with initial data:
-
-   ```sh
-       npm run data:import
-   ```
-
-   To reset the database:
-
-   ```sh
-       npm run data:destroy
-   ```
+   **Test Credentials:** See [TEST_CREDENTIALS.md](./TEST_CREDENTIALS.md) for login details
 
 5. **Start the application**
 
@@ -141,10 +244,158 @@
 
 6. **Access the application**
 
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- Backend API: [http://localhost:5000](http://localhost:5000)
+   - **Frontend:** [http://localhost:5173](http://localhost:5173)
+   - **Backend API:** [http://localhost:5000](http://localhost:5000)
 
-> **Note:** Make sure MongoDB is running locally or you're using MongoDB Atlas with the correct connection string.
+7. **Login with test credentials**
+
+   - **Admin:** `admin1@pizzapalette.com` / `Admin@123456`
+   - **User:** `john@example.com` / `User@123456`
+
+> **📖 For troubleshooting, see [Setup Guide - Troubleshooting](./docs/SETUP.md#troubleshooting)**
+
+---
+
+## API Documentation
+
+Complete API documentation with request/response examples:
+
+### Base URL
+- **Development:** `http://localhost:5000/api`
+- **Production:** `https://your-backend.vercel.app/api`
+
+### Authentication
+Most endpoints require JWT token in Authorization header:
+```http
+Authorization: Bearer <token>
+```
+
+### Endpoint Categories
+- **User Endpoints** - Registration, login, profile management
+- **Pizza Endpoints** - CRUD operations on pizzas
+- **Order Endpoints** - Order creation and tracking
+- **Inventory Endpoints** - Ingredient management
+- **Admin Endpoints** - Admin authentication and approval
+- **Analytics Endpoints** - Dashboard statistics
+
+**[View Complete API Reference →](./docs/API.md)**
+
+---
+
+## Testing
+
+### Test Credentials
+
+**Admin Account:**
+```
+Email: admin1@pizzapalette.com
+Password: Admin@123456
+```
+
+**User Account:**
+```
+Email: john@example.com
+Password: User@123456
+```
+
+### Razorpay Test Cards
+
+**Successful Payment:**
+```
+Card: 4111 1111 1111 1111
+CVV: 123
+Expiry: Any future date
+```
+
+**Failed Payment:**
+```
+Card: 4000 0000 0000 0002
+```
+
+**[View Complete Testing Guide →](./docs/TESTING.md)**
+
+---
+
+## Deployment
+
+### Vercel Deployment (Recommended)
+
+1. **Fork this repository**
+2. **Import to Vercel** (separate projects for frontend and backend)
+3. **Configure environment variables** in Vercel dashboard
+4. **Deploy** with auto-deploy on push
+
+**[View Complete Deployment Guide →](./docs/DEPLOYMENT.md)**
+
+### Environment Setup
+
+**Backend (Vercel):**
+- Set all environment variables from `.env`
+- Update `FRONTEND_URL` to your frontend URL
+
+**Frontend (Vercel):**
+- Set `VITE_SERVER_URL` to your backend URL
+- Set `VITE_RAZORPAY_KEY_ID` (use live key for production)
+
+---
+
+## Project Structure
+
+```
+pizza-palette-app-mern/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/    # Reusable components
+│   │   ├── screens/       # Page components
+│   │   ├── redux/         # Redux store and slices
+│   │   ├── constants/     # Frontend constants
+│   │   └── utils/         # Utility functions
+│   └── package.json
+├── server/                 # Express backend
+│   ├── controllers/       # Route controllers
+│   ├── schemas/           # Mongoose models
+│   ├── routes/            # API routes
+│   ├── middlewares/       # Custom middleware
+│   ├── validators/        # Input validation
+│   ├── constants/         # Backend constants
+│   ├── utils/             # Utility functions
+│   └── package.json
+├── docs/                   # Documentation
+│   ├── README.md          # Docs index
+│   ├── SETUP.md           # Setup guide
+│   ├── API.md             # API reference
+│   └── ...                # More guides
+├── README.md              # This file
+├── TEST_CREDENTIALS.md    # Test accounts
+└── RAZORPAY_SETUP.md      # Razorpay config
+```
+
+---
+
+## Version 2.0.0 - What's New
+
+### Enterprise Features
+- ✨ Standardized error handling with error codes
+- ✨ Centralized constants management
+- ✨ Enhanced validation with field-level details
+- ✨ Request tracking with unique IDs
+- ✨ Comprehensive documentation suite
+
+### Improvements
+- 🔄 Updated seed data with stronger passwords
+- 🔄 Constants integrated in schemas and validators
+- 🔄 Enhanced email templates with action links
+- 🔄 Improved frontend error display
+- 🔄 Updated UI components to use constants
+
+### Documentation
+- 📚 10 comprehensive documentation files
+- 📚 Architecture diagrams
+- 📚 Complete API reference
+- 📚 Testing guide with credentials
+- 📚 Deployment guide for Vercel
+
+**[View Complete Changelog →](./docs/CHANGELOG.md)**
 
 ## Contributing
 
