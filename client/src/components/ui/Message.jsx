@@ -19,13 +19,13 @@ import { extractErrorMessage, getFieldErrors, getErrorCode } from '../../utils/e
  */
 const Message = ({ children, variant = 'auto', onClose }) => {
   const successStyles =
-    'bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative shadow-sm';
+    'bg-accent-green-50 border border-accent-green-300 text-accent-green-800 px-4 py-3 rounded-control relative shadow-card-sm';
   const warningStyles =
-    'bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative shadow-sm';
+    'bg-accent-gold-50 border border-accent-gold-300 text-accent-gold-800 px-4 py-3 rounded-control relative shadow-card-sm';
   const errorStyles =
-    'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-sm';
+    'bg-error-50 border border-error-300 text-error-800 px-4 py-3 rounded-control relative shadow-card-sm';
   const infoStyles =
-    'bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative shadow-sm';
+    'bg-neutral-100 border border-neutral-300 text-neutral-800 px-4 py-3 rounded-control relative shadow-card-sm';
 
   const styles = {
     success: successStyles,
