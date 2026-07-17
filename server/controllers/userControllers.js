@@ -224,6 +224,11 @@ const resetPassword = asyncHandler(async (req, res) => {
     throw new Error('User Not Found!');
   }
 
+  if (!resetToken || !user.resetPasswordToken || !user.resetPasswordExpire) {
+    res.status(400);
+    throw new Error('Invalid Reset Token!');
+  }
+
   if (user.resetPasswordExpire <= Date.now()) {
     res.status(400);
     throw new Error('Reset Token Expired!');
