@@ -6,23 +6,37 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+body {
   font-family: 'Nunito', sans-serif;
+  background-color: #fdfbf7; /* neutral-50 */
+  color: #1a1512; /* neutral-900 */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Fraunces', serif;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f7f1e8; /* neutral-100 */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #ff7f00; /* Use the same color as your navbar */
+  background: #d94a1f; /* primary-500 */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #ff6600;
+  background: #b8371a; /* primary-600 */
 }

@@ -1,45 +1,55 @@
 import PropTypes from 'prop-types';
+import { FaSpinner } from 'react-icons/fa';
+
+const sizeClasses = {
+  sm: 'text-sm px-3 py-2.5 min-h-[44px]',
+  md: 'text-base px-4 py-3 min-h-[44px]',
+  lg: 'text-lg px-6 py-4 min-h-[52px]',
+};
+
+const variantClasses = {
+  primary: 'bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white',
+  secondary: 'bg-neutral-50 hover:bg-neutral-100 text-primary-600 border border-neutral-200',
+  outline:
+    'bg-transparent hover:bg-primary-500 text-primary-500 hover:text-white border-2 border-primary-500 transition-colors duration-200',
+  danger: 'bg-error-500 hover:bg-error-600 active:bg-error-700 text-white',
+  ghost: 'bg-transparent hover:bg-neutral-100 text-neutral-700',
+};
 
 function Button({
-  variant,
+  variant = 'primary',
+  size = 'md',
+  loading = false,
+  fullWidth = false,
+  disabled = false,
   children,
   className: additionalClassNames,
   ...props
 }) {
-  let classes = '';
-
-  switch (variant) {
-    case 'primary':
-      classes = 'bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 my-2';
-      break;
-    case 'secondary':
-      classes = 'bg-white hover:bg-gray-100 text-orange-500 py-3 px-4 my-2';
-      break;
-    case 'outline':
-      classes =
-        'bg-transparent hover:bg-orange-500 text-orange-500 hover:text-white border-2 border-orange-500 py-3 px-4 my-2 transition-all duration-300';
-      break;
-    case 'danger':
-      classes = 'bg-red-500 hover:bg-red-600 text-white py-3 px-4 my-2';
-      break;
-    default:
-      classes = 'bg-orange-500 hover:bg-orange-600 py-3 px-4 my-2';
-      break;
-  }
-
-  if (additionalClassNames) {
-    classes += ` ${additionalClassNames}`;
-  }
+  const classes = [
+    'inline-flex items-center justify-center gap-2 rounded-control font-semibold transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed',
+    sizeClasses[size],
+    variantClasses[variant],
+    fullWidth ? 'w-full' : '',
+    additionalClassNames || '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <button className={classes} {...props}>
+    <button className={classes} disabled={disabled || loading} {...props}>
+      {loading && <FaSpinner className="animate-spin" aria-hidden="true" />}
       {children}
     </button>
   );
 }
 
 Button.propTypes = {
-  variant: PropTypes.oneOf(['primary', 'secondary', 'outline', 'danger']),
+  variant: PropTypes.oneOf(['primary', 'secondary', 'outline', 'danger', 'ghost']),
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  loading: PropTypes.bool,
+  fullWidth: PropTypes.bool,
+  disabled: PropTypes.bool,
   children: PropTypes.node.isRequired,
   className: PropTypes.string,
 };

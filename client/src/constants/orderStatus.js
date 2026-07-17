@@ -31,16 +31,16 @@ export const ORDER_STATUS_VALUES = Object.values(ORDER_STATUS);
 export const getOrderStatusColor = (status) => {
   switch (status) {
     case ORDER_STATUS.RECEIVED:
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-neutral-100 text-neutral-800';
     case ORDER_STATUS.IN_KITCHEN:
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-accent-gold-100 text-accent-gold-800';
     case ORDER_STATUS.OUT_FOR_DELIVERY:
-      return 'bg-purple-100 text-purple-800';
+      return 'bg-primary-100 text-primary-800';
     case ORDER_STATUS.DELIVERED:
-      return 'bg-green-100 text-green-800';
+      return 'bg-accent-green-100 text-accent-green-800';
     case ORDER_STATUS.CANCELLED:
-      return 'bg-red-100 text-red-800';
+      return 'bg-error-100 text-error-800';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-neutral-100 text-neutral-800';
   }
 };
