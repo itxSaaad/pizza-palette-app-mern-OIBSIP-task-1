@@ -1,6 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { extractErrorMessage } from '../../utils/errorUtils';
+
 // Create Thunks
 
 // Create Inventory

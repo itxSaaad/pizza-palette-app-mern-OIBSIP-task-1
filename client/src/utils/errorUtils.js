@@ -23,24 +23,27 @@ export const extractErrorMessage = (error) => {
     return error.message;
   }
 
-  // Handle legacy format with status and message
-  if (error && error.message) {
-    return error.message;
-  }
-
-  // Handle axios error response
+  // Handle axios error response (checked before the generic .message
+  // fallback below, since axios errors always carry a generic top-level
+  // .message like "Request failed with status code 400" that would
+  // otherwise shadow the more useful API error message)
   if (error && error.response && error.response.data) {
     const data = error.response.data;
-    
+
     // New format: { success: false, error: { code, message, details } }
     if (data.error && data.error.message) {
       return data.error.message;
     }
-    
+
     // Legacy format: { message: string }
     if (data.message) {
       return data.message;
     }
+  }
+
+  // Handle legacy format with status and message
+  if (error && error.message) {
+    return error.message;
   }
 
   // Fallback

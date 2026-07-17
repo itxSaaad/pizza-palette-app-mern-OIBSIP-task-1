@@ -1,30 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-/**
- * Extract standardized error from API response
- */
-const extractErrorMessage = (error) => {
-  if (error.response?.data?.error) {
-    return error.response.data.error;
-  }
-
-  if (error.response?.data?.message) {
-    return {
-      code: 'API_ERROR',
-      message: error.response.data.message,
-      status: error.response.status,
-      details: [],
-    };
-  }
-
-  return {
-    code: 'NETWORK_ERROR',
-    message: error.message || 'Network error occurred',
-    status: error.response?.status || 500,
-    details: [],
-  };
-};
+import { extractErrorMessage } from '../../utils/errorUtils';
 
 // Create Async Thunks
 
