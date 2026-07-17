@@ -15,7 +15,7 @@ function Card({
   ...props
 }) {
   const classes = [
-    'bg-white rounded-card shadow-card border border-neutral-100',
+    'bg-neutral-50 rounded-card shadow-card border border-neutral-100',
     paddingClasses[padding],
     additionalClassNames || '',
   ]
