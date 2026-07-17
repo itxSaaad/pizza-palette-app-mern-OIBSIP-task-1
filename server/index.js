@@ -85,6 +85,17 @@ app.use(cors({
   credentials: true
 }));
 
+// Stripe webhook needs the raw request body for signature verification.
+// It must be mounted before the global JSON body parsers below, since those
+// parsers would otherwise consume the body first and leave nothing for
+// express.raw() to read (Stripe's constructEvent requires the raw Buffer).
+const { handleStripeWebhook } = require('./controllers/orderControllers');
+app.post(
+  '/api/orders/stripe-webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
+);
+
 // Parse incoming JSON data
 app.use(express.json());
 
