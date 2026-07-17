@@ -21,6 +21,12 @@ function Input({
 
   const classes = [baseClasses, stateClasses, additionalClassNames || ''].filter(Boolean).join(' ');
 
+  const describedById = error
+    ? `${inputId}-error`
+    : helperText
+    ? `${inputId}-helper`
+    : undefined;
+
   return (
     <div className="w-full">
       {label && (
@@ -28,9 +34,24 @@ function Input({
           {label}
         </label>
       )}
-      <Field id={inputId} name={name} className={classes} {...props} />
-      {error && <p className="mt-1 text-sm text-error-600">{error}</p>}
-      {!error && helperText && <p className="mt-1 text-sm text-neutral-500">{helperText}</p>}
+      <Field
+        id={inputId}
+        name={name}
+        className={classes}
+        aria-invalid={!!error}
+        {...(describedById ? { 'aria-describedby': describedById } : {})}
+        {...props}
+      />
+      {error && (
+        <p id={`${inputId}-error`} className="mt-1 text-sm text-error-600">
+          {error}
+        </p>
+      )}
+      {!error && helperText && (
+        <p id={`${inputId}-helper`} className="mt-1 text-sm text-neutral-500">
+          {helperText}
+        </p>
+      )}
     </div>
   );
 }
