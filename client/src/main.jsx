@@ -32,7 +32,6 @@ import ResetPasswordScreen from './screens/User/ResetPasswordScreen.jsx';
 import OrderDetailScreen from './screens/User/OrderDetailScreen.jsx';
 import CheckoutSuccessScreen from './screens/CheckoutSuccessScreen.jsx';
 import CheckoutCancelScreen from './screens/CheckoutCancelScreen.jsx';
-import StyleGuideScreen from './screens/_StyleGuideScreen.jsx';
 
 // Create Router
 const router = createBrowserRouter([
@@ -136,10 +135,6 @@ const router = createBrowserRouter([
       {
         path: '/about',
         element: <AboutScreen />,
-      },
-      {
-        path: '/_style-guide',
-        element: <StyleGuideScreen />,
       },
     ],
   },
