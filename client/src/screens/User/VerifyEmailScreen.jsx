@@ -20,7 +20,7 @@ function VerifyEmailScreen() {
   const token = searchParams.get('token');
 
   const user = useSelector((state) => state.user);
-  const { loading, userVerifySuccess, userVerifyError } = user;
+  const { loading, userVerifyEmailSuccess, userVerifyEmailError } = user;
 
   useEffect(() => {
     if (token && !verificationAttempted) {
@@ -32,12 +32,12 @@ function VerifyEmailScreen() {
   }, [token, dispatch, verificationAttempted]);
 
   useEffect(() => {
-    if (userVerifySuccess) {
+    if (userVerifyEmailSuccess) {
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     }
-  }, [userVerifySuccess, navigate]);
+  }, [userVerifyEmailSuccess, navigate]);
 
   if (!token) {
     return (
@@ -65,7 +65,7 @@ function VerifyEmailScreen() {
             <h1 className="text-2xl font-bold text-gray-800 mt-4">Verifying Your Email</h1>
             <p className="text-gray-600 mt-2">Please wait while we verify your account...</p>
           </>
-        ) : userVerifySuccess ? (
+        ) : userVerifyEmailSuccess ? (
           <>
             <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-800 mb-4">Email Verified Successfully!</h1>
@@ -77,11 +77,11 @@ function VerifyEmailScreen() {
               <Button variant="primary">Go to Login Now</Button>
             </Link>
           </>
-        ) : userVerifyError ? (
+        ) : userVerifyEmailError ? (
           <>
             <FaTimesCircle className="text-red-500 text-6xl mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-800 mb-4">Verification Failed</h1>
-            <Message variant="error">{userVerifyError}</Message>
+            <Message variant="error">{userVerifyEmailError}</Message>
             <p className="text-gray-600 mt-4 mb-6">
               The verification link may have expired or is invalid. Please try again or contact support.
             </p>
