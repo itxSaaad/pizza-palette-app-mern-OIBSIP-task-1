@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 const ApiError = require('../utils/ApiError');
 const { ERROR_CODES } = require('../constants/errorCodes');
 const { mapStatusToErrorCode } = require('../utils/errorCodeMapper');
@@ -32,7 +32,7 @@ const errorHandler = (err, req, res, next) => {
   let error = err;
 
   // Generate unique request ID for tracking
-  const requestId = uuidv4();
+  const requestId = randomUUID();
 
   // If it's already an ApiError, use it as is
   if (!(error instanceof ApiError)) {
