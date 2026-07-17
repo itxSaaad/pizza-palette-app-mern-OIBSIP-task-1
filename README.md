@@ -81,7 +81,7 @@
 ### Quick References
 
 - **[Test Credentials](./TEST_CREDENTIALS.md)** - Login credentials for testing
-- **[Razorpay Setup](./RAZORPAY_SETUP.md)** - Payment gateway configuration
+- **[Stripe Setup](./docs/STRIPE_SETUP.md)** - Payment gateway configuration
 
 ---
 
@@ -367,7 +367,7 @@ pizza-palette-app-mern/
 │   └── ...                # More guides
 ├── README.md              # This file
 ├── TEST_CREDENTIALS.md    # Test accounts
-└── RAZORPAY_SETUP.md      # Razorpay config
+└── docs/STRIPE_SETUP.md   # Stripe config
 ```
 
 ---
