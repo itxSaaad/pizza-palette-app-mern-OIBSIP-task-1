@@ -24,11 +24,6 @@ out/
 # Logs
 *.log
 
-# Dependency lock files
-yarn.lock
-package-lock.json
-
-
 # Compiled binary files
 *.bin
 

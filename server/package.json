@@ -19,7 +19,6 @@
   },
   "homepage": "https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP#readme",
   "dependencies": {
-    "@getbrevo/brevo": "^1.0.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "colors": "^1.4.0",
