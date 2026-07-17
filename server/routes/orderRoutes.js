@@ -18,7 +18,6 @@ const {
 const {
   createOrder,
   createStripeCheckoutSession,
-  handleStripeWebhook,
   updateOrderPaymentStatus,
   getOrdersByUserId,
   getAllOrders,
@@ -29,8 +28,10 @@ const {
 
 // Initialize Routes
 
-// Public Routes (Stripe webhook needs raw body)
-router.post('/stripe-webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+// Note: POST /stripe-webhook is registered directly on the Express app in
+// server/index.js, before the global JSON body parsers, since Stripe's
+// signature verification needs the raw request body. It is intentionally
+// not registered here to avoid a dead duplicate route definition.
 
 // Private Routes
 router.route('/').post(protect, createOrderValidation, validationHandler, createOrder);
