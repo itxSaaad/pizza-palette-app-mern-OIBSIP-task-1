@@ -47,10 +47,10 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://checkout.razorpay.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api.razorpay.com"],
-      frameSrc: ["'self'", "https://api.razorpay.com"]
+      connectSrc: ["'self'", "https://api.stripe.com"],
+      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://checkout.stripe.com"]
     }
   },
   crossOriginEmbedderPolicy: false
