@@ -5,6 +5,7 @@ const { INVENTORY_TYPES } = require('../constants');
 
 // Import Schemas
 const { Base, Sauce, Cheese, Veggie } = require('../schemas/inventorySchema');
+const ApiError = require('../utils/ApiError');
 
 // Initialize Controllers
 
@@ -26,8 +27,7 @@ const getAllStocks = asyncHandler(async (req, res) => {
       veggies: veggie,
     });
   } else {
-    res.status(404);
-    throw new Error('No Stock Found!');
+    throw ApiError.notFound('Stock', 'No stock found.');
   }
 });
 
@@ -44,8 +44,7 @@ const getStockById = asyncHandler(async (req, res) => {
   if (base || sauce || cheese || veggie) {
     res.status(200).json({ base, sauce, cheese, veggie });
   } else {
-    res.status(404);
-    throw new Error('Stock Item Not Found!');
+    throw ApiError.notFound('Stock item');
   }
 });
 
@@ -72,8 +71,7 @@ const createStock = asyncHandler(async (req, res) => {
       createdStock = await Veggie.create({ item, price, quantity, threshold });
       break;
     default:
-      res.status(404);
-      throw new Error('Stock Type Not Found!');
+      throw ApiError.validation('That stock type is not recognized.');
   }
 
   res.status(201).json(createdStock);
@@ -116,8 +114,7 @@ const updateStockById = asyncHandler(async (req, res) => {
       }
     }
   } else {
-    res.status(404);
-    throw new Error('Stock Item Not Found!');
+    throw ApiError.notFound('Stock item');
   }
 });
 
@@ -146,8 +143,7 @@ const deleteStockById = asyncHandler(async (req, res) => {
       res.status(200).json({ message: 'Veggie Deleted!' });
     }
   } else {
-    res.status(404);
-    throw new Error('Stock Item Not Found!');
+    throw ApiError.notFound('Stock item');
   }
 });
 

@@ -8,8 +8,7 @@ const { executeInventoryDeductions, checkInventoryAvailability, rollbackInventor
 const { calculateOrderPricing } = require('../utils/pricingUtils');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
-const { ERROR_CODES } = require('../constants/errorCodes');
-const { ORDER_STATUS, PAYMENT_STATUS, STRIPE_EVENTS } = require('../constants');
+const { ORDER_STATUS, PAYMENT_STATUS, STRIPE_EVENTS, isAdminRole } = require('../constants');
 
 // Initialize Stripe
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -209,12 +208,12 @@ const getOrderById = asyncHandler(async (req, res) => {
     .select('-__v');
 
   if (!order) {
-    throw ApiError.notFound('Order not found', ERROR_CODES.ORDER_NOT_FOUND);
+    throw ApiError.notFound('Order');
   }
 
-  // Allow users to view their own orders, admins can view any order
-  if (req.user.role !== 'admin' && order.user._id.toString() !== req.user._id.toString()) {
-    throw ApiError.forbidden('You can only view your own orders', ERROR_CODES.AUTHORIZATION_ERROR);
+  // Allow users to view their own orders, admins/managers can view any order
+  if (!isAdminRole(req.user.role) && order.user._id.toString() !== req.user._id.toString()) {
+    throw ApiError.forbidden('You can only view your own orders.');
   }
 
   res.status(200).json(ApiResponse.success(order, 'Order retrieved successfully'));
@@ -228,8 +227,7 @@ const updateOrderById = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id).populate('user', 'name email');
 
   if (!order) {
-    res.status(404);
-    throw new Error('Order Not Found!');
+    throw ApiError.notFound('Order');
   }
 
   const oldStatus = order.status;
@@ -333,8 +331,7 @@ const deleteOrderById = asyncHandler(async (req, res) => {
       message: 'Order Deleted Successfully!',
     });
   } else {
-    res.status(404);
-    throw new Error('Order Not Found!');
+    throw ApiError.notFound('Order');
   }
 });
 
@@ -494,7 +491,7 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
     );
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    return res.status(400).send('Webhook signature verification failed');
   }
 
   // Handle the event

@@ -3,6 +3,7 @@ const asyncHandler = require('express-async-handler');
 // Import Utils
 const { parsePaginationParams, parseSortParams, buildPaginationResponse } = require('../utils/paginationUtils');
 const { USER_ROLES } = require('../constants');
+const ApiError = require('../utils/ApiError');
 
 // Import Schema
 const Pizza = require('../schemas/pizzaSchema');
@@ -54,8 +55,7 @@ const getPizzaById = asyncHandler(async (req, res) => {
   if (pizza) {
     res.status(200).json(pizza);
   } else {
-    res.status(404);
-    throw new Error('Pizza Not Found!');
+    throw ApiError.notFound('Pizza');
   }
 });
 
@@ -164,12 +164,10 @@ const updatePizzaById = asyncHandler(async (req, res) => {
         message: 'Pizza Updated Successfully!',
       });
     } else {
-      res.status(500);
-      throw new Error('Internal Server Error!');
+      throw ApiError.serverError("We couldn't save your changes. Please try again.");
     }
   } else {
-    res.status(404);
-    throw new Error('Pizza Not Found!');
+    throw ApiError.notFound('Pizza');
   }
 });
 
@@ -183,8 +181,7 @@ const deletePizzaById = asyncHandler(async (req, res) => {
   if (pizza) {
     res.status(200).json({ message: 'Pizza Removed Successfully!' });
   } else {
-    res.status(404);
-    throw new Error('Pizza Not Found!');
+    throw ApiError.notFound('Pizza');
   }
 });
 
