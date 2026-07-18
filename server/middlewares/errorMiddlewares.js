@@ -87,7 +87,15 @@ const errorHandler = (err, req, res, next) => {
     else {
       const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
       const code = mapStatusToErrorCode(statusCode);
-      error = new ApiError(statusCode, code, error.message || 'An error occurred');
+      // 5xx errors are unexpected/unhandled - never trust their message to be
+      // customer-safe (could be a raw DB/library error). 4xx errors here come
+      // from controllers that deliberately set a status + literal message
+      // before throwing, so their text is already customer-facing.
+      const message =
+        statusCode >= 500
+          ? 'Something went wrong on our end. Please try again in a moment.'
+          : error.message || 'Something went wrong. Please try again.';
+      error = new ApiError(statusCode, code, message);
     }
   }
 

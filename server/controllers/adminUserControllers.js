@@ -5,6 +5,7 @@ const asyncHandler = require('express-async-handler');
 // Import Utils
 const generateToken = require('../utils/generateToken');
 const { USER_ROLES } = require('../constants');
+const ApiError = require('../utils/ApiError');
 
 // Import Middlewares
 const sendEmail = require('../middlewares/nodemailerMiddleware');
@@ -24,20 +25,17 @@ const authAdmin = asyncHandler(async (req, res) => {
   const adminUser = await Admin.findOne({ email });
 
   if (!adminUser) {
-    res.status(401);
-    throw new Error('Invalid Email or Password!');
+    throw ApiError.invalidCredentials();
   }
 
   if (!adminUser.isApproved) {
-    res.status(401);
-    throw new Error('Your Account is not Approved Yet!');
+    throw ApiError.accountNotApproved();
   }
 
   const passwordsMatch = await bcrypt.compare(password, adminUser.password);
 
   if (!passwordsMatch) {
-    res.status(401);
-    throw new Error('Invalid Email or Password!');
+    throw ApiError.invalidCredentials();
   }
 
   res.status(200).json({
@@ -62,8 +60,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
   const adminExists = await Admin.findOne({ email });
 
   if (adminExists) {
-    res.status(400);
-    throw new Error('User Already Exists!');
+    throw ApiError.emailExists();
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -99,8 +96,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
   });
 
   if (!emailSentToAdmin || !emailSentToSuperAdmin) {
-    res.status(400);
-    throw new Error('Error Sending Emails!');
+    throw ApiError.emailSendFailed('We could not send the account confirmation emails. Please try again.');
   }
 
   const savedAdmin = await newAdmin.save();
@@ -134,8 +130,7 @@ const getAdminProfile = asyncHandler(async (req, res) => {
       isApproved: adminUser.isApproved,
     });
   } else {
-    res.status(404);
-    throw new Error('Admin Not Found!');
+    throw ApiError.notFound('Admin');
   }
 });
 
@@ -147,8 +142,7 @@ const updateAdminProfile = asyncHandler(async (req, res) => {
   const adminUser = await Admin.findById(req.user._id);
 
   if (!adminUser) {
-    res.status(404);
-    throw new Error('Admin Not Found!');
+    throw ApiError.notFound('Admin');
   }
 
   const { name, email, password } = req.body;
@@ -187,8 +181,7 @@ const getAllAdmins = asyncHandler(async (req, res) => {
     res.status(200);
     res.json(admins);
   } else {
-    res.status(404);
-    throw new Error('No Admins Found!');
+    throw ApiError.notFound('Admins', 'No admins found.');
   }
 });
 
@@ -203,8 +196,7 @@ const getAdminById = asyncHandler(async (req, res) => {
     res.status(200);
     res.json(admin);
   } else {
-    res.status(404);
-    throw new Error('Admin Not Found!');
+    throw ApiError.notFound('Admin');
   }
 });
 
@@ -216,8 +208,7 @@ const updateAdminById = asyncHandler(async (req, res) => {
   const admin = await Admin.findById(req.params.id);
 
   if (!admin) {
-    res.status(404);
-    throw new Error('Admin Not Found!');
+    throw ApiError.notFound('Admin');
   }
 
   const { name, email, role, permissions, isApproved } = req.body;
@@ -254,8 +245,7 @@ const deleteAdminById = asyncHandler(async (req, res) => {
   if (admin) {
     res.status(200).json({ message: 'Admin Deleted Successfully!' });
   } else {
-    res.status(404);
-    throw new Error('Admin Not Found!');
+    throw ApiError.notFound('Admin');
   }
 });
 

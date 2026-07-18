@@ -5,6 +5,7 @@ const asyncHandler = require('express-async-handler');
 // Import Utils
 const generateToken = require('../utils/generateToken');
 const { parsePaginationParams, parseSortParams, buildPaginationResponse } = require('../utils/paginationUtils');
+const ApiError = require('../utils/ApiError');
 
 // Import Middlewares
 const sendEmail = require('../middlewares/nodemailerMiddleware');
@@ -52,12 +53,10 @@ const authUser = asyncHandler(async (req, res) => {
         message: 'Login Successful!',
       });
     } else {
-      res.status(401);
-      throw new Error('Invalid Email or Password!');
+      throw ApiError.invalidCredentials();
     }
   } else {
-    res.status(401);
-    throw new Error('Invalid Email or Password!');
+    throw ApiError.invalidCredentials();
   }
 });
 
@@ -71,8 +70,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const userExists = await User.findOne({ email });
 
   if (userExists) {
-    res.status(400);
-    throw new Error('User Already Exists!');
+    throw ApiError.emailExists();
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -95,8 +93,7 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (!emailSent) {
-    res.status(400);
-    throw new Error('Error Sending Confirmation Code!');
+    throw ApiError.emailSendFailed('We could not send your confirmation code. Please try registering again.');
   }
 
   const user = await User.create({
@@ -131,13 +128,11 @@ const verifyUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email, _id: req.user._id });
 
   if (!user) {
-    res.status(400);
-    throw new Error('Invalid Email Address!');
+    throw ApiError.validation('We could not find an account with that email address.');
   }
 
   if (user.verificationCode !== verificationCode) {
-    res.status(400);
-    throw new Error('Invalid Confirmation Code!');
+    throw ApiError.validation('That confirmation code is incorrect or has expired.');
   }
 
   user.isVerified = true;
@@ -168,15 +163,14 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    res.status(400);
-    throw new Error('Invalid Email Address!');
+    throw ApiError.validation('We could not find an account with that email address.');
   }
 
   const resetToken = await generateVerificationCode();
   user.resetPasswordToken = resetToken;
   user.resetPasswordExpire = Date.now() + 600000;
   
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
   const emailSent = await sendEmail({
     to: user.email,
@@ -191,8 +185,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   });
 
   if (!emailSent) {
-    res.status(400);
-    throw new Error('Error Sending Password Reset Email!');
+    throw ApiError.emailSendFailed('We could not send your password reset email. Please try again.');
   }
 
   await user.save();
@@ -220,23 +213,19 @@ const resetPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    res.status(404);
-    throw new Error('User Not Found!');
+    throw ApiError.notFound('Account');
   }
 
   if (!resetToken || !user.resetPasswordToken || !user.resetPasswordExpire) {
-    res.status(400);
-    throw new Error('Invalid Reset Token!');
+    throw ApiError.validation('This password reset link is invalid. Please request a new one.');
   }
 
   if (user.resetPasswordExpire <= Date.now()) {
-    res.status(400);
-    throw new Error('Reset Token Expired!');
+    throw ApiError.validation('This password reset link has expired. Please request a new one.');
   }
 
   if (user.resetPasswordToken !== resetToken) {
-    res.status(400);
-    throw new Error('Invalid Reset Token!');
+    throw ApiError.validation('This password reset link is invalid. Please request a new one.');
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -280,8 +269,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
       message: 'User Profile Fetched Successfully!',
     });
   } else {
-    res.status(404);
-    throw new Error('User Not Found!');
+    throw ApiError.notFound('User');
   }
 });
 
@@ -293,8 +281,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (!user) {
-    res.status(404);
-    throw new Error('User Not Found!');
+    throw ApiError.notFound('User');
   }
 
   const { name, email, phoneNumber, address, password } = req.body;
@@ -369,8 +356,7 @@ const getUserById = asyncHandler(async (req, res) => {
   if (user) {
     res.status(200).json(user);
   } else {
-    res.status(404);
-    throw new Error('User Not Found!');
+    throw ApiError.notFound('User');
   }
 });
 
@@ -382,8 +368,7 @@ const updateUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
   if (!user) {
-    res.status(404);
-    throw new Error('User Not Found!');
+    throw ApiError.notFound('User');
   }
 
   const { name, email, phoneNumber, address } = req.body;
@@ -418,8 +403,7 @@ const deleteUserById = asyncHandler(async (req, res) => {
   if (user) {
     res.status(200).json({ message: 'User Removed Successfully!' });
   } else {
-    res.status(404);
-    throw new Error('User Not Found!');
+    throw ApiError.notFound('User');
   }
 });
 

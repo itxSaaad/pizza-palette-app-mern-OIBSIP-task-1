@@ -42,18 +42,18 @@ function PaymentStep({ setCurrentStep }) {
   };
   return (
     <form onSubmit={submitHandler} className="w-full p-4">
-      <p className="text-center text-black text-xl leading-relaxed">
+      <p className="text-center text-neutral-900 text-xl leading-relaxed">
         Payment
         <br />
-        <span className="text-sm text-orange-500">Select Payment Method</span>
+        <span className="text-sm text-primary-600">Select Payment Method</span>
       </p>
       {loading ? (
         <Loader />
       ) : cartItems && cartItems.length > 0 ? (
         <>
-          <div className="flex flex-col items-center justify-center mt-4">
+          <div className="flex flex-col items-center justify-center mt-4 space-y-2">
             {PAYMENT_METHODS.map((method) => (
-              <div key={method} className="flex items-center justify-center">
+              <div key={method} className="flex items-center justify-center min-h-[44px]">
                 <input
                   type="radio"
                   id={method}
@@ -62,11 +62,11 @@ function PaymentStep({ setCurrentStep }) {
                   required
                   checked={paymentMethod === method}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="mr-2"
+                  className="mr-2 h-5 w-5 accent-primary-500"
                 />
                 <label
                   htmlFor={method}
-                  className="text-orange-500 font-semibold text-lg"
+                  className="text-primary-600 font-semibold text-lg"
                 >
                   {PAYMENT_METHOD_LABELS[method]}
                 </label>
@@ -77,14 +77,14 @@ function PaymentStep({ setCurrentStep }) {
             variant="outline"
             type="submit"
             disabled={!paymentMethod || !cartItems}
-            className="w-full sm:w-1/3 rounded-full mt-4 disabled:cursor-not-allowed"
+            className="w-full sm:w-1/3 rounded-pill mt-4"
           >
             Continue
           </Button>
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center w-full border border-orange-300 rounded-2xl p-4">
-          <p className="text-center text-orange-500 text-xl leading-relaxed">
+        <div className="flex flex-col items-center justify-center w-full border border-primary-200 rounded-card p-4">
+          <p className="text-center text-primary-600 text-xl leading-relaxed">
             Can&apos;t Place Order Without Order Items
           </p>
         </div>

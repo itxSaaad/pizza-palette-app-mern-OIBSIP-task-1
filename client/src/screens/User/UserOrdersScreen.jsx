@@ -10,7 +10,7 @@ import { getUserDetails } from '../../redux/asyncThunks/userThunks';
 import Loader from '../../components/ui/Loader';
 import UserOrdersTable from '../../components/ui/UserOrdersTable';
 import Message from '../../components/ui/Message';
-import VerficationModal from '../../components/ui/Auth/VerficationModal';
+import VerificationModal from '../../components/ui/Auth/VerificationModal';
 
 function UserOrdersScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -73,7 +73,7 @@ function UserOrdersScreen() {
         )}
       </section>
       {modalVisible && (
-        <VerficationModal onClose={() => setModalVisible(false)} />
+        <VerificationModal onClose={() => setModalVisible(false)} />
       )}
     </>
   );

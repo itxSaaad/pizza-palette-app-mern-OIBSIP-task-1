@@ -8,7 +8,7 @@ import { getUserDetails } from '../redux/asyncThunks/userThunks';
 import FeaturedPizzasSection from '../components/ui/Home/FeaturedPizzasSection';
 import HowItWorksSection from '../components/ui/Home/HowItWorksSection';
 import Jumbotron from '../components/ui/Home/Jumbotron';
-import VerficationModal from '../components/ui/Auth/VerficationModal';
+import VerificationModal from '../components/ui/Auth/VerificationModal';
 
 function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -34,7 +34,7 @@ function HomeScreen() {
       <FeaturedPizzasSection />
       <HowItWorksSection />
       {modalVisible && (
-        <VerficationModal onClose={() => setModalVisible(false)} />
+        <VerificationModal onClose={() => setModalVisible(false)} />
       )}
     </>
   );

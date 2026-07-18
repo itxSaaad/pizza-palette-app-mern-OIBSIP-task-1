@@ -70,11 +70,19 @@ Before deploying:
 
 ### Step 2: Deploy Backend
 
+Vercel deploys Express apps with zero configuration — no `vercel.json` is
+needed. It auto-detects the Express entry file (`index.js`, `app.js`, or
+`server.js`, or the same under `src/`) relative to the project's **Root
+Directory**, so Root Directory must point directly at the folder containing
+`index.js` (i.e. `./server`, not the repo root). See
+[Express on Vercel](https://vercel.com/docs/frameworks/backend/express) for
+the current reference.
+
 1. **Configure Backend Project**
    - **Framework Preset:** Other
-   - **Root Directory:** `./` (project root)
-   - **Build Command:** `npm run build` (if applicable)
-   - **Output Directory:** `./`
+   - **Root Directory:** `./server`
+   - **Build Command:** *(leave empty — no build step for a plain Express app)*
+   - **Output Directory:** *(leave empty/default)*
    - **Install Command:** `npm install`
 
 2. **Environment Variables**
@@ -94,6 +102,12 @@ Before deploying:
 
 ### Step 3: Deploy Frontend
 
+This app is a client-side-routed single-page app (React Router's
+`createBrowserRouter`), so deep links like `/menu` or `/my-orders/:id` need
+to be rewritten to `/index.html` or Vercel will 404 on a hard refresh/direct
+visit. `client/vercel.json` already contains the required `rewrites` rule —
+no additional configuration is needed, but don't remove that file.
+
 1. **Import Project Again**
    - Create new project in Vercel
    - Select same GitHub repository
@@ -110,7 +124,6 @@ Before deploying:
    ```
    VITE_SERVER_URL=https://your-backend.vercel.app/api
    VITE_CLIENT_URL=https://your-frontend.vercel.app
-   VITE_RAZORPAY_KEY_ID=rzp_live_xxxxx
    ```
 
 4. **Deploy**
@@ -551,23 +564,15 @@ Vercel provides automatic CI/CD:
 - **Push to other branch:** Creates preview deployment
 - **Pull request:** Creates preview deployment with comment
 
-### Custom Build Steps
+### Build Configuration
 
-Add to `vercel.json`:
-
-```json
-{
-  "builds": [
-    {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ]
-}
-```
+Neither project needs a `vercel.json`. The frontend project's own **Framework
+Preset: Vite**, **Root Directory: `./client`**, and **Build Command:
+`npm run build`** settings (configured in [Step 3](#step-3-deploy-frontend))
+already tell Vercel everything it needs to build and serve the static
+`dist/` output — the old `@vercel/static-build`/`builds` config style shown
+in earlier versions of this guide is no longer needed. Likewise, the backend
+project needs no `vercel.json` — see [Step 2](#step-2-deploy-backend).
 
 ---
 

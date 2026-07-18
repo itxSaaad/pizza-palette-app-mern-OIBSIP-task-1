@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const { checkLowInventory, sendLowInventoryAlerts, runInventoryCheck } = require('../utils/inventoryAlertUtils');
+const ApiError = require('../utils/ApiError');
 
 // @desc    Check low inventory and send alerts
 // @route   POST /api/inventory/check-alerts
@@ -7,10 +8,10 @@ const { checkLowInventory, sendLowInventoryAlerts, runInventoryCheck } = require
 
 const checkAndSendAlerts = asyncHandler(async (req, res) => {
   const result = await runInventoryCheck();
-  
+
   if (!result.success) {
-    res.status(500);
-    throw new Error(result.error);
+    console.error('Inventory alert check failed:', result.error);
+    throw ApiError.serverError('Unable to check inventory alerts right now. Please try again.');
   }
 
   res.status(200).json(result);
