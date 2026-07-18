@@ -5,13 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
 import { resetPassword } from '../../../../redux/asyncThunks/userThunks';
-import {
-  setPasswordResetOTP,
-  setPasswordResetEmail,
-} from '../../../../redux/slices/userSlice';
+import { setPasswordResetOTP, setPasswordResetEmail } from '../../../../redux/slices/userSlice';
 
 // Import Components
 import Button from '../../Button';
+import Input from '../../Input';
 import Loader from '../../Loader';
 import Message from '../../Message';
 
@@ -48,19 +46,23 @@ function PasswordForm({ setCurrentStep }) {
 
   useEffect(() => {
     if (userResetPasswordError) {
-      setInterval(() => {
+      const timer = setTimeout(() => {
         setCurrentStep('EmailForm');
       }, 1000);
+      return () => clearTimeout(timer);
     }
+    return undefined;
   }, [userResetPasswordError, setCurrentStep]);
 
   useEffect(() => {
     if (userResetPasswordSuccess) {
       navigate('/login');
-      setInterval(() => {
+      const timer = setTimeout(() => {
         setCurrentStep('EmailForm');
       }, 1000);
+      return () => clearTimeout(timer);
     }
+    return undefined;
   }, [userResetPasswordSuccess, setCurrentStep, navigate]);
 
   return (
@@ -71,57 +73,37 @@ function PasswordForm({ setCurrentStep }) {
         </div>
       ) : (
         <form className="w-full" onSubmit={submitHandler}>
-          <p className="text-center text-black text-xl leading-relaxed">
+          <p className="text-center text-neutral-900 text-xl leading-relaxed">
             Reset Password
             <br />
-            <span className="text-sm text-orange-500">Enter New Password</span>
+            <span className="text-sm text-primary-600">Enter New Password</span>
           </p>
 
-          {userResetPasswordError && (
-            <Message>{userResetPasswordError}</Message>
-          )}
+          {userResetPasswordError && <Message>{userResetPasswordError}</Message>}
 
           <div className="w-full my-4">
-            <label htmlFor="password" className="sr-only">
-              New Password
-            </label>
-
-            <div className="flex justify-center items-center w-full">
-              <input
-                type="password"
-                id="password"
-                value={password}
-                placeholder="Enter New Password"
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-                required
-                className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-              />
-            </div>
+            <Input
+              name="password"
+              type="password"
+              value={password}
+              placeholder="Enter New Password"
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
           <div className="w-full my-4">
-            <label htmlFor="confirmPassword" className="sr-only">
-              Confirm New Password
-            </label>
-
-            <div className="flex justify-center items-center w-full">
-              <input
-                type="password"
-                id="confirmPassword"
-                value={confirmPassword}
-                placeholder="Confirm New Password"
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                }}
-                required
-                className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-              />
-            </div>
+            <Input
+              name="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              placeholder="Confirm New Password"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
           </div>
 
-          <Button type="submit" variant="primary" className="w-full rounded-md">
-            Verify OTP & Reset Password
+          <Button type="submit" variant="primary" fullWidth className="rounded-control">
+            Verify OTP &amp; Reset Password
           </Button>
         </form>
       )}
