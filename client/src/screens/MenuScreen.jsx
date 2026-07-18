@@ -46,7 +46,7 @@ function MenuScreen() {
 
   return (
     <>
-      <section className="min-h-screen flex flex-col justify-center items-center pt-14 px-10 sm:px-16 bg-orange-200">
+      <section className="min-h-screen flex flex-col justify-center items-center px-10 sm:px-16 bg-neutral-50">
         {loading ? (
           <Loader />
         ) : pizzaListError || cartAddItemError ? (
@@ -54,10 +54,12 @@ function MenuScreen() {
         ) : pizzaList.length > 0 ? (
           <>
             <div className="w-full flex flex-row items-center justify-between my-4">
-              <h1 className="text-4xl font-bold text-orange-600">Pizza Menu</h1>
+              <h1 className="font-display text-h1 text-primary-600">
+                Pizza Menu
+              </h1>
               {userDetails && (
                 <Link to="/custom-pizza">
-                  <Button variant="primary" className="rounded-full font-bold">
+                  <Button variant="primary" className="rounded-pill font-bold">
                     Create Custom Pizza
                   </Button>
                 </Link>
@@ -70,7 +72,7 @@ function MenuScreen() {
             />
           </>
         ) : (
-          <div className="text-4xl font-bold text-orange-600">
+          <div className="font-display text-h1 text-primary-600 text-center">
             No Pizzas Found!
           </div>
         )}
