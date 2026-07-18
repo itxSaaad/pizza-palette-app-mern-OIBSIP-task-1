@@ -109,7 +109,8 @@ const executeInventoryDeductions = async (orderItems) => {
   } catch (error) {
     // Rollback all deductions if any fail
     await rollbackInventoryDeductions(executedDeductions);
-    throw new Error(`Inventory deduction failed: ${error.message}`);
+    console.error('Inventory deduction failed:', error);
+    throw new Error('We had trouble updating our kitchen inventory. Please try again.');
   }
 };
 
