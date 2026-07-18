@@ -35,6 +35,7 @@ import ResetPasswordScreen from './screens/User/ResetPasswordScreen.jsx';
 import OrderDetailScreen from './screens/User/OrderDetailScreen.jsx';
 import CheckoutSuccessScreen from './screens/CheckoutSuccessScreen.jsx';
 import CheckoutCancelScreen from './screens/CheckoutCancelScreen.jsx';
+import NotFoundScreen from './screens/NotFoundScreen.jsx';
 
 // Create Router
 const router = createBrowserRouter([
@@ -150,6 +151,10 @@ const router = createBrowserRouter([
       {
         path: '/privacy',
         element: <PrivacyScreen />,
+      },
+      {
+        path: '*',
+        element: <NotFoundScreen />,
       },
     ],
   },
