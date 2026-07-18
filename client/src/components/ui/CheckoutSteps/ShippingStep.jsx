@@ -7,6 +7,7 @@ import { saveShippingAddress } from '../../../redux/slices/cartSlice';
 
 // Import Components
 import Button from '../Button';
+import Input from '../Input';
 
 function ShippingStep({ setCurrentStep }) {
   const dispatch = useDispatch();
@@ -30,114 +31,55 @@ function ShippingStep({ setCurrentStep }) {
 
   return (
     <form onSubmit={submitHandler} className="w-full p-4">
-      <p className="text-center text-black text-xl leading-relaxed">
+      <p className="text-center text-neutral-900 text-xl leading-relaxed">
         Shipping
         <br />
-        <span className="text-sm text-orange-500">Enter Shipping Details</span>
+        <span className="text-sm text-primary-600">Enter Shipping Details</span>
       </p>
 
       {cartItems && cartItems.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-            <div className="w-full">
-              <label htmlFor="phoneNumber" className="sr-only">
-                Phone Number
-              </label>
-
-              <div className="flex justify-center items-center w-full">
-                <input
-                  type="text"
-                  id="phoneNumber"
-                  value={phoneNumber}
-                  placeholder="Enter Phone Number"
-                  onChange={(e) => {
-                    setPhoneNumber(e.target.value);
-                  }}
-                  required
-                  className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-                />
-              </div>
-            </div>
-
-            <div className="w-full">
-              <label htmlFor="address" className="sr-only">
-                Address
-              </label>
-
-              <div className="flex justify-center items-center w-full">
-                <input
-                  type="text"
-                  id="address"
-                  value={address}
-                  placeholder="Enter Address"
-                  onChange={(e) => {
-                    setAddress(e.target.value);
-                  }}
-                  required
-                  className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-                />
-              </div>
-            </div>
-
-            <div className="w-full">
-              <label htmlFor="city" className="sr-only">
-                City
-              </label>
-
-              <div className="flex justify-center items-center w-full">
-                <input
-                  type="text"
-                  id="city"
-                  value={city}
-                  placeholder="Enter City"
-                  onChange={(e) => {
-                    setCity(e.target.value);
-                  }}
-                  required
-                  className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-                />
-              </div>
-            </div>
-
-            <div className="w-full">
-              <label htmlFor="postalCode" className="sr-only">
-                Postal Code
-              </label>
-
-              <div className="flex justify-center items-center w-full">
-                <input
-                  type="text"
-                  id="postalCode"
-                  value={postalCode}
-                  placeholder="Enter Postal Code"
-                  onChange={(e) => {
-                    setPostalCode(e.target.value);
-                  }}
-                  required
-                  className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-                />
-              </div>
-            </div>
-
-            <div className="w-full">
-              <label htmlFor="country" className="sr-only">
-                Country
-              </label>
-
-              <div className="flex justify-center items-center w-full">
-                <input
-                  type="text"
-                  id="country"
-                  value={country}
-                  placeholder="Enter Country"
-                  onChange={(e) => {
-                    setCountry(e.target.value);
-                  }}
-                  required
-                  className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-                />
-              </div>
-            </div>
+            <Input
+              name="phoneNumber"
+              type="text"
+              value={phoneNumber}
+              placeholder="Enter Phone Number"
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              required
+            />
+            <Input
+              name="address"
+              type="text"
+              value={address}
+              placeholder="Enter Address"
+              onChange={(e) => setAddress(e.target.value)}
+              required
+            />
+            <Input
+              name="city"
+              type="text"
+              value={city}
+              placeholder="Enter City"
+              onChange={(e) => setCity(e.target.value)}
+              required
+            />
+            <Input
+              name="postalCode"
+              type="text"
+              value={postalCode}
+              placeholder="Enter Postal Code"
+              onChange={(e) => setPostalCode(e.target.value)}
+              required
+            />
+            <Input
+              name="country"
+              type="text"
+              value={country}
+              placeholder="Enter Country"
+              onChange={(e) => setCountry(e.target.value)}
+              required
+            />
           </div>
           <Button
             variant="outline"
@@ -145,14 +87,14 @@ function ShippingStep({ setCurrentStep }) {
             disabled={
               !address || !city || !postalCode || !country || !cartItems
             }
-            className="w-full sm:w-1/3 rounded-full mt-4 disabled:cursor-not-allowed"
+            className="w-full sm:w-1/3 rounded-pill mt-4"
           >
             Continue
-          </Button>{' '}
+          </Button>
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center w-full border border-orange-300 rounded-2xl p-4">
-          <p className="text-center text-orange-500 text-xl leading-relaxed">
+        <div className="flex flex-col items-center justify-center w-full border border-primary-200 rounded-card p-4">
+          <p className="text-center text-primary-600 text-xl leading-relaxed">
             Can&apos;t Place Order Without Order Items
           </p>
         </div>
