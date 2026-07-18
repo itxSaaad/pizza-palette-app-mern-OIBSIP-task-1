@@ -55,7 +55,10 @@ const ERROR_CODES = Object.freeze({
   
   // Network Errors (Client-side)
   NETWORK_ERROR: 'NETWORK_ERROR',
-  REQUEST_TIMEOUT: 'REQUEST_TIMEOUT'
+  REQUEST_TIMEOUT: 'REQUEST_TIMEOUT',
+
+  // Rate Limiting (429)
+  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED'
 });
 
 module.exports = {
