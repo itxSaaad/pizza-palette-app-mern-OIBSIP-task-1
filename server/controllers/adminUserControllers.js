@@ -89,7 +89,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
   });
 
   const emailSentToSuperAdmin = await sendEmail({
-    to: process.env.SUPERADMIN_EMAIL,
+    to: process.env.SENDER_EMAIL,
     subject: 'New Admin Account Approval!',
     templateOptions: {
       title: 'New Admin Account Approval',

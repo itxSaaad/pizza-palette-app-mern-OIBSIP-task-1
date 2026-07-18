@@ -10,7 +10,6 @@ const validateEnv = () => {
     'SALT',
     'SENDER_EMAIL',
     'SENDER_PASSWORD',
-    'SUPERADMIN_EMAIL',
     'STRIPE_SECRET_KEY',
     'STRIPE_WEBHOOK_SECRET',
     'NODE_ENV',

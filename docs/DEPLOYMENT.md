@@ -150,10 +150,9 @@ MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/pizza-delivery-app
 JWT_SECRET=<64+ character random string>
 SALT=10
 
-# Email (Gmail with App Password)
-SENDER_EMAIL=your-email@gmail.com
+# Email (Zoho Mail App Password, or override SMTP_HOST for another provider)
+SENDER_EMAIL=your-email@example.com
 SENDER_PASSWORD=your-app-password
-SUPERADMIN_EMAIL=admin@example.com
 
 # Payment Gateway (Razorpay LIVE)
 RAZORPAY_KEY_ID=rzp_live_xxxxx
