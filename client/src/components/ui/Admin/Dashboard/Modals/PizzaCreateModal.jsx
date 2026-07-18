@@ -10,9 +10,6 @@ import {
   listPizzas,
 } from '../../../../../redux/asyncThunks/pizzaThunks';
 
-// Import Constants
-import { PIZZA_SIZE_OPTIONS } from '../../../../../constants';
-
 // Import Components
 import Button from '../../../Button';
 import Loader from '../../../Loader';
@@ -188,29 +185,6 @@ function PizzaCreateModal({ onClose }) {
                       required
                       className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     />
-                  </div>
-                </div>
-                <div className="w-full flex flex-col items-center justify-center bg-orange-100 rounded-md p-4">
-                  <h1 className="text-xl font-bold text-orange-300">Size</h1>
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    {PIZZA_SIZE_OPTIONS.map((option, index) => (
-                      <label
-                        key={index}
-                        htmlFor={option.value}
-                        className="flex flex-row items-center justify-center text-white rounded-full bg-orange-500 p-2"
-                      >
-                        <input
-                          type="radio"
-                          className="mr-2"
-                          name="size"
-                          id={option.value}
-                          value={option.value}
-                          onChange={(e) => setSize(e.target.value)}
-                          required
-                        />
-                        {option.label}
-                      </label>
-                    ))}
                   </div>
                 </div>
                 <div className="w-full flex flex-wrap items-start justify-center gap-4">
