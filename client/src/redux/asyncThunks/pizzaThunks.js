@@ -21,8 +21,10 @@ export const createPizza = createAsyncThunk(
         },
       };
 
+      const endpoint = adminUserInfo ? '/pizzas/admin' : '/pizzas';
+
       const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/pizzas`,
+        `${import.meta.env.VITE_SERVER_URL}${endpoint}`,
         {
           name: pizzaData.name,
           description: pizzaData.description,

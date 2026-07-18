@@ -362,7 +362,9 @@ const getAllUsers = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 
 const getUserById = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id);
+  const user = await User.findById(req.params.id).select(
+    '-password -verificationCode -resetPasswordToken -resetPasswordExpire -__v'
+  );
 
   if (user) {
     res.status(200).json(user);
