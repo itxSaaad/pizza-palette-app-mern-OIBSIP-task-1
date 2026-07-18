@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 // Import Components
+import Card from '../../components/ui/Card';
 import CurrentCheckoutStep from '../../components/ui/CheckoutSteps/CurrentCheckoutStep';
 import PaymentStep from '../../components/ui/CheckoutSteps/PaymentStep';
 import PlaceOrderStep from '../../components/ui/CheckoutSteps/PlaceOrderStep';
@@ -47,9 +48,11 @@ function CheckoutScreen() {
   }, [navigate, userInfo, adminUserInfo, cartItems]);
 
   return (
-    <section className="min-h-screen flex flex-col justify-center items-center pt-24 pb-6 px-2 sm:px-16 bg-orange-200">
-      <div className="w-3/4 bg-white rounded-2xl shadow-md p-4 ">
-        <h2 className="text-3xl font-bold text-center mb-4">Checkout</h2>
+    <section className="min-h-screen flex flex-col justify-center items-center pb-6 px-2 sm:px-16 bg-neutral-50">
+      <Card className="w-full sm:w-11/12 md:w-3/4 lg:w-2/3" padding="md">
+        <h2 className="font-display text-h2 text-center mb-4 text-primary-600">
+          Checkout
+        </h2>
         <CurrentCheckoutStep currentStep={currentStep} AllSteps={AllSteps} />
 
         {currentStep === 'Shipping' && (
@@ -61,7 +64,7 @@ function CheckoutScreen() {
         {currentStep === 'Place Order' && (
           <PlaceOrderStep setCurrentStep={setCurrentStep} />
         )}
-      </div>
+      </Card>
     </section>
   );
 }
