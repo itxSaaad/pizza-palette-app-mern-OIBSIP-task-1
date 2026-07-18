@@ -72,8 +72,9 @@ function MenuScreen() {
             />
           </>
         ) : (
-          <div className="font-display text-h1 text-primary-600 text-center">
-            No Pizzas Found!
+          <div className="font-display text-h2 text-primary-600 text-center max-w-md">
+            Our kitchen is between batches right now &mdash; check back soon,
+            or try a custom pizza of your own.
           </div>
         )}
       </section>

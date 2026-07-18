@@ -45,7 +45,7 @@ function HowItWorksSection() {
       </h1>
 
       <p className="text-xl text-center text-neutral-700 mb-4">
-        We have made it very easy for you to order your favorite pizza.
+        From our kitchen to your door in four simple steps.
       </p>
       <Card className="grid grid-cols-1 md:grid-cols-2 gap-4" padding="lg">
         {StepsToOrderPizza.map((step) => (
