@@ -51,7 +51,7 @@ function AddToCartButton({ id, qty, size, basePrice }) {
       <Button
         variant="primary"
         onClick={handleAddToCart}
-        className="font-semibold py-2 px-4 rounded-full inline-flex items-center"
+        className="font-semibold py-2 px-4 rounded-pill inline-flex items-center"
       >
         <FaCartPlus className="mr-2" />
         Add to Cart
