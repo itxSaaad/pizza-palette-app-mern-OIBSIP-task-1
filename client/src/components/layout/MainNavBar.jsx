@@ -83,10 +83,10 @@ function MainNavbar() {
 
   return (
     <>
-      <nav className="fixed bg-white w-screen flex flex-row items-center justify-between px-6 sm:px-16 shadow-sm space-x-3">
+      <nav className="fixed top-0 left-0 z-30 bg-neutral-50 w-screen flex flex-row items-center justify-between px-6 sm:px-16 py-2 shadow-card-sm space-x-3">
         <NavLink
           href="/"
-          className="flex flex-row justify-center items-center text-black font-bold text-lg sm:text-3xl"
+          className="flex flex-row justify-center items-center text-neutral-900 font-display font-bold text-lg sm:text-3xl"
         >
           <img
             src={Logo}
@@ -103,9 +103,9 @@ function MainNavbar() {
               to={navItem.route}
               className={({ isActive }) => {
                 if (isActive) {
-                  return 'text-lg text-orange-500 border-b-4 border-orange-500';
+                  return 'text-lg text-primary-600 border-b-4 border-primary-600 py-4';
                 }
-                return 'text-lg  text-black hover:text-orange-500 hover:border-b-4 hover:border-orange-500';
+                return 'text-lg text-neutral-800 hover:text-primary-600 hover:border-b-4 hover:border-primary-600 py-4';
               }}
             >
               {navItem.name}
@@ -141,7 +141,7 @@ function MainNavbar() {
         {/* Nav Menu Open Button */}
         <button
           type="button"
-          className="text-black hover:text-orange-500 focus:outline-none md:hidden"
+          className="text-neutral-900 hover:text-primary-600 focus:outline-none md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center"
           onClick={() => setIsOpen(!isOpen)}
         >
           <svg
@@ -162,11 +162,11 @@ function MainNavbar() {
       </nav>
       {/* // Mobile Menu */}
       {isOpen && (
-        <div className="fixed font-semibold inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center md:hidden transition-all duration-300 ease-in-out">
+        <div className="fixed font-semibold inset-0 z-40 bg-neutral-900 bg-opacity-90 flex items-center justify-center md:hidden transition-all duration-300 ease-in-out">
           {/* Nav Menu Close Button */}
           <button
             type="button"
-            className="absolute top-8 right-9 text-white hover:text-orange-500 focus:outline-none  md:hidden"
+            className="absolute top-8 right-9 text-neutral-50 hover:text-primary-400 focus:outline-none md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center"
             onClick={() => setIsOpen(!isOpen)}
           >
             <svg
@@ -192,9 +192,9 @@ function MainNavbar() {
                 onClick={() => setIsOpen(!isOpen)}
                 className={({ isActive }) => {
                   if (isActive) {
-                    return 'text-2xl text-orange-500';
+                    return 'text-2xl text-primary-400';
                   }
-                  return 'text-2xl text-white hover:text-orange-500';
+                  return 'text-2xl text-neutral-50 hover:text-primary-400';
                 }}
               >
                 {navItem.name}
