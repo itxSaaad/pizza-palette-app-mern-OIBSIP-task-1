@@ -170,7 +170,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   user.resetPasswordToken = resetToken;
   user.resetPasswordExpire = Date.now() + 600000;
   
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
   const emailSent = await sendEmail({
     to: user.email,
