@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import { FaSpinner } from 'react-icons/fa';
 
 const sizeClasses = {
-  sm: 'text-sm px-3 py-2.5 min-h-[44px]',
-  md: 'text-base px-4 py-3 min-h-[44px]',
-  lg: 'text-lg px-6 py-4 min-h-[52px]',
+  sm: 'text-sm px-3 py-2.5 min-h-[44px] min-w-[44px]',
+  md: 'text-base px-4 py-3 min-h-[44px] min-w-[44px]',
+  lg: 'text-lg px-6 py-4 min-h-[52px] min-w-[52px]',
 };
 
 const variantClasses = {
