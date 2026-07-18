@@ -8,6 +8,7 @@ import { setPasswordResetEmail } from '../../../../redux/slices/userSlice';
 
 // Import Components
 import Button from '../../Button';
+import Input from '../../Input';
 import Loader from '../../Loader';
 import Message from '../../Message';
 
@@ -29,6 +30,7 @@ function EmailForm({ setCurrentStep }) {
       setCurrentStep('OTPForm');
     }
   }, [userForgotPasswordSuccess, setCurrentStep]);
+
   return (
     <>
       {loading ? (
@@ -37,36 +39,23 @@ function EmailForm({ setCurrentStep }) {
         </div>
       ) : (
         <form className="w-full" onSubmit={submitHandler}>
-          <p className="text-center text-black text-xl leading-relaxed">
+          <p className="text-center text-neutral-900 text-xl leading-relaxed">
             Reset Password
             <br />
-            <span className="text-sm text-orange-500">
-              Enter your Email Address to get OTP
-            </span>
+            <span className="text-sm text-primary-600">Enter your Email Address to get OTP</span>
           </p>
-          {userForgotPasswordError && (
-            <Message>{userForgotPasswordError}</Message>
-          )}
+          {userForgotPasswordError && <Message>{userForgotPasswordError}</Message>}
           <div className="w-full my-4">
-            <label htmlFor="email" className="sr-only">
-              Email
-            </label>
-
-            <div className="flex justify-center items-center w-full">
-              <input
-                type="email"
-                id="email"
-                value={email}
-                placeholder="Enter Email Address"
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-                required
-                className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-              />
-            </div>
+            <Input
+              name="email"
+              type="email"
+              value={email}
+              placeholder="Enter Email Address"
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
-          <Button type="submit" variant="primary" className="w-full rounded-md">
+          <Button type="submit" variant="primary" fullWidth className="rounded-control">
             Send OTP
           </Button>
         </form>
