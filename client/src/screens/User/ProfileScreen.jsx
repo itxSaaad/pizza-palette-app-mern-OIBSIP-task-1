@@ -7,7 +7,7 @@ import { listOrdersByUserId } from '../../redux/asyncThunks/orderThunks';
 import { getUserDetails } from '../../redux/asyncThunks/userThunks';
 
 // Import Components
-import VerficationModal from '../../components/ui/Auth/VerficationModal';
+import VerificationModal from '../../components/ui/Auth/VerificationModal';
 import Button from '../../components/ui/Button';
 import Loader from '../../components/ui/Loader';
 import Message from '../../components/ui/Message';
@@ -115,7 +115,7 @@ function ProfileScreen() {
         )}
       </section>
       {modalVisible && (
-        <VerficationModal onClose={() => setModalVisible(false)} />
+        <VerificationModal onClose={() => setModalVisible(false)} />
       )}
     </>
   );
