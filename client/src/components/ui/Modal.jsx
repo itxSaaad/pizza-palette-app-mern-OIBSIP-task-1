@@ -22,7 +22,7 @@ function Modal({ isOpen, onClose, title, size = 'md', children }) {
 
   return (
     <div
-      className={`fixed inset-0 z-20 flex items-center justify-center bg-neutral-900 bg-opacity-40 p-4 backdrop-filter backdrop-blur-sm transition-opacity duration-200 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-neutral-900 bg-opacity-40 p-4 backdrop-filter backdrop-blur-sm transition-opacity duration-200 ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       onClick={onClose}
