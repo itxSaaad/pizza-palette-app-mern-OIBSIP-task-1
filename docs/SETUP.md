@@ -102,7 +102,6 @@ SALT=10
 # For Gmail: Enable 2FA and create App Password
 SENDER_EMAIL=your_email@example.com
 SENDER_PASSWORD=your_email_app_password
-SUPERADMIN_EMAIL=admin@example.com
 
 # Payment Gateway (Razorpay)
 # Get from: https://dashboard.razorpay.com
@@ -269,7 +268,6 @@ unset.
    ```bash
    SENDER_EMAIL=your.email@yourdomain.com
    SENDER_PASSWORD=your_zoho_app_password
-   SUPERADMIN_EMAIL=admin@example.com
    ```
 
    `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE` don't need to be set for Zoho's
@@ -286,7 +284,6 @@ Override the SMTP settings explicitly:
 ```bash
 SENDER_EMAIL=your.email@gmail.com
 SENDER_PASSWORD=xxxx xxxx xxxx xxxx  # App password, not your regular password
-SUPERADMIN_EMAIL=admin@example.com
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_SECURE=true
