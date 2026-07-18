@@ -15,6 +15,7 @@ import UserRoute from './components/route/UserRoute.jsx';
 
 // Import Screens
 import AboutScreen from './screens/AboutScreen.jsx';
+import FAQScreen from './screens/FAQScreen.jsx';
 import AdminDashboardScreen from './screens/Admin/AdminDashboardScreen.jsx';
 import AdminLoginScreen from './screens/Admin/AdminLoginScreen.jsx';
 import AdminRegisterScreen from './screens/Admin/AdminRegisterScreen.jsx';
@@ -135,6 +136,10 @@ const router = createBrowserRouter([
       {
         path: '/about',
         element: <AboutScreen />,
+      },
+      {
+        path: '/faq',
+        element: <FAQScreen />,
       },
     ],
   },
