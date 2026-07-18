@@ -7,7 +7,7 @@ function Layout({ children }) {
   return (
     <>
       <MainNavBar />
-      {children}
+      <main className="pt-16 sm:pt-20 min-h-screen">{children}</main>
       <Footer />
     </>
   );
