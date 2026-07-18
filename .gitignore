@@ -27,6 +27,9 @@ out/
 # Compiled binary files
 *.bin
 
+# Vercel CLI local project links
+.vercel
+
 # macOS specific files
 .DS_Store
 

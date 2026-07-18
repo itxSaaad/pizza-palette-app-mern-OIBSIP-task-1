@@ -2,6 +2,9 @@
   "name": "pizza-delivery-system-app-mern",
   "version": "1.0.0",
   "description": "A Full-Stack Web Application that simulates a Dynamic Pizza Delivery System.",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "start": "node server/index --prefix server",
     "server": "nodemon server/index --prefix server",
