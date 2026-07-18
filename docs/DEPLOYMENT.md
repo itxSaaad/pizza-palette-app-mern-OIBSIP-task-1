@@ -102,6 +102,12 @@ the current reference.
 
 ### Step 3: Deploy Frontend
 
+This app is a client-side-routed single-page app (React Router's
+`createBrowserRouter`), so deep links like `/menu` or `/my-orders/:id` need
+to be rewritten to `/index.html` or Vercel will 404 on a hard refresh/direct
+visit. `client/vercel.json` already contains the required `rewrites` rule —
+no additional configuration is needed, but don't remove that file.
+
 1. **Import Project Again**
    - Create new project in Vercel
    - Select same GitHub repository
