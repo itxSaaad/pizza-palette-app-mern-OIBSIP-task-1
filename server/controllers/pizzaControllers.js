@@ -6,8 +6,6 @@ const { USER_ROLES } = require('../constants');
 
 // Import Schema
 const Pizza = require('../schemas/pizzaSchema');
-const Admin = require('../schemas/adminUserSchema');
-const User = require('../schemas/userSchema');
 
 // Initialize Controllers
 
@@ -61,22 +59,12 @@ const getPizzaById = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc Create Pizza
+// @desc Create Custom Pizza (regular user, via pizza builder)
 // @route POST /api/pizzas
-// @access Private/Admin
+// @access Private
 
 const createPizza = asyncHandler(async (req, res) => {
   const { name, description, bases, sauces, cheeses, veggies, price, imageUrl } = req.body;
-
-  const adminUser = await Admin.findById(req.user._id);
-  const user = await User.findById(req.user._id);
-
-  if (!adminUser && !user) {
-    res.status(404);
-    throw new Error('User Not Found!');
-  }
-
-  const createdBy = adminUser ? USER_ROLES.ADMIN : USER_ROLES.USER;
 
   const pizza = new Pizza({
     name,
@@ -86,7 +74,43 @@ const createPizza = asyncHandler(async (req, res) => {
     cheeses,
     veggies,
     price,
-    createdBy,
+    createdBy: USER_ROLES.USER,
+    imageUrl,
+  });
+
+  const createdPizza = await pizza.save();
+
+  res.status(201).json({
+    _id: createdPizza._id,
+    name: createdPizza.name,
+    description: createdPizza.description,
+    bases: createdPizza.bases,
+    sauces: createdPizza.sauces,
+    cheeses: createdPizza.cheeses,
+    veggies: createdPizza.veggies,
+    price: createdPizza.price,
+    createdBy: createdPizza.createdBy,
+    imageUrl: createdPizza.imageUrl,
+    message: 'Pizza Created Successfully!',
+  });
+});
+
+// @desc Create Menu Pizza (admin only)
+// @route POST /api/pizzas/admin
+// @access Private/Admin
+
+const createAdminPizza = asyncHandler(async (req, res) => {
+  const { name, description, bases, sauces, cheeses, veggies, price, imageUrl } = req.body;
+
+  const pizza = new Pizza({
+    name,
+    description,
+    bases,
+    sauces,
+    cheeses,
+    veggies,
+    price,
+    createdBy: USER_ROLES.ADMIN,
     imageUrl,
   });
 
@@ -169,6 +193,7 @@ module.exports = {
   getAllPizzas,
   getPizzaById,
   createPizza,
+  createAdminPizza,
   updatePizzaById,
   deletePizzaById,
 };

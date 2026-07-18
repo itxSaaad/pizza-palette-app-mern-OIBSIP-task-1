@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const { updateInventoryQuantity } = require('../utils/inventoryUtils');
 const { parsePaginationParams, parseSortParams, buildPaginationResponse } = require('../utils/paginationUtils');
 const { executeInventoryDeductions, checkInventoryAvailability, rollbackInventoryDeductions } = require('../utils/inventoryDeductionUtils');
+const { calculateOrderPricing } = require('../utils/pricingUtils');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const { ERROR_CODES } = require('../constants/errorCodes');
@@ -26,7 +27,7 @@ const sendEmail = require('../middlewares/nodemailerMiddleware');
 // @access  Private
 
 const createOrder = asyncHandler(async (req, res) => {
-  const { orderItems, deliveryAddress, salesTax, deliveryCharges, totalPrice, payment } = req.body;
+  const { orderItems, deliveryAddress, payment } = req.body;
 
   // Transform orderItems to have the correct structure for inventory checks
   // Frontend sends items with _id field, but inventory utils expect pizza field
@@ -34,24 +35,28 @@ const createOrder = asyncHandler(async (req, res) => {
     pizza: item._id,
     qty: item.qty,
     size: item.size,
-    price: item.price,
     name: item.name,
   }));
 
   // Check inventory availability before creating order
   const inventoryCheck = await checkInventoryAvailability(transformedOrderItems);
-  
+
   if (!inventoryCheck.available) {
-    res.status(400);
-    throw new Error(
-      `Insufficient inventory: ${JSON.stringify(inventoryCheck.insufficientItems)}`
+    throw ApiError.insufficientInventory(
+      "Sorry, we don't have enough ingredients for one or more items in your order.",
+      inventoryCheck.insufficientItems
     );
   }
+
+  // Recompute trusted pricing server-side; never trust client-supplied prices/totals
+  const { pricedItems, salesTax, deliveryCharges, totalPrice } = await calculateOrderPricing(
+    transformedOrderItems
+  );
 
   // Create the order
   const order = new Order({
     user: req.user._id,
-    orderItems: transformedOrderItems.map((item) => ({
+    orderItems: pricedItems.map((item) => ({
       pizza: item.pizza,
       size: item.size,
       qty: item.qty,
@@ -79,10 +84,9 @@ const createOrder = asyncHandler(async (req, res) => {
     if (!deductionResult.success) {
       // Rollback order creation
       await Order.findByIdAndDelete(createdOrder._id);
-      res.status(400);
-      throw new Error(deductionResult.message);
+      throw ApiError.insufficientInventory(deductionResult.message);
     }
-    
+
     inventoryDeducted = true;
     console.log(`Inventory deducted for order ${createdOrder._id}`);
   } catch (error) {
@@ -338,20 +342,20 @@ const deleteOrderById = asyncHandler(async (req, res) => {
 // @route POST /api/orders/create-checkout-session
 // @access Private
 const createStripeCheckoutSession = asyncHandler(async (req, res) => {
-  const { orderItems, deliveryAddress, salesTax, deliveryCharges, totalPrice } = req.body;
+  const { orderItems, deliveryAddress } = req.body;
 
   // Transform orderItems to have the correct structure for inventory checks
   const transformedOrderItems = orderItems.map((item) => ({
     pizza: item._id,
     qty: item.qty,
     size: item.size,
-    price: item.price,
     name: item.name,
+    imageUrl: item.imageUrl,
   }));
 
   // Check inventory availability before creating order
   const inventoryCheck = await checkInventoryAvailability(transformedOrderItems);
-  
+
   if (!inventoryCheck.available) {
     throw ApiError.insufficientInventory(
       'Insufficient inventory for one or more items',
@@ -359,10 +363,15 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
     );
   }
 
+  // Recompute trusted pricing server-side; never trust client-supplied prices/totals
+  const { pricedItems, salesTax, deliveryCharges, totalPrice } = await calculateOrderPricing(
+    transformedOrderItems
+  );
+
   // Create the order first with pending payment status
   const order = new Order({
     user: req.user._id,
-    orderItems: transformedOrderItems.map((item) => ({
+    orderItems: pricedItems.map((item) => ({
       pizza: item.pizza,
       size: item.size,
       qty: item.qty,
@@ -398,8 +407,8 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Create line items for Stripe
-    const lineItems = orderItems.map(item => ({
+    // Create line items for Stripe using server-recomputed prices only
+    const lineItems = pricedItems.map(item => ({
       price_data: {
         currency: 'usd',
         product_data: {

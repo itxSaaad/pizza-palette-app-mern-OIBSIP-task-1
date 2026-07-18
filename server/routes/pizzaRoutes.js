@@ -18,6 +18,7 @@ const {
   getAllPizzas,
   getPizzaById,
   createPizza,
+  createAdminPizza,
   updatePizzaById,
   deletePizzaById,
 } = require('../controllers/pizzaControllers');
@@ -26,12 +27,13 @@ const {
 
 // Public Routes
 router.route('/').get(getAllPizzas);
-router.get('/:id', getPizzaById);
 
 // Private Routes
 router.post('/', protect, createPizzaValidation, validationHandler, createPizza);
 
 // Admin + Private Routes
+router.post('/admin', protect, admin, createPizzaValidation, validationHandler, createAdminPizza);
+router.get('/:id', getPizzaById);
 router
   .route('/:id')
   .put(protect, admin, updatePizzaValidation, validationHandler, updatePizzaById)
