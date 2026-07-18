@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus } from 'react-icons/fa';
@@ -29,6 +29,7 @@ function UserCreateCustomPizzaScreen() {
   const [selectedVeggies, setSelectedVeggies] = useState([]);
   const [qty, setQty] = useState(1);
   const [validationError, setValidationError] = useState('');
+  const addedToCartRef = useRef(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -119,23 +120,20 @@ function UserCreateCustomPizzaScreen() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (pizzaCreateSuccess && pizzaInfo) {
+    if (pizzaCreateSuccess && pizzaInfo && !addedToCartRef.current) {
+      addedToCartRef.current = true;
       const multiplier = getPizzaSizeMultiplier(size);
-      const basePrice = 
-        selectedBases.reduce((sum, item) => sum + (item.price || 0), 0) +
-        selectedSauces.reduce((sum, item) => sum + (item.price || 0), 0) +
-        selectedCheeses.reduce((sum, item) => sum + (item.price || 0), 0) +
-        selectedVeggies.reduce((sum, item) => sum + (item.price || 0), 0);
-      const calculatedPrice = parseFloat((basePrice * multiplier).toFixed(2));
-      
-      dispatch(addToCart({ 
-        id: pizzaInfo._id, 
+      const calculatedPrice = parseFloat((calculateBasePrice() * multiplier).toFixed(2));
+
+      dispatch(addToCart({
+        id: pizzaInfo._id,
         qty,
         size,
         calculatedPrice
       }));
     }
-  }, [dispatch, pizzaCreateSuccess, pizzaInfo, qty, size, selectedBases, selectedSauces, selectedCheeses, selectedVeggies]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, pizzaCreateSuccess, pizzaInfo, qty, size]);
 
   useEffect(() => {
     if (cartAddItemSuccess) {

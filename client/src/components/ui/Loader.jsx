@@ -2,7 +2,7 @@ import { FaPizzaSlice } from 'react-icons/fa';
 
 function Loader() {
   return (
-    <div className="relative inset-0 flex flex-col justify-center items-center">
+    <div className="relative inset-0 flex flex-col justify-center items-center" role="status">
       <div className="absolute inset-0 flex flex-col justify-center items-center">
         <div className="flex flex-col justify-center items-center border-x-8 border-primary-700 rounded-full shadow-card-lg animate-spin">
           <div className="flex flex-col justify-center items-center border-y-8 border-primary-400 rounded-full shadow-card-lg animate-ping">
