@@ -58,7 +58,7 @@ function OrderDetailScreen() {
     );
   }
 
-  if (!orderDetails) {
+  if (!orderDetails || !orderDetails._id) {
     return null;
   }
 
@@ -169,7 +169,12 @@ function OrderDetailScreen() {
             <div className="flex justify-between text-neutral-700">
               <span>Subtotal:</span>
               <span>
-                ${orderDetails.totalPrice - orderDetails.salesTax - orderDetails.deliveryCharges}
+                $
+                {(
+                  orderDetails.totalPrice -
+                  orderDetails.salesTax -
+                  orderDetails.deliveryCharges
+                ).toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between text-neutral-700">
