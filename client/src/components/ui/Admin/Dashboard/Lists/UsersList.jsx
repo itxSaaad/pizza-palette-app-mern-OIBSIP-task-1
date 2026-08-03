@@ -7,7 +7,12 @@ import {
   listUsers,
 } from '../../../../../redux/asyncThunks/userThunks';
 
+// Import Hooks
+import { useEntityListActions } from '../../../../../hooks/useEntityListActions';
+
 // Import Components
+import Card from '../../../Card';
+import ConfirmDialog from '../../../ConfirmDialog';
 import Loader from '../../../Loader';
 import Message from '../../../Message';
 import Table from '../Table';
@@ -18,17 +23,13 @@ function UsersList() {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user);
-  const {
-    loading,
-    userList,
-    userListError,
-    userDeleteByIdError,
-    userDeleteByIdSuccess,
-  } = user;
+  const { loading, userList, userListError, userDeleteByIdError, userDeleteByIdSuccess } = user;
 
-  const handleDelete = (id) => {
-    dispatch(deleteUserById(id)).then(() => dispatch(listUsers({})));
-  };
+  const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
+    deleteThunk: deleteUserById,
+    refreshThunk: () => listUsers({}),
+    entityName: 'user',
+  });
 
   const successMessageDelete = userDeleteByIdSuccess && {
     status: '200',
@@ -43,7 +44,7 @@ function UsersList() {
 
   return (
     <div className="w-full p-4">
-      <h2 className="text-2xl font-bold my-2">All Users</h2>
+      <h2 className="font-display text-h2 text-neutral-900 my-2">All Users</h2>
       {loading ? (
         <Loader />
       ) : (
@@ -57,16 +58,19 @@ function UsersList() {
               <Table
                 data={userList}
                 columns={userColumns}
-                handleDelete={handleDelete}
+                handleDelete={handleDeleteRequest}
               />
             ) : (
-              <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
-                No Users Found..
-              </h2>
+              <Card className="text-center">
+                <p className="text-lg font-semibold text-neutral-800">
+                  No Users Found..
+                </p>
+              </Card>
             )}
           </div>
         </>
       )}
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }
