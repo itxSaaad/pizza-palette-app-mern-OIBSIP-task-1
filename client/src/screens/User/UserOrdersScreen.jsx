@@ -25,11 +25,7 @@ function UserOrdersScreen() {
   const { adminUserInfo } = admin;
 
   const order = useSelector((state) => state.order);
-  const {
-    loading: orderLoading,
-    orderListByUserId,
-    orderListByUserIdError,
-  } = order;
+  const { loading: orderLoading, orderListByUserId, orderListByUserIdError } = order;
 
   useEffect(() => {
     if (!userInfo) {
@@ -50,7 +46,7 @@ function UserOrdersScreen() {
 
   return (
     <>
-      <section className="min-h-screen flex flex-col justify-center items-center pt-14 px-10 sm:px-16">
+      <section className="min-h-screen flex flex-col justify-center items-center px-10 sm:px-16 bg-neutral-50">
         {loading || orderLoading ? (
           <Loader />
         ) : orderListByUserIdError ? (
@@ -59,22 +55,18 @@ function UserOrdersScreen() {
           <>
             {orderListByUserId.length > 0 ? (
               <>
-                <h1 className="text-4xl font-bold text-orange-600 mb-8">
-                  My Orders
-                </h1>
+                <h1 className="font-display text-h1 text-primary-600 mb-8">My Orders</h1>
                 <UserOrdersTable orders={orderListByUserId} />
               </>
             ) : (
-              <div className="text-4xl font-bold text-orange-600">
+              <div className="font-display text-h2 text-primary-600 text-center">
                 No Orders Found!
               </div>
             )}
           </>
         )}
       </section>
-      {modalVisible && (
-        <VerificationModal onClose={() => setModalVisible(false)} />
-      )}
+      {modalVisible && <VerificationModal onClose={() => setModalVisible(false)} />}
     </>
   );
 }
