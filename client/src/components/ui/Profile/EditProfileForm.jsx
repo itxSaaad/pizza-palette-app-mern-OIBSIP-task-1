@@ -55,31 +55,49 @@ function EditProfileForm({ setIsEditing }) {
           {userUpdateProfileError && <Message>{userUpdateProfileError}</Message>}
           <form onSubmit={handleSubmit} className="w-full">
             <div className="w-full grid grid-cols-1 gap-4 lg:grid-cols-2 my-2">
-              <Input name="name" type="text" value={formData.name} onChange={handleFieldChange} />
-              <Input name="email" type="text" value={formData.email} onChange={handleFieldChange} />
+              <Input
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleFieldChange}
+                aria-label="Name"
+                placeholder="Enter your Name"
+              />
+              <Input
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleFieldChange}
+                aria-label="Email"
+                placeholder="Enter your Email"
+              />
               <Input
                 name="address"
                 type="text"
                 value={formData.address}
+                aria-label="Address"
                 placeholder="Enter your Address"
                 onChange={handleFieldChange}
               />
               <Input
                 name="phoneNumber"
-                type="text"
+                type="tel"
                 value={formData.phoneNumber}
+                aria-label="Phone Number"
                 placeholder="Enter your Phone Number"
                 onChange={handleFieldChange}
               />
               <Input
                 name="password"
                 type="password"
+                aria-label="New Password"
                 placeholder="Enter new password"
                 onChange={handleFieldChange}
               />
               <Input
                 name="confirmPassword"
                 type="password"
+                aria-label="Confirm New Password"
                 placeholder="Confirm new password"
                 onChange={handleFieldChange}
               />
