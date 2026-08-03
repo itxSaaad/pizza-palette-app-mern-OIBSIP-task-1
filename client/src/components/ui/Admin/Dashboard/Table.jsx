@@ -70,7 +70,7 @@ function renderCellValue(column, row, handleChange) {
       <table className="bg-primary-700 w-full table-auto border-collapse border-2 border-primary-700 rounded-control text-center overflow-hidden">
         <thead>
           <tr>
-            <th>Pizza ID</th>
+            <th>Pizza</th>
             <th>Quantity</th>
           </tr>
         </thead>
@@ -78,7 +78,7 @@ function renderCellValue(column, row, handleChange) {
           {row[column].map((item) => (
             <tr key={item._id}>
               <td className="border border-primary-500 px-4 py-2 sm:px-2 sm:py-1">
-                {item.pizza}
+                {item.pizza?.name || item.pizza}
               </td>
               <td className="border border-primary-500 px-4 py-2 sm:px-2 sm:py-1">
                 {item.qty}
@@ -89,7 +89,16 @@ function renderCellValue(column, row, handleChange) {
       </table>
     );
   }
-  return row[column];
+  const value = row[column];
+
+  // Populated Mongo references arrive as objects (e.g. order.user as
+  // {_id, name, email}); rendering them raw crashes React, so show their
+  // most human-readable field instead.
+  if (value && typeof value === 'object') {
+    return value.name || value.email || value._id || '—';
+  }
+
+  return value ?? '—';
 }
 
 function Table({ data, columns, handleDelete, handleChange }) {
