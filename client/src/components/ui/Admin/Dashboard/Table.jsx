@@ -216,7 +216,7 @@ function Table({ data, columns, handleDelete, handleChange }) {
 Table.propTypes = {
   data: PropTypes.array.isRequired,
   columns: PropTypes.array.isRequired,
-  handleDelete: PropTypes.func,
+  handleDelete: PropTypes.func.isRequired,
   handleChange: PropTypes.func,
 };
 
