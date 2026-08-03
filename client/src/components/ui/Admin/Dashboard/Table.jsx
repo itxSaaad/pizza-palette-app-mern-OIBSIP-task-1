@@ -7,6 +7,7 @@ import { ORDER_STATUS, PAYMENT_STATUS } from '../../../../constants';
 
 // Import Components
 import Button from '../../Button';
+import ConfirmDialog from '../../ConfirmDialog';
 
 function formatColumnLabel(column) {
   return column.replace(/([A-Z])/g, ' $1').trim();
@@ -110,10 +111,18 @@ function renderCellValue(column, row, handleChange) {
 function Table({ data, columns, handleDelete, handleChange }) {
   const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const pageData = data.slice(startIndex, endIndex);
+
+  const confirmDelete = () => {
+    if (pendingDeleteId) {
+      handleDelete(pendingDeleteId);
+      setPendingDeleteId(null);
+    }
+  };
 
   return (
     <>
@@ -143,7 +152,7 @@ function Table({ data, columns, handleDelete, handleChange }) {
                   <Button
                     variant="secondary"
                     className="rounded-control"
-                    onClick={() => handleDelete(row._id)}
+                    onClick={() => setPendingDeleteId(row._id)}
                     aria-label="Delete row"
                   >
                     <FaTrash className="text-error-500" />
@@ -175,7 +184,7 @@ function Table({ data, columns, handleDelete, handleChange }) {
             <Button
               variant="secondary"
               className="rounded-control w-full mt-2"
-              onClick={() => handleDelete(row._id)}
+              onClick={() => setPendingDeleteId(row._id)}
             >
               <FaTrash className="text-error-500 mr-2" />
               Delete
@@ -209,6 +218,16 @@ function Table({ data, columns, handleDelete, handleChange }) {
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={pendingDeleteId !== null}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+        title="Delete this item?"
+        message="Are you sure you want to delete this item? This action cannot be undone."
+        confirmLabel="Delete"
+        danger
+      />
     </>
   );
 }
