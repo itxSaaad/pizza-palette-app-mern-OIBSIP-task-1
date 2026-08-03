@@ -78,7 +78,9 @@ function renderCellValue(column, row, handleChange) {
           {row[column].map((item) => (
             <tr key={item._id}>
               <td className="border border-primary-500 px-4 py-2 sm:px-2 sm:py-1">
-                {item.pizza?.name || item.pizza}
+                {typeof item.pizza === 'object'
+                  ? item.pizza?.name || item.pizza?._id || '—'
+                  : item.pizza}
               </td>
               <td className="border border-primary-500 px-4 py-2 sm:px-2 sm:py-1">
                 {item.qty}
@@ -90,6 +92,11 @@ function renderCellValue(column, row, handleChange) {
     );
   }
   const value = row[column];
+
+  // Arrays of primitives (e.g. an admin's permissions) read best joined.
+  if (Array.isArray(value)) {
+    return value.join(', ') || '—';
+  }
 
   // Populated Mongo references arrive as objects (e.g. order.user as
   // {_id, name, email}); rendering them raw crashes React, so show their
