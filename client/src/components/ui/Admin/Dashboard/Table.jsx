@@ -167,9 +167,9 @@ function Table({ data, columns, handleDelete, handleChange }) {
                 <span className="text-xs uppercase font-bold text-primary-600">
                   {formatColumnLabel(column)}
                 </span>
-                <span className="text-neutral-800 break-words">
+                <div className="text-neutral-800 break-words">
                   {renderCellValue(column, row, handleChange)}
-                </span>
+                </div>
               </div>
             ))}
             <Button
