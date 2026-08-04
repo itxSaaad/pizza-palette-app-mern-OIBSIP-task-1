@@ -13,7 +13,7 @@ function SideBar({
         collapsible ? 'translate-x-0' : '-translate-x-full'
       } transition-all duration-300 ease-in-out`}
     >
-      <h2 className="font-display text-h4 mb-4 flex flex-row items-center text-white">
+      <h2 className="font-display text-h4 mb-4 mt-16 flex flex-row items-center text-white">
         <FaGaugeHigh className="mr-2" />
         <span className="hidden md:block">Dashboard</span>
       </h2>
