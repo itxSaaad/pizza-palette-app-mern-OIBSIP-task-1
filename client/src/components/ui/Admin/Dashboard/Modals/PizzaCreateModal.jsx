@@ -6,6 +6,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { listInventory } from '../../../../../redux/asyncThunks/inventoryThunks';
 import { createPizza, listPizzas } from '../../../../../redux/asyncThunks/pizzaThunks';
 
+// Import Hooks
+import { useModalTransition } from '../../../../../hooks/useModalTransition';
+
 // Import Components
 import Button from '../../../Button';
 import Input from '../../../Input';
@@ -15,7 +18,7 @@ import Modal from '../../../Modal';
 import IngredientChecklistGroup from './IngredientChecklistGroup';
 
 function PizzaCreateModal({ onClose }) {
-  const [modalVisible, setModalVisible] = useState(false);
+  const { visible, requestClose } = useModalTransition(onClose);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -31,14 +34,12 @@ function PizzaCreateModal({ onClose }) {
   const { loading: pizzaLoading, pizzaInfo, pizzaCreateError, pizzaCreateSuccess } = pizza;
 
   const inventory = useSelector((state) => state.inventory);
-  const { loading: inventoryLoading, inventoryList, inventoryListError, inventoryCreateStockError } = inventory;
-
-  const handleModalClose = () => {
-    setModalVisible(false);
-    setTimeout(() => {
-      onClose();
-    }, 300);
-  };
+  const {
+    loading: inventoryLoading,
+    inventoryList,
+    inventoryListError,
+    inventoryCreateStockError,
+  } = inventory;
 
   const toggleIngredient = (item, selectedItems, setSelectedItems) => {
     const isSelected = selectedItems.some((i) => i._id === item._id);
@@ -74,17 +75,13 @@ function PizzaCreateModal({ onClose }) {
     if (pizzaInfo && pizzaCreateSuccess) {
       dispatch(listPizzas({}));
       dispatch(listInventory({}));
-      handleModalClose();
-    }
-
-    if (onClose) {
-      setModalVisible(true);
+      requestClose();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, onClose, pizzaInfo, pizzaCreateSuccess]);
+  }, [dispatch, pizzaInfo, pizzaCreateSuccess]);
 
   return (
-    <Modal isOpen={modalVisible} onClose={handleModalClose} title="Create Pizza" size="lg">
+    <Modal isOpen={visible} onClose={requestClose} title="Create Pizza" size="lg">
       {inventoryLoading || pizzaLoading ? (
         <Loader />
       ) : (
@@ -95,7 +92,13 @@ function PizzaCreateModal({ onClose }) {
 
           <form onSubmit={handleCreatePizza} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input name="name" label="Pizza Name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input
+                name="name"
+                label="Pizza Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
               <Input
                 name="description"
                 label="Pizza Description"
@@ -111,7 +114,13 @@ function PizzaCreateModal({ onClose }) {
                 onChange={(e) => setPrice(e.target.value)}
                 required
               />
-              <Input name="imageUrl" label="Image URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} required />
+              <Input
+                name="imageUrl"
+                label="Image URL"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                required
+              />
             </div>
 
             <IngredientChecklistGroup
