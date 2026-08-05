@@ -16,6 +16,7 @@ const sendEmail = require('../middlewares/nodemailerMiddleware');
 
 // Import Schema
 const User = require('../schemas/userSchema');
+const Admin = require('../schemas/adminUserSchema');
 
 // Function to generate a random 6-digit confirmation code thats not in users Schema already
 const generateVerificationCode = async () => {
@@ -43,6 +44,15 @@ const registerUser = asyncHandler(async (req, res) => {
 
   if (userExists) {
     throw ApiError.emailExists();
+  }
+
+  // Unified login/forgot-password resolves an email across User + Admin —
+  // an email already used by a staff account can't also become a customer.
+  const adminExists = await Admin.findOne({ email });
+  if (adminExists) {
+    throw ApiError.emailExists(
+      'An account with this email already exists. Try logging in instead.'
+    );
   }
 
   const salt = await bcrypt.genSalt(10);

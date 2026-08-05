@@ -13,6 +13,7 @@ const sendEmail = require('../middlewares/nodemailerMiddleware');
 // Import Schemas
 const Admin = require('../schemas/adminUserSchema');
 const Invite = require('../schemas/inviteSchema');
+const User = require('../schemas/userSchema');
 
 // Admin/manager accounts are invite-only. Only full admins (not managers)
 // can send invites, so a manager can never grant themselves/others admin
@@ -32,6 +33,14 @@ const createInvite = asyncHandler(async (req, res) => {
   const existingAdmin = await Admin.findOne({ email });
   if (existingAdmin) {
     throw ApiError.emailExists('An admin account with this email already exists.');
+  }
+
+  // In unified auth, /api/auth/login resolves User before Admin — inviting
+  // an email that already belongs to a customer would create an admin
+  // account the shared login form could never reach.
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    throw ApiError.emailExists('A customer account with this email already exists.');
   }
 
   // Replace any existing pending invite for this email rather than stacking duplicates.
@@ -79,9 +88,13 @@ const createInvite = asyncHandler(async (req, res) => {
 
 // @desc    List pending invites
 // @route   GET /api/admin/invites
-// @access  Private/Admin
+// @access  Private/Admin (role: admin only)
 
 const listInvites = asyncHandler(async (req, res) => {
+  if (req.user.role !== USER_ROLES.ADMIN) {
+    throw ApiError.forbidden('Only admins can view invites.');
+  }
+
   const invites = await Invite.find({})
     .select('-tokenHash')
     .populate('invitedBy', 'name email')
@@ -92,9 +105,13 @@ const listInvites = asyncHandler(async (req, res) => {
 
 // @desc    Revoke a pending invite
 // @route   DELETE /api/admin/invites/:id
-// @access  Private/Admin
+// @access  Private/Admin (role: admin only)
 
 const revokeInvite = asyncHandler(async (req, res) => {
+  if (req.user.role !== USER_ROLES.ADMIN) {
+    throw ApiError.forbidden('Only admins can revoke invites.');
+  }
+
   const invite = await Invite.findByIdAndDelete(req.params.id);
 
   if (!invite) {
@@ -122,6 +139,14 @@ const acceptInvite = asyncHandler(async (req, res) => {
   if (existingAdmin) {
     await Invite.findByIdAndDelete(invite._id);
     throw ApiError.emailExists('An admin account with this email already exists.');
+  }
+
+  // A customer could have registered with this email after the invite was
+  // sent — re-check at accept time too, not just at invite-creation time.
+  const existingUser = await User.findOne({ email: invite.email });
+  if (existingUser) {
+    await Invite.findByIdAndDelete(invite._id);
+    throw ApiError.emailExists('A customer account with this email already exists.');
   }
 
   const salt = await bcrypt.genSalt(10);

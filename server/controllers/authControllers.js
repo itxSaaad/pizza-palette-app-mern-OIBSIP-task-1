@@ -27,25 +27,29 @@ const login = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email });
 
+  // Registration/invite/setup all now reject an email that's already used
+  // by the other account type, so a User and Admin sharing an email
+  // shouldn't happen going forward. But a User password mismatch doesn't
+  // necessarily mean invalid credentials for any legacy duplicate that
+  // predates that enforcement — fall through and try Admin too rather than
+  // failing fast, so we never mask a legitimate admin login.
   if (user) {
     const passwordsMatch = await bcrypt.compare(password, user.password);
 
-    if (!passwordsMatch) {
-      throw ApiError.invalidCredentials();
+    if (passwordsMatch) {
+      return res.status(200).json({
+        type: 'user',
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        address: user.address,
+        orders: user.orders,
+        isVerified: user.isVerified,
+        token: generateToken(user._id),
+        message: 'Login Successful!',
+      });
     }
-
-    return res.status(200).json({
-      type: 'user',
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      address: user.address,
-      orders: user.orders,
-      isVerified: user.isVerified,
-      token: generateToken(user._id),
-      message: 'Login Successful!',
-    });
   }
 
   const admin = await Admin.findOne({ email });
@@ -57,21 +61,19 @@ const login = asyncHandler(async (req, res) => {
 
     const passwordsMatch = await bcrypt.compare(password, admin.password);
 
-    if (!passwordsMatch) {
-      throw ApiError.invalidCredentials();
+    if (passwordsMatch) {
+      return res.status(200).json({
+        type: 'admin',
+        _id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role,
+        permissions: admin.permissions,
+        isApproved: admin.isApproved,
+        token: generateToken(admin._id),
+        message: 'Login Successful!',
+      });
     }
-
-    return res.status(200).json({
-      type: 'admin',
-      _id: admin._id,
-      name: admin.name,
-      email: admin.email,
-      role: admin.role,
-      permissions: admin.permissions,
-      isApproved: admin.isApproved,
-      token: generateToken(admin._id),
-      message: 'Login Successful!',
-    });
   }
 
   throw ApiError.invalidCredentials();

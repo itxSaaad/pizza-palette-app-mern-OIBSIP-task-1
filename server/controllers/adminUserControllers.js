@@ -9,6 +9,7 @@ const ApiError = require('../utils/ApiError');
 
 // Import Schema
 const Admin = require('../schemas/adminUserSchema');
+const User = require('../schemas/userSchema');
 
 // Initialize Controllers
 
@@ -38,6 +39,13 @@ const bootstrapFirstAdmin = asyncHandler(async (req, res) => {
   }
 
   const { name, email, password } = req.body;
+
+  // An email can only belong to one account across User + Admin in unified
+  // auth — otherwise login/password-reset resolution becomes ambiguous.
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    throw ApiError.emailExists('A customer account with this email already exists.');
+  }
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
