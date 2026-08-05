@@ -15,6 +15,7 @@ import Card from '../../components/ui/Card';
 import Loader from '../../components/ui/Loader';
 import Message from '../../components/ui/Message';
 import Button from '../../components/ui/Button';
+import PizzaImage from '../../components/ui/PizzaImage';
 
 function OrderDetailScreen() {
   const { orderId } = useParams();
@@ -114,8 +115,8 @@ function OrderDetailScreen() {
                   className="flex items-center justify-between border-b border-neutral-200 pb-4 last:border-0"
                 >
                   <div className="flex items-center flex-1">
-                    <img
-                      src={item.pizza?.imageUrl || '/placeholder-pizza.png'}
+                    <PizzaImage
+                      src={item.pizza?.imageUrl}
                       alt={item.pizza?.name || 'Pizza'}
                       className="w-16 h-16 object-cover rounded-control mr-4"
                     />

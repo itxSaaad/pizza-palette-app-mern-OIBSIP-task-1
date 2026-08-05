@@ -43,6 +43,12 @@ function VerificationModal({ onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, userVerifyEmailSuccess, userDetails]);
 
+  useEffect(() => {
+    if (userDetails?.email) {
+      setEmail(userDetails.email);
+    }
+  }, [userDetails]);
+
   return (
     <Modal isOpen={visible} onClose={requestClose} title="Verify Your Email" size="sm">
       {loading ? (

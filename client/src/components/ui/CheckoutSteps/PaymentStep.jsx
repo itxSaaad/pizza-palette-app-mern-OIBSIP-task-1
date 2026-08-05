@@ -6,23 +6,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { PAYMENT_METHODS, PAYMENT_METHOD_LABELS } from '../../../constants';
 
 // Import Actions
-import {
-  savePaymentMethod,
-} from '../../../redux/slices/cartSlice';
+import { savePaymentMethod } from '../../../redux/slices/cartSlice';
 
 // Import Components
 import Button from '../Button';
 import Loader from '../Loader';
-import Message from '../Message';
 
 function PaymentStep({ setCurrentStep }) {
   const dispatch = useDispatch();
 
   const cart = useSelector((state) => state.cart);
-  const {
-    shippingAddress,
-    cartItems,
-  } = cart;
+  const { shippingAddress, cartItems } = cart;
 
   const order = useSelector((state) => state.order);
   const { loading } = order;
@@ -64,10 +58,7 @@ function PaymentStep({ setCurrentStep }) {
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="mr-2 h-5 w-5 accent-primary-500"
                 />
-                <label
-                  htmlFor={method}
-                  className="text-primary-600 font-semibold text-lg"
-                >
+                <label htmlFor={method} className="text-primary-600 font-semibold text-lg">
                   {PAYMENT_METHOD_LABELS[method]}
                 </label>
               </div>
