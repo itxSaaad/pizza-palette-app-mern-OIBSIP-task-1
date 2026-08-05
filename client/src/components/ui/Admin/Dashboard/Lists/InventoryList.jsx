@@ -7,7 +7,12 @@ import {
   deleteStockById,
 } from '../../../../../redux/asyncThunks/inventoryThunks';
 
+// Import Hooks
+import { useEntityListActions } from '../../../../../hooks/useEntityListActions';
+
 // Import Components
+import Card from '../../../Card';
+import ConfirmDialog from '../../../ConfirmDialog';
 import Loader from '../../../Loader';
 import Message from '../../../Message';
 import Table from '../Table';
@@ -26,12 +31,14 @@ function InventoryList() {
     inventoryDeleteByIdSuccess,
   } = inventory;
 
-  const handleDelete = (id) => {
-    dispatch(deleteStockById(id)).then(() => dispatch(listInventory({})));
-  };
+  const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
+    deleteThunk: deleteStockById,
+    refreshThunk: () => listInventory({}),
+    entityName: 'stock item',
+  });
 
-  const handleChange = (id) => {
-    console.log(id);
+  const handleChange = () => {
+    // No editable field is currently wired for inventory rows.
   };
 
   const successMessageDelete = inventoryDeleteByIdSuccess && {
@@ -47,7 +54,7 @@ function InventoryList() {
 
   return (
     <div className="w-full p-4">
-      <h2 className="text-2xl font-bold my-2">All Stocks</h2>
+      <h2 className="font-display text-h2 text-neutral-900 my-2">All Stocks</h2>
       {loading ? (
         <Loader />
       ) : (
@@ -60,58 +67,61 @@ function InventoryList() {
             {inventoryList ? (
               <>
                 <div className="mb-4">
-                  <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                  <h1 className="text-3xl text-center font-bold border-b-2 border-primary-900 p-1 my-2 text-neutral-900">
                     All Bases
                   </h1>
                   <Table
                     data={inventoryList.bases}
                     columns={inventoryColumns}
-                    handleDelete={handleDelete}
+                    handleDelete={handleDeleteRequest}
                     handleChange={handleChange}
                   />
                 </div>
                 <div className="mb-4">
-                  <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                  <h1 className="text-3xl text-center font-bold border-b-2 border-primary-900 p-1 my-2 text-neutral-900">
                     All Cheeses
                   </h1>
                   <Table
                     data={inventoryList.cheeses}
                     columns={inventoryColumns}
-                    handleDelete={handleDelete}
+                    handleDelete={handleDeleteRequest}
                     handleChange={handleChange}
                   />
                 </div>
                 <div className="mb-4">
-                  <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                  <h1 className="text-3xl text-center font-bold border-b-2 border-primary-900 p-1 my-2 text-neutral-900">
                     All Sauces
                   </h1>
                   <Table
                     data={inventoryList.sauces}
                     columns={inventoryColumns}
-                    handleDelete={handleDelete}
+                    handleDelete={handleDeleteRequest}
                     handleChange={handleChange}
                   />
                 </div>
                 <div className="mb-4">
-                  <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                  <h1 className="text-3xl text-center font-bold border-b-2 border-primary-900 p-1 my-2 text-neutral-900">
                     All Veggies
                   </h1>
                   <Table
                     data={inventoryList.veggies}
                     columns={inventoryColumns}
-                    handleDelete={handleDelete}
+                    handleDelete={handleDeleteRequest}
                     handleChange={handleChange}
                   />
                 </div>
               </>
             ) : (
-              <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
-                No Stock Found..
-              </h2>
+              <Card className="text-center">
+                <p className="text-xl font-semibold text-neutral-800">
+                  No Stock Found..
+                </p>
+              </Card>
             )}
           </div>
         </>
       )}
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }

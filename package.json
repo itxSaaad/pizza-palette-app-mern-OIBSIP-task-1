@@ -5,13 +5,16 @@
   "engines": {
     "node": "24.x"
   },
+  "packageManager": "pnpm@10.20.0",
   "scripts": {
-    "start": "node server/index --prefix server",
-    "server": "nodemon server/index --prefix server",
-    "client": "npm run dev --prefix client",
-    "build": "cd client && npm run build",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "install": "cd client && npm install && cd .. && cd server && npm install && cd ..",
+    "start": "pnpm --filter server start",
+    "server": "pnpm --filter server dev",
+    "client": "pnpm --filter client dev",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "data:import": "node server/seeder",
     "data:destroy": "node server/seeder -d"
   },
@@ -37,10 +40,8 @@
   },
   "homepage": "https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP#readme",
   "devDependencies": {
-    "concurrently": "^8.2.0"
-  },
-  "dependencies": {
-    "eslint": "^8.47.0",
-    "nodemon": "^3.0.1"
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "turbo": "^2.3.0"
   }
 }

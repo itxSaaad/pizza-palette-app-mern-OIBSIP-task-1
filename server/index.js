@@ -1,4 +1,5 @@
 // Import required packages
+const path = require('path');
 const colors = require('colors');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -22,7 +23,10 @@ const inventoryRoutes = require('./routes/inventoryRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 
 // Configure DotEnv
-dotenv.config();
+// Resolved relative to this file (not process.cwd()) so env loading is
+// correct whether this is launched from the repo root or from server/
+// directly (e.g. by a workspace task runner that cd's into the package).
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 // Validate Environment Variables
 try {
@@ -177,3 +181,7 @@ app.listen(
     `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
   )
 );
+
+// Exported so Vercel's Node.js Functions runtime (server/api/index.js) can
+// use this same Express app as a request handler.
+module.exports = app;

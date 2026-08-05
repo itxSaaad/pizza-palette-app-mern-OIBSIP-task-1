@@ -10,7 +10,12 @@ import {
   listPizzas,
 } from '../../../../../redux/asyncThunks/pizzaThunks';
 
+// Import Hooks
+import { useEntityListActions } from '../../../../../hooks/useEntityListActions';
+
 // Import Components
+import Card from '../../../Card';
+import ConfirmDialog from '../../../ConfirmDialog';
 import Loader from '../../../Loader';
 import Message from '../../../Message';
 import Table from '../Table';
@@ -29,13 +34,15 @@ function PizzasList() {
     pizzaDeleteByIdSuccess,
   } = pizza;
 
-  const handleDelete = (id) => {
-    dispatch(deletePizzaById(id)).then(() => dispatch(listPizzas({})));
-  };
+  const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
+    deleteThunk: deletePizzaById,
+    refreshThunk: () => listPizzas({}),
+    entityName: 'pizza',
+  });
 
   const successMessageDelete = pizzaDeleteByIdSuccess && {
     status: '200',
-    message: 'pizza Deleted Successfully!',
+    message: 'Pizza Deleted Successfully!',
   };
 
   const PizzaByAdmin = pizzaList.filter((pizza) => pizza.createdBy === USER_ROLES.ADMIN);
@@ -49,7 +56,7 @@ function PizzasList() {
 
   return (
     <div className="w-full p-4">
-      <h2 className="text-2xl font-bold my-2">All pizzas</h2>
+      <h2 className="font-display text-h2 text-neutral-900 my-2">All Pizzas</h2>
       {loading ? (
         <Loader />
       ) : (
@@ -63,45 +70,52 @@ function PizzasList() {
               <>
                 {PizzaByAdmin.length > 0 ? (
                   <div className="mb-4">
-                    <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                    <h1 className="text-3xl text-center font-bold border-b-2 border-primary-900 p-1 my-2 text-neutral-900">
                       Pizzas By Admin
                     </h1>
                     <Table
                       data={PizzaByAdmin}
                       columns={pizzaColumns}
-                      handleDelete={handleDelete}
+                      handleDelete={handleDeleteRequest}
                     />
                   </div>
                 ) : (
-                  <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
-                    No Pizzas Created By Admin Found..
-                  </h2>
+                  <Card className="text-center mb-4">
+                    <p className="text-lg font-semibold text-neutral-800">
+                      No Pizzas Created By Admin Found..
+                    </p>
+                  </Card>
                 )}
                 {customPizzas.length > 0 ? (
                   <div className="mb-4">
-                    <h1 className="text-3xl text-center font-bold border-b-2 border-orange-900 p-1 my-2">
+                    <h1 className="text-3xl text-center font-bold border-b-2 border-primary-900 p-1 my-2 text-neutral-900">
                       Custom Pizzas
                     </h1>
                     <Table
                       data={customPizzas}
                       columns={pizzaColumns}
-                      handleDelete={handleDelete}
+                      handleDelete={handleDeleteRequest}
                     />
                   </div>
                 ) : (
-                  <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
-                    No Custom Pizzas Found..
-                  </h2>
+                  <Card className="text-center mb-4">
+                    <p className="text-lg font-semibold text-neutral-800">
+                      No Custom Pizzas Found..
+                    </p>
+                  </Card>
                 )}
               </>
             ) : (
-              <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
-                No Pizzas Found..
-              </h2>
+              <Card className="text-center">
+                <p className="text-lg font-semibold text-neutral-800">
+                  No Pizzas Found..
+                </p>
+              </Card>
             )}
           </div>
         </>
       )}
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 }

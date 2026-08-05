@@ -4,7 +4,8 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 function SideBarToggleButton({ onClick, isOpen }) {
   return (
     <button
-      className={`flex flex-row items-center justify-center fixed left-0 top-20 z-10 m-4 text-white bg-orange-700 hover:bg-orange-800 rounded-2xl p-2 text-lg focus:outline-none`}
+      type="button"
+      className="flex flex-row items-center justify-center fixed left-0 top-20 z-10 m-4 min-h-[44px] text-white bg-primary-700 hover:bg-primary-800 rounded-pill p-2 text-lg focus:outline-none"
       onClick={onClick}
     >
       {isOpen ? <FaChevronLeft /> : <FaChevronRight />}

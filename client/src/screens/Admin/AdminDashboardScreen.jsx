@@ -23,30 +23,12 @@ import SideBar from '../../components/ui/Admin/Dashboard/SideBar/SideBar';
 
 function AdminDashboardScreen() {
   const menuItems = [
-    {
-      name: 'Home',
-      icon: <FaHome className="mr-2" />,
-    },
-    {
-      name: 'Staff',
-      icon: <FaUsers className="mr-2" />,
-    },
-    {
-      name: 'Users',
-      icon: <FaUser className="mr-2" />,
-    },
-    {
-      name: 'Pizzas',
-      icon: <FaPizzaSlice className="mr-2" />,
-    },
-    {
-      name: 'Orders',
-      icon: <FaClipboardList className="mr-2" />,
-    },
-    {
-      name: 'Inventory',
-      icon: <FaBoxes className="mr-2" />,
-    },
+    { name: 'Home', icon: <FaHome className="mr-2" /> },
+    { name: 'Staff', icon: <FaUsers className="mr-2" /> },
+    { name: 'Users', icon: <FaUser className="mr-2" /> },
+    { name: 'Pizzas', icon: <FaPizzaSlice className="mr-2" /> },
+    { name: 'Orders', icon: <FaClipboardList className="mr-2" /> },
+    { name: 'Inventory', icon: <FaBoxes className="mr-2" /> },
   ];
 
   const [activeMenuItem, setActiveMenuItem] = useState('Home');
@@ -73,6 +55,7 @@ function AdminDashboardScreen() {
   useEffect(() => {
     if (!adminUserInfo) {
       navigate('/admin/login');
+      return;
     }
     dispatch(listUsers({}));
     dispatch(listAdminUsers({}));
@@ -82,35 +65,32 @@ function AdminDashboardScreen() {
   }, [dispatch, navigate, adminUserInfo]);
 
   useEffect(() => {
-    // Check if any other user type is logged in (redirect to homepage)
     if (userInfo) {
       navigate('/');
     }
   }, [navigate, userInfo]);
 
-  return (
-    <section className="min-h-screen flex flex-row bg-orange-600 text-white pt-16 sm:pt-20">
-      {adminUserInfo ? (
-        <>
-          {collapsible && (
-            <SideBar
-              menuItems={menuItems}
-              handleMenuItemClick={handleMenuItemClick}
-              activeMenuItem={activeMenuItem}
-              collapsible={collapsible}
-            />
-          )}
+  if (!adminUserInfo) {
+    return null;
+  }
 
-          <MainContent
-            menuItems={menuItems}
-            activeMenuItem={activeMenuItem}
-            collapsible={collapsible}
-            onToggleSidebar={toggleSidebar}
-          />
-        </>
-      ) : (
-        navigate('/admin/login')
+  return (
+    <section className="min-h-screen flex flex-row bg-primary-600 text-white">
+      {collapsible && (
+        <SideBar
+          menuItems={menuItems}
+          handleMenuItemClick={handleMenuItemClick}
+          activeMenuItem={activeMenuItem}
+          collapsible={collapsible}
+        />
       )}
+
+      <MainContent
+        menuItems={menuItems}
+        activeMenuItem={activeMenuItem}
+        collapsible={collapsible}
+        onToggleSidebar={toggleSidebar}
+      />
     </section>
   );
 }
