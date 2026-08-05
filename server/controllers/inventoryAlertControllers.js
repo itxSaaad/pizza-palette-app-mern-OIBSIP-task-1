@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
-const { checkLowInventory, sendLowInventoryAlerts, runInventoryCheck } = require('../utils/inventoryAlertUtils');
+const { runInventoryCheck } = require('../utils/inventoryAlertUtils');
+const { getLowStockAlert } = require('../utils/analyticsUtils');
 const ApiError = require('../utils/ApiError');
 
 // @desc    Check low inventory and send alerts
@@ -22,11 +23,11 @@ const checkAndSendAlerts = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 
 const getLowInventoryItems = asyncHandler(async (req, res) => {
-  const lowStockData = await checkLowInventory();
+  const lowStockData = await getLowStockAlert();
   res.status(200).json(lowStockData);
 });
 
 module.exports = {
   checkAndSendAlerts,
-  getLowInventoryItems
+  getLowInventoryItems,
 };
