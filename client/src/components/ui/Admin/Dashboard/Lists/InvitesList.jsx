@@ -79,6 +79,7 @@ function InvitesList() {
             <Input
               name="email"
               type="email"
+              label="Email to invite"
               value={email}
               placeholder="Enter email to invite"
               onChange={(e) => setEmail(e.target.value)}
@@ -86,6 +87,7 @@ function InvitesList() {
             />
           </div>
           <select
+            aria-label="Invite role"
             className="bg-primary-700 text-primary-50 rounded-control p-2 min-h-[44px]"
             value={role}
             onChange={(e) => setRole(e.target.value)}
