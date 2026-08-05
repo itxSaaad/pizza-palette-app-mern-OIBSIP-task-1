@@ -8,7 +8,7 @@ Complete guide to set up Pizza Palette application for development and productio
 - [First Time Setup](#first-time-setup)
 - [Environment Configuration](#environment-configuration)
 - [Database Setup](#database-setup)
-- [Razorpay Setup](#razorpay-setup)
+- [Stripe Setup](#stripe-setup)
 - [Email Configuration](#email-configuration)
 - [Seed Database](#seed-database)
 - [Running the Application](#running-the-application)
@@ -102,11 +102,10 @@ SALT=10
 SENDER_EMAIL=your_email@example.com
 SENDER_PASSWORD=your_email_app_password
 
-# Payment Gateway (Razorpay)
-# Get from: https://dashboard.razorpay.com
-RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxx
-RAZORPAY_KEY_SECRET=your_razorpay_key_secret
-RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+# Payment Gateway (Stripe)
+# See docs/STRIPE_SETUP.md for how to get these values.
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
 ```
 
 ### Frontend Environment Variables (client/.env)
@@ -118,8 +117,9 @@ VITE_SERVER_URL=http://localhost:5000/api
 # Client URL (for redirects)
 VITE_CLIENT_URL=http://localhost:5173
 
-# Razorpay Key (must match backend)
-VITE_RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxx
+# No Stripe configuration is needed here — checkout redirects to a
+# Stripe-hosted page server-side; the client never handles a publishable
+# key or card details directly.
 ```
 
 ### Production Environment Variables
@@ -131,12 +131,13 @@ For Vercel deployment, set these in the Vercel dashboard:
 - FRONTEND_URL=https://your-frontend.vercel.app
 - MONGO_URI=mongodb+srv://...
 - JWT_SECRET=(64+ character secret)
+- STRIPE_SECRET_KEY=sk_live_xxx (live mode)
+- STRIPE_WEBHOOK_SECRET=(the live webhook endpoint's signing secret)
 - All other variables from .env
 
 **Frontend:**
 - VITE_SERVER_URL=https://your-backend.vercel.app/api
 - VITE_CLIENT_URL=https://your-frontend.vercel.app
-- VITE_RAZORPAY_KEY_ID=rzp_live_xxx (for live mode)
 
 ---
 
@@ -209,41 +210,15 @@ For Vercel deployment, set these in the Vercel dashboard:
 
 ---
 
-## Razorpay Setup
+## Stripe Setup
 
-### Quick Setup
+Payments run through Stripe Checkout (hosted, redirect-based — no Stripe.js/Elements on the frontend). Full walkthrough — creating a Stripe account, getting test API keys, installing the Stripe CLI, forwarding webhooks locally, and testing an end-to-end payment — lives in the [Stripe Setup Guide](./STRIPE_SETUP.md). Quick summary:
 
-1. **Create Razorpay Account**
-   - Sign up at [razorpay.com](https://razorpay.com/)
-   - Complete KYC for live mode (optional for testing)
+1. Get your test secret key from the [Stripe Dashboard](https://dashboard.stripe.com) (Developers → API keys) and set `STRIPE_SECRET_KEY` in the root `.env`.
+2. Run `stripe listen --forward-to localhost:5000/api/orders/stripe-webhook` and copy the printed webhook signing secret into `STRIPE_WEBHOOK_SECRET`.
+3. No frontend (`client/.env`) configuration is needed.
 
-2. **Get Test API Keys**
-   - Go to [dashboard.razorpay.com](https://dashboard.razorpay.com)
-   - Switch to "Test Mode" (top-right toggle)
-   - Navigate to **Settings** → **API Keys**
-   - Generate test keys if not present
-   - Copy Key ID and Key Secret
-
-3. **Configure Webhook**
-   - Go to **Settings** → **Webhooks**
-   - Click "Create New Webhook"
-   - **URL**: `http://localhost:5000/api/orders/webhook` (use ngrok for local testing)
-   - **Events**: Select `payment.authorized`, `payment.captured`, `payment.failed`
-   - **Secret**: Generate or copy provided secret
-   - Save webhook
-
-4. **Update .env Files**
-   ```bash
-   # Backend .env
-   RAZORPAY_KEY_ID=rzp_test_xxxxx
-   RAZORPAY_KEY_SECRET=xxxxx
-   RAZORPAY_WEBHOOK_SECRET=xxxxx
-   
-   # Frontend client/.env
-   VITE_RAZORPAY_KEY_ID=rzp_test_xxxxx
-   ```
-
-For detailed Razorpay configuration, see [RAZORPAY_SETUP.md](../RAZORPAY_SETUP.md).
+See [docs/STRIPE_SETUP.md](./STRIPE_SETUP.md) for details, troubleshooting, and production webhook setup.
 
 ---
 
@@ -487,15 +462,16 @@ Update `.env` with the generated secret.
    PORT=5001
    ```
 
-### Razorpay Payment Fails
+### Stripe Payment Fails
 
-**Problem:** Payment fails in test mode
+**Problem:** Payment fails in test mode, or the order never confirms as paid
 
 **Solutions:**
-1. Verify RAZORPAY_KEY_ID matches in backend and frontend
-2. Check test card: `4111 1111 1111 1111`
-3. Review Razorpay dashboard for error logs
-4. Check browser console for errors
+1. Verify `STRIPE_SECRET_KEY` is the Dashboard secret key, not a CLI-generated restricted key (see [Stripe Setup Guide](./STRIPE_SETUP.md))
+2. Confirm `stripe listen` is running and `STRIPE_WEBHOOK_SECRET` matches the value it printed
+3. Use test card `4242 4242 4242 4242` for a successful payment
+4. Review the Stripe Dashboard's Events log (or the `stripe listen` terminal output) for webhook delivery errors
+5. Check the backend server logs and browser console for errors
 
 ### CORS Error
 
