@@ -7,7 +7,7 @@ const FAQ_CATEGORIES = [
     questions: [
       {
         q: 'How much is delivery?',
-        a: "Delivery is a flat $10, or free on orders over $100. We'll show you the exact total, including tax, before you check out.",
+        a: "Delivery is a flat $10, or free on orders of $100 or more. We'll show you the exact total, including tax, before you check out.",
       },
       {
         q: 'How long does delivery take?',
@@ -74,9 +74,7 @@ function FAQScreen() {
       <div className="w-full max-w-3xl space-y-8">
         {FAQ_CATEGORIES.map((group) => (
           <div key={group.category}>
-            <h2 className="font-display text-h3 text-neutral-900 mb-2">
-              {group.category}
-            </h2>
+            <h2 className="font-display text-h3 text-neutral-900 mb-2">{group.category}</h2>
             <Card padding="lg">
               {group.questions.map((item) => (
                 <Accordion key={item.q} title={item.q}>
