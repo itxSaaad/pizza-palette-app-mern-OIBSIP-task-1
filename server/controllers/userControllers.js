@@ -1,4 +1,3 @@
-const bcrypt = require('bcryptjs');
 const emailValidator = require('email-validator');
 const asyncHandler = require('express-async-handler');
 
@@ -9,6 +8,7 @@ const {
   parseSortParams,
   buildPaginationResponse,
 } = require('../utils/paginationUtils');
+const { hashPassword } = require('../utils/passwordUtils');
 const ApiError = require('../utils/ApiError');
 
 // Import Middlewares
@@ -55,8 +55,7 @@ const registerUser = asyncHandler(async (req, res) => {
     );
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await hashPassword(password);
 
   const verificationCode = await generateVerificationCode();
 
@@ -174,9 +173,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   const { name, email, phoneNumber, address, password } = req.body;
 
   if (password && password !== '') {
-    const salt = await bcrypt.genSalt(Number(process.env.SALT));
-    const hashedPassword = await bcrypt.hash(password, salt);
-    user.password = hashedPassword;
+    user.password = await hashPassword(password);
   }
 
   user.name = name || user.name;

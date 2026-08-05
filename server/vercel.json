@@ -7,5 +7,8 @@
   },
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index.js" }
+  ],
+  "crons": [
+    { "path": "/api/stocks/cron/check-alerts", "schedule": "0 8 * * *" }
   ]
 }
