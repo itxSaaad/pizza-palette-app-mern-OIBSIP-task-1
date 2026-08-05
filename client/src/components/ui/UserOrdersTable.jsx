@@ -36,7 +36,16 @@ function UserOrdersTable({ orders }) {
               <tr
                 key={order._id}
                 onClick={() => navigate(`/my-orders/${order._id}`)}
-                className="cursor-pointer hover:bg-primary-100 transition-colors"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(`/my-orders/${order._id}`);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`View order ${order._id}`}
+                className="cursor-pointer hover:bg-primary-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <td className="border border-primary-200 px-4 py-2 sm:px-2 sm:py-1">{order._id}</td>
                 <td className="border border-primary-200 px-4 py-2 sm:px-2 sm:py-1">

@@ -3,7 +3,7 @@ import Card from '../components/ui/Card';
 const SECTIONS = [
   {
     title: 'Using Pizza Palette',
-    body: "By creating an account and placing an order with Pizza Palette, you agree to these terms. You\'re responsible for keeping your account details accurate and your password secure.",
+    body: "By creating an account and placing an order with Pizza Palette, you agree to these terms. You're responsible for keeping your account details accurate and your password secure.",
   },
   {
     title: 'Orders & Pricing',
@@ -11,7 +11,7 @@ const SECTIONS = [
   },
   {
     title: 'Payments',
-    body: "We accept card payments processed securely through Stripe, or cash on delivery. If you pay by card, Stripe\'s own terms and privacy practices also apply to that transaction.",
+    body: "We accept card payments processed securely through Stripe, or cash on delivery. If you pay by card, Stripe's own terms and privacy practices also apply to that transaction.",
   },
   {
     title: 'Custom Pizzas',
@@ -19,7 +19,7 @@ const SECTIONS = [
   },
   {
     title: 'Account Responsibilities',
-    body: "You\'re responsible for all activity on your account. If you believe your account has been used without your permission, contact us right away at contact@pizzapalette.com.",
+    body: "You're responsible for all activity on your account. If you believe your account has been used without your permission, contact us right away at contact@pizzapalette.com.",
   },
   {
     title: 'Changes to These Terms',

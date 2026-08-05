@@ -23,9 +23,7 @@ function ShippingStep({ setCurrentStep }) {
 
   const submitHandler = (e) => {
     e.preventDefault();
-    dispatch(
-      saveShippingAddress({ phoneNumber, address, city, postalCode, country })
-    );
+    dispatch(saveShippingAddress({ phoneNumber, address, city, postalCode, country }));
     setCurrentStep('Payment');
   };
 
@@ -84,9 +82,7 @@ function ShippingStep({ setCurrentStep }) {
           <Button
             variant="outline"
             type="submit"
-            disabled={
-              !address || !city || !postalCode || !country || !cartItems
-            }
+            disabled={!phoneNumber || !address || !city || !postalCode || !country || !cartItems}
             className="w-full sm:w-1/3 rounded-pill mt-4"
           >
             Continue

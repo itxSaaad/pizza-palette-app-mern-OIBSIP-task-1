@@ -85,6 +85,7 @@ function EditProfileForm({ setIsEditing }) {
               <Input
                 name="password"
                 type="password"
+                value={formData.password}
                 aria-label="New Password"
                 placeholder="Enter new password"
                 onChange={handleFieldChange}
@@ -92,6 +93,7 @@ function EditProfileForm({ setIsEditing }) {
               <Input
                 name="confirmPassword"
                 type="password"
+                value={formData.confirmPassword}
                 aria-label="Confirm New Password"
                 placeholder="Confirm new password"
                 onChange={handleFieldChange}
@@ -101,7 +103,12 @@ function EditProfileForm({ setIsEditing }) {
               <Button type="submit" variant="primary" className="rounded-control">
                 Save Changes
               </Button>
-              <Button variant="danger" className="rounded-control" onClick={handleCancel}>
+              <Button
+                type="button"
+                variant="danger"
+                className="rounded-control"
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
             </div>

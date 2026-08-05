@@ -17,10 +17,14 @@ import Loader from '../../components/ui/Loader';
 // Import Constants
 import { PIZZA_SIZE_OPTIONS, getPizzaSizeMultiplier } from '../../constants';
 
+// Custom pizzas don't have a name/description/image input in this builder —
+// every custom pizza gets the same placeholder identity. These aren't
+// component state since nothing in the UI ever changes them.
+const CUSTOM_PIZZA_NAME = 'Custom Pizza';
+const CUSTOM_PIZZA_DESCRIPTION = 'My Custom Pizza';
+const CUSTOM_PIZZA_IMAGE_URL = '/images/pizza.png';
+
 function UserCreateCustomPizzaScreen() {
-  const [name, setName] = useState('Custom Pizza');
-  const [description, setDescription] = useState('My Custom Pizza');
-  const [imageUrl, setImageUrl] = useState('/images/pizza.png');
   const [size, setSize] = useState('medium');
   const [selectedBases, setSelectedBases] = useState([]);
   const [selectedSauces, setSelectedSauces] = useState([]);
@@ -92,14 +96,14 @@ function UserCreateCustomPizzaScreen() {
     setValidationError('');
 
     const pizzaData = {
-      name,
-      description,
+      name: CUSTOM_PIZZA_NAME,
+      description: CUSTOM_PIZZA_DESCRIPTION,
       bases: selectedBases.map((item) => item._id),
       sauces: selectedSauces.map((item) => item._id),
       cheeses: selectedCheeses.map((item) => item._id),
       veggies: selectedVeggies.map((item) => item._id),
       price: parseFloat(calculateTotalPrice()),
-      imageUrl,
+      imageUrl: CUSTOM_PIZZA_IMAGE_URL,
     };
 
     dispatch(createPizza(pizzaData));
