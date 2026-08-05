@@ -70,20 +70,41 @@ Before deploying:
 
 ### Step 2: Deploy Backend
 
-Vercel deploys Express apps with zero configuration — no `vercel.json` is
-needed. It auto-detects the Express entry file (`index.js`, `app.js`, or
-`server.js`, or the same under `src/`) relative to the project's **Root
-Directory**, so Root Directory must point directly at the folder containing
-`index.js` (i.e. `./server`, not the repo root). See
-[Express on Vercel](https://vercel.com/docs/frameworks/backend/express) for
-the current reference.
+This repo is a **pnpm workspace with Turborepo** (`pnpm-workspace.yaml` +
+`turbo.json` at the repo root). Once Vercel detects `turbo.json` anywhere
+above the project's Root Directory, it switches to a Turborepo-driven build
+that expects a static output directory — this silently breaks the old
+zero-config "auto-detect an Express entry file" behavior for a build-less
+API project. Because of this, the backend **does** need a `server/vercel.json`
+(unlike before the monorepo migration) plus a function entry file under
+`server/api/`:
+
+- `server/api/index.js` re-exports the real Express app from `server/index.js`
+  (`module.exports = require('../index.js')`) — Vercel's current Node.js
+  Functions convention requires function files to live under `api/`.
+- `server/index.js` ends with `module.exports = app;` so that re-export works;
+  it still also calls `app.listen(...)` for local dev via `pnpm dev`/nodemon,
+  which is harmless in the deployed serverless function.
+- `server/vercel.json` sets `outputDirectory: "public"` (a placeholder
+  directory — `server/public/README.txt` — exists purely to satisfy Vercel's
+  static-output check; it serves no real content) and routes all traffic to
+  the function via `rewrites`:
+  ```json
+  {
+    "outputDirectory": "public",
+    "functions": { "api/index.js": { "maxDuration": 30 } },
+    "rewrites": [{ "source": "/(.*)", "destination": "/api/index.js" }]
+  }
+  ```
+  Don't delete `server/vercel.json`, `server/api/index.js`, or `server/public/`
+  — all three are load-bearing for this deployment shape.
 
 1. **Configure Backend Project**
    - **Framework Preset:** Other
    - **Root Directory:** `./server`
-   - **Build Command:** *(leave empty — no build step for a plain Express app)*
-   - **Output Directory:** *(leave empty/default)*
-   - **Install Command:** `npm install`
+   - **Build Command:** *(leave as detected — Turborepo runs it automatically; `server` has no `build` script, so this is a no-op)*
+   - **Output Directory:** *(leave as detected — comes from `server/vercel.json`'s `outputDirectory`)*
+   - **Install Command:** *(leave as detected — Vercel auto-detects `pnpm install` from the root `pnpm-lock.yaml`)*
 
 2. **Environment Variables**
    Add all backend environment variables (see [Environment Variables](#environment-variables) section):
@@ -116,9 +137,9 @@ no additional configuration is needed, but don't remove that file.
 2. **Configure Frontend Project**
    - **Framework Preset:** Vite
    - **Root Directory:** `./client`
-   - **Build Command:** `npm run build`
+   - **Build Command:** *(leave as detected — Turborepo runs `vite build` via the workspace; `client` has a real `build` script, so this produces `dist/` normally, unlike the backend)*
    - **Output Directory:** `dist`
-   - **Install Command:** `npm install`
+   - **Install Command:** *(leave as detected — Vercel auto-detects `pnpm install` from the root `pnpm-lock.yaml`)*
 
 3. **Environment Variables**
    ```
@@ -259,7 +280,7 @@ db.orders.createIndex({ status: 1, createdAt: -1 })
 ```bash
 # Connect to production database
 # Update .env with production MONGO_URI temporarily
-npm run seed
+pnpm run data:import
 
 # Or use MongoDB Compass:
 # 1. Connect to Atlas cluster
@@ -463,8 +484,7 @@ Update any hardcoded URLs in:
 3. Ensure all dependencies in `package.json`
 4. Test build locally:
    ```bash
-   cd client
-   npm run build
+   pnpm --filter client build
    ```
 
 ### API Not Responding
@@ -566,13 +586,13 @@ Vercel provides automatic CI/CD:
 
 ### Build Configuration
 
-Neither project needs a `vercel.json`. The frontend project's own **Framework
-Preset: Vite**, **Root Directory: `./client`**, and **Build Command:
-`npm run build`** settings (configured in [Step 3](#step-3-deploy-frontend))
-already tell Vercel everything it needs to build and serve the static
-`dist/` output — the old `@vercel/static-build`/`builds` config style shown
-in earlier versions of this guide is no longer needed. Likewise, the backend
-project needs no `vercel.json` — see [Step 2](#step-2-deploy-backend).
+Both projects need a `vercel.json` — this changed once the repo became a
+pnpm/Turborepo workspace (see [Step 2](#step-2-deploy-backend) for why).
+`client/vercel.json` only needs its client-side-routing `rewrites` rule (the
+frontend's own **Framework Preset: Vite**, **Root Directory: `./client`**
+settings handle the build/output otherwise). `server/vercel.json` needs the
+`outputDirectory`/`functions`/`rewrites` config described in
+[Step 2](#step-2-deploy-backend) — don't delete either file.
 
 ---
 

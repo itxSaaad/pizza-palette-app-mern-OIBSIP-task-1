@@ -44,14 +44,13 @@ cd pizza-palette-app-mern-OIBSIP-task-1
 
 ### 2. Install Dependencies
 
-```bash
-# Install server dependencies
-npm install
+This repo is a [pnpm](https://pnpm.io) workspace ([Turborepo](https://turbo.build)
+for task running), not a plain npm project. Install pnpm first if you don't
+have it (`corepack enable` on Node 16.13+, or `npm install -g pnpm`), then
+install everything — one command installs both `client` and `server`:
 
-# Install client dependencies
-cd client
-npm install
-cd ..
+```bash
+pnpm install
 ```
 
 ### 3. Set Up Environment Variables
@@ -302,7 +301,7 @@ Populate the database with test data:
 
 ```bash
 # From root directory
-npm run seed
+pnpm run data:import
 
 # Or manually
 cd server
@@ -325,7 +324,7 @@ User: test@example.com / User@123456
 
 ```bash
 # From root directory
-npm run seed:destroy
+pnpm run data:destroy
 
 # Or manually
 cd server
@@ -347,34 +346,30 @@ node seeder.js -d
 **Option 1: Run Both (Recommended)**
 ```bash
 # From root directory
-npm run dev
+pnpm run dev
 ```
 
-This starts:
+This uses Turborepo to run both packages' `dev` tasks in parallel:
 - Backend on `http://localhost:5000`
 - Frontend on `http://localhost:5173`
 
 **Option 2: Run Separately**
 ```bash
 # Terminal 1 - Backend
-cd server
-npm run dev
+pnpm --filter server dev
 
 # Terminal 2 - Frontend
-cd client
-npm run dev
+pnpm --filter client dev
 ```
 
 ### Production Mode
 
 ```bash
 # Build frontend
-cd client
-npm run build
+pnpm --filter client build
 
 # Start backend
-cd server
-npm start
+pnpm --filter server start
 ```
 
 ---
@@ -519,20 +514,15 @@ Update `.env` with the generated secret.
 **Solutions:**
 1. Reinstall dependencies:
    ```bash
-   # Backend
-   rm -rf node_modules package-lock.json
-   npm install
-   
-   # Frontend
-   cd client
-   rm -rf node_modules package-lock.json
-   npm install
+   # From root directory (installs both client and server)
+   rm -rf node_modules client/node_modules server/node_modules pnpm-lock.yaml
+   pnpm install
    ```
 
 2. Check Node.js version (must be 16+)
-3. Clear npm cache:
+3. Clear pnpm cache:
    ```bash
-   npm cache clean --force
+   pnpm store prune
    ```
 
 ---
@@ -550,7 +540,7 @@ Both frontend and backend support hot reload:
 Enable additional logging:
 ```bash
 # Backend
-NODE_ENV=development npm run dev
+NODE_ENV=development pnpm --filter server dev
 
 # Check logs in terminal
 ```
@@ -575,20 +565,20 @@ db.pizzas.find().pretty()
 
 ```bash
 # Destroy all seeded data
-npm run seed:destroy
+pnpm run data:destroy
 
 # Reseed fresh data
-npm run seed
+pnpm run data:import
 ```
 
 ---
 
 ## Quick Start Checklist
 
-- [ ] Node.js and npm installed
+- [ ] Node.js and pnpm installed
 - [ ] MongoDB running (local or Atlas)
 - [ ] Git repository cloned
-- [ ] Dependencies installed (root + client)
+- [ ] Dependencies installed (`pnpm install` from root)
 - [ ] Backend `.env` configured
 - [ ] Frontend `.env` configured
 - [ ] Database seeded

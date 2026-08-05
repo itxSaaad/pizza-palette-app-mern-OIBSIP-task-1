@@ -1,8 +1,12 @@
-# Node.js / NPM
+# Node.js / package managers
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+
+# Turborepo
+.turbo/
 
 # Build output
 build/
@@ -44,3 +48,4 @@ coverage/
 *.iml
 .idea/
 *.DS_Store
+.env*

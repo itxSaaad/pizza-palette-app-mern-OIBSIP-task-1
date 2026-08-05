@@ -181,3 +181,7 @@ app.listen(
     `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
   )
 );
+
+// Exported so Vercel's Node.js Functions runtime (server/api/index.js) can
+// use this same Express app as a request handler.
+module.exports = app;
