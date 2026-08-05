@@ -7,8 +7,9 @@ import { listOrdersByUserId } from '../../redux/asyncThunks/orderThunks';
 import { getUserDetails } from '../../redux/asyncThunks/userThunks';
 
 // Import Components
-import VerficationModal from '../../components/ui/Auth/VerficationModal';
+import VerificationModal from '../../components/ui/Auth/VerificationModal';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import Loader from '../../components/ui/Loader';
 import Message from '../../components/ui/Message';
 import EditProfileForm from '../../components/ui/Profile/EditProfileForm';
@@ -23,20 +24,10 @@ function ProfileScreen() {
   const navigate = useNavigate();
 
   const user = useSelector((state) => state.user);
-  const {
-    loading,
-    userDetails,
-    userDetailsError,
-    userInfo,
-    userUpdateProfileSuccess,
-  } = user;
+  const { loading, userDetails, userDetailsError, userInfo, userUpdateProfileSuccess } = user;
 
   const order = useSelector((state) => state.order);
-  const {
-    loading: orderLoading,
-    orderListByUserId,
-    orderListByUserIdError,
-  } = order;
+  const { loading: orderLoading, orderListByUserId, orderListByUserIdError } = order;
 
   const successMessage = userUpdateProfileSuccess && {
     status: '200',
@@ -66,7 +57,7 @@ function ProfileScreen() {
 
   return (
     <>
-      <section className="min-h-screen flex flex-col sm:flex-row justify-center items-center pt-16 px-5 sm:px-16 space-y-5 sm:space-y-0 sm:space-x-5">
+      <section className="min-h-screen flex flex-col sm:flex-row justify-center items-center px-5 sm:px-16 space-y-5 sm:space-y-0 sm:space-x-5 bg-neutral-50">
         {loading || orderLoading ? (
           <Loader />
         ) : userDetailsError || orderListByUserIdError ? (
@@ -74,8 +65,8 @@ function ProfileScreen() {
         ) : (
           userDetails && (
             <>
-              <div className="flex flex-col justify-center items-center p-4 rounded-2xl w-full sm:w-1/3 border border-orange-300">
-                <h2 className="text-2xl font-bold">
+              <Card className="flex flex-col justify-center items-center w-full sm:w-1/3">
+                <h2 className="font-display text-h3 text-neutral-900">
                   {isEditing ? 'Edit Profile' : 'Your Profile'}
                 </h2>
                 {isEditing ? (
@@ -89,34 +80,32 @@ function ProfileScreen() {
                 {!isEditing && (
                   <Button
                     variant="primary"
-                    className="rounded-lg"
+                    className="rounded-control mt-2"
                     onClick={() => setIsEditing(!isEditing)}
                   >
                     Edit Profile
                   </Button>
                 )}
-              </div>
+              </Card>
               <div className="flex flex-col justify-center items-center w-full sm:w-2/3">
                 {orderListByUserId.length > 0 ? (
                   <>
-                    <h1 className="text-2xl font-bold text-center mb-4">
+                    <h1 className="font-display text-h2 text-center mb-4 text-primary-600">
                       My Orders
                     </h1>
                     <UserOrdersTable orders={orderListByUserId} />
                   </>
                 ) : (
-                  <div className="w-full text-4xl text-center font-bold text-orange-600 border-2 border-orange-500 rounded-2xl p-4">
-                    No Orders Found!
-                  </div>
+                  <Card className="w-full text-center">
+                    <p className="text-2xl font-bold text-primary-600">No Orders Found!</p>
+                  </Card>
                 )}
               </div>
             </>
           )
         )}
       </section>
-      {modalVisible && (
-        <VerficationModal onClose={() => setModalVisible(false)} />
-      )}
+      {modalVisible && <VerificationModal onClose={() => setModalVisible(false)} />}
     </>
   );
 }

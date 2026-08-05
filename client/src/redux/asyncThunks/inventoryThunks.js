@@ -1,6 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { extractErrorMessage } from '../../utils/errorUtils';
+
 // Create Thunks
 
 // Create Inventory
@@ -30,15 +32,9 @@ export const createStock = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -71,20 +67,11 @@ export const listInventory = createAsyncThunk(
         };
       }
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/stocks`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/stocks`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -117,20 +104,11 @@ export const getStockById = createAsyncThunk(
         };
       }
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/stocks/${id}`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/stocks/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -150,20 +128,11 @@ export const updateStockById = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.put(
-        `${import.meta.env.VITE_SERVER_URL}/stocks/${id}`,
-        config
-      );
+      const { data } = await axios.put(`${import.meta.env.VITE_SERVER_URL}/stocks/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -188,15 +157,9 @@ export const deleteStockById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );

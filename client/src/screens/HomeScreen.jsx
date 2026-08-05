@@ -8,7 +8,7 @@ import { getUserDetails } from '../redux/asyncThunks/userThunks';
 import FeaturedPizzasSection from '../components/ui/Home/FeaturedPizzasSection';
 import HowItWorksSection from '../components/ui/Home/HowItWorksSection';
 import Jumbotron from '../components/ui/Home/Jumbotron';
-import VerficationModal from '../components/ui/Auth/VerficationModal';
+import VerificationModal from '../components/ui/Auth/VerificationModal';
 
 function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -16,9 +16,13 @@ function HomeScreen() {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user);
-  const { userDetails } = user;
+  const { userInfo, userDetails } = user;
 
   useEffect(() => {
+    // Guests have no userInfo/token — fetching a profile would just throw
+    // trying to read userInfo.token, so only fetch when actually logged in.
+    if (!userInfo) return;
+
     if (!userDetails) {
       dispatch(getUserDetails({}));
     }
@@ -26,16 +30,14 @@ function HomeScreen() {
     if (userDetails && !userDetails.isVerified) {
       setModalVisible(true);
     }
-  }, [dispatch, userDetails]);
+  }, [dispatch, userInfo, userDetails]);
 
   return (
     <>
       <Jumbotron />
       <FeaturedPizzasSection />
       <HowItWorksSection />
-      {modalVisible && (
-        <VerficationModal onClose={() => setModalVisible(false)} />
-      )}
+      {modalVisible && <VerificationModal onClose={() => setModalVisible(false)} />}
     </>
   );
 }

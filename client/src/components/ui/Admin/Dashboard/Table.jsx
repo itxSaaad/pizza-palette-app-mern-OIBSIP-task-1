@@ -1,118 +1,76 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
+
+// Import Hooks
+import { usePagination } from '../../../../hooks/usePagination';
 
 // Import Components
 import Button from '../../Button';
+import Pagination from '../../Pagination';
 
-function Table({ data, columns, handleDelete, handleChange }) {
-  const itemsPerPage = 10;
-  const [currentPage, setCurrentPage] = useState(1);
+function formatColumnLabel(column) {
+  return column.replace(/([A-Z])/g, ' $1').trim();
+}
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+// Table stays domain-agnostic: it only knows how to render primitives,
+// arrays, and populated Mongo references generically. Any column that
+// needs domain-specific UI (a status <select>, a checkbox, business logic
+// like "only COD is editable") is supplied by the consumer via
+// `columnRenderers`, so a new list doesn't have to add another branch here.
+function renderCellValue(column, row, handleChange, columnRenderers) {
+  if (columnRenderers?.[column]) {
+    return columnRenderers[column](row, handleChange);
+  }
+
+  const value = row[column];
+
+  // Arrays of primitives (e.g. an admin's permissions) read best joined.
+  if (Array.isArray(value)) {
+    return value.join(', ') || '—';
+  }
+
+  // Populated Mongo references arrive as objects (e.g. order.user as
+  // {_id, name, email}); rendering them raw crashes React, so show their
+  // most human-readable field instead.
+  if (value && typeof value === 'object') {
+    return value.name || value.email || value._id || '—';
+  }
+
+  return value ?? '—';
+}
+
+function Table({ data, columns, handleDelete, handleChange, columnRenderers }) {
+  const { currentPage, totalPages, pageData, goToPrevPage, goToNextPage } = usePagination(data, 10);
 
   return (
     <>
-      <div className="overflow-x-auto">
-        <table className="bg-orange-700 w-full table-auto border-collapse border-2 border-orange-700 rounded-lg text-center overflow-hidden whitespace-no-wrap">
-          <thead className="bg-orange-700 h-10 uppercase font-bold">
+      {/* Desktop/tablet: real table, md and up */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="bg-primary-500 w-full table-auto border-collapse border-2 border-primary-500 rounded-card text-center overflow-hidden">
+          <thead className="bg-primary-500 h-10 uppercase font-bold text-white">
             <tr>
               {columns.map((column) => (
-                <>
-                  <th key={column}>
-                    {column.replace(/([A-Z])/g, ' $1').trim()}
-                  </th>
-                </>
+                <th key={column}>{formatColumnLabel(column)}</th>
               ))}
               <th>Delete</th>
             </tr>
           </thead>
-          <tbody className="bg-orange-600 text-orange-100">
-            {data.slice(startIndex, endIndex).map((row) => (
+          <tbody className="bg-primary-100 text-primary-800">
+            {pageData.map((row) => (
               <tr key={row._id}>
                 {columns.map((column) => (
-                  <td
-                    key={column}
-                    className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1"
-                  >
-                    {column === 'numberOfOrders' ? (
-                      row.orders.length
-                    ) : column === 'isApproved' ? (
-                      <input
-                        type="checkbox"
-                        checked={row[column]}
-                        onChange={() => handleChange(row._id)}
-                      />
-                    ) : column === 'isVerified' ? (
-                      <> {row[column] ? 'Verified' : 'Not Verified'}</>
-                    ) : column === 'status' ? (
-                      <select
-                        className="bg-orange-700 text-orange-100 rounded-md p-2"
-                        defaultValue={row[column]}
-                        onChange={(e) => {
-                          handleChange(row._id, e.target.value);
-                          console.log('Id', row._id, 'Value', e.target.value);
-                        }}
-                      >
-                        <option
-                          value="Recieved"
-                          selected={row[column] === 'Recieved'}
-                        >
-                          Received
-                        </option>
-                        <option
-                          value="In the Kitchen"
-                          selected={row[column] === 'In the Kitchen'}
-                        >
-                          In the Kitchen
-                        </option>
-                        <option
-                          value="Sent for Delivery"
-                          selected={row[column] === 'Sent for Delivery'}
-                        >
-                          Sent for Delivery
-                        </option>
-                        <option
-                          value="Delivered"
-                          selected={row[column] === 'Delivered'}
-                        >
-                          Delivered
-                        </option>
-                      </select>
-                    ) : column === 'orderItems' ? (
-                      <table className="bg-orange-700 w-full table-auto border-collapse border-2 border-orange-700 rounded-lg text-center overflow-hidden whitespace-no-wrap">
-                        <thead>
-                          <tr>
-                            <th>Pizza ID</th>
-                            <th>Quantity</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {row[column].map((item) => (
-                            <tr key={item._id}>
-                              <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
-                                {item.pizza}
-                              </td>
-                              <td className="border border-orange-500 px-4 py-2 sm:px-2 sm:py-1">
-                                {item.qty}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      row[column]
-                    )}
+                  <td key={column} className="border border-primary-300 px-4 py-2 sm:px-2 sm:py-1">
+                    {renderCellValue(column, row, handleChange, columnRenderers)}
                   </td>
                 ))}
-                <td className="border border-orange-500">
+                <td className="border border-primary-300">
                   <Button
                     variant="secondary"
-                    className="rounded-md"
+                    className="rounded-control"
                     onClick={() => handleDelete(row._id)}
+                    aria-label="Delete row"
                   >
-                    <FaTrash className="text-red-500" />
+                    <FaTrash className="text-error-500" />
                   </Button>
                 </td>
               </tr>
@@ -120,31 +78,43 @@ function Table({ data, columns, handleDelete, handleChange }) {
           </tbody>
         </table>
       </div>
-      {data.length > itemsPerPage && (
-        <div className="flex justify-center items-center my-2">
-          {currentPage > 1 && (
+
+      {/* Mobile: stacked cards, below md */}
+      <div className="md:hidden space-y-4">
+        {pageData.map((row) => (
+          <div
+            key={row._id}
+            className="bg-primary-50 border-2 border-primary-200 rounded-card p-4 space-y-2"
+          >
+            {columns.map((column) => (
+              <div key={column} className="flex flex-col">
+                <span className="text-xs uppercase font-bold text-primary-600">
+                  {formatColumnLabel(column)}
+                </span>
+                <div className="text-neutral-800 break-words">
+                  {renderCellValue(column, row, handleChange, columnRenderers)}
+                </div>
+              </div>
+            ))}
             <Button
               variant="secondary"
-              className="rounded-full"
-              onClick={() => setCurrentPage((prev) => prev - 1)}
+              className="rounded-control w-full mt-2"
+              onClick={() => handleDelete(row._id)}
             >
-              Prev
+              <FaTrash className="text-error-500 mr-2" />
+              Delete
             </Button>
-          )}
-          <span className="mx-4">
-            Page {currentPage} of {Math.ceil(data.length / itemsPerPage)}
-          </span>
-          {currentPage < Math.ceil(data.length / itemsPerPage) && (
-            <Button
-              variant="secondary"
-              className="rounded-full"
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-            >
-              Next
-            </Button>
-          )}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPrev={goToPrevPage}
+        onNext={goToNextPage}
+        variant="secondary"
+      />
     </>
   );
 }
@@ -152,8 +122,9 @@ function Table({ data, columns, handleDelete, handleChange }) {
 Table.propTypes = {
   data: PropTypes.array.isRequired,
   columns: PropTypes.array.isRequired,
-  handleDelete: PropTypes.func,
+  handleDelete: PropTypes.func.isRequired,
   handleChange: PropTypes.func,
+  columnRenderers: PropTypes.objectOf(PropTypes.func),
 };
 
 export default Table;

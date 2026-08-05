@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { USER_ROLES } = require('../constants');
 
 const pizzaSchema = new mongoose.Schema(
   {
@@ -38,11 +39,6 @@ const pizzaSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    size: {
-      type: String,
-      enum: ['small', 'medium', 'large', 'extra-large'],
-      required: true,
-    },
     createdBy: {
       type: String,
       enum: ['admin', 'user'],
@@ -57,5 +53,10 @@ const pizzaSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Add indexes for frequently queried fields
+pizzaSchema.index({ createdBy: 1 });
+pizzaSchema.index({ price: 1 });
+pizzaSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Pizza', pizzaSchema);

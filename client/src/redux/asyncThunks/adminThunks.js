@@ -1,75 +1,16 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { extractErrorMessage } from '../../utils/errorUtils';
+
 // Create Thunks
-
-// Login Admin User
-export const loginAdmin = createAsyncThunk(
-  'admin/login',
-  async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/admin/login`,
-        { email, password },
-        config
-      );
-
-      return data;
-    } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
-    }
-  }
-);
-
-// Register Admin User
-export const registerAdmin = createAsyncThunk(
-  'admin/register',
-  async ({ name, email, password, confirmPassword }, { rejectWithValue }) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/admin/register`,
-        { name, email, password, confirmPassword },
-        config
-      );
-
-      return data;
-    } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
-    }
-  }
-);
+// Login/first-admin-setup live in authThunks.js (shared with customers);
+// invite-based admin creation lives in inviteThunks.js.
 
 // Admin Update Profile
 export const updateAdminProfile = createAsyncThunk(
   'admin/updateProfile',
-  async (
-    { name, email, password, confirmPassword },
-    { rejectWithValue, getState }
-  ) => {
+  async ({ name, email, password, confirmPassword }, { rejectWithValue, getState }) => {
     try {
       const {
         admin: { adminUserInfo },
@@ -89,15 +30,9 @@ export const updateAdminProfile = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -117,20 +52,11 @@ export const getAdminUserDetails = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/admin/profile`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin/profile`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -150,20 +76,11 @@ export const listAdminUsers = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/admin`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -183,20 +100,11 @@ export const getAdminUserDetailsById = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/admin/${id}`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -204,10 +112,7 @@ export const getAdminUserDetailsById = createAsyncThunk(
 // Admin Update User By ID
 export const updateAdminUserById = createAsyncThunk(
   'admin/updateUserById',
-  async (
-    { id, name, email, role, permissions, isApproved },
-    { rejectWithValue, getState }
-  ) => {
+  async ({ id, name, email, role, permissions, isApproved }, { rejectWithValue, getState }) => {
     try {
       const {
         admin: { adminUserInfo },
@@ -226,15 +131,9 @@ export const updateAdminUserById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -254,20 +153,11 @@ export const deleteAdminUserById = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.delete(
-        `${import.meta.env.VITE_SERVER_URL}/admin/${id}`,
-        config
-      );
+      const { data } = await axios.delete(`${import.meta.env.VITE_SERVER_URL}/admin/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );

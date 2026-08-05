@@ -12,8 +12,7 @@ export default defineConfig({
       manifest: {
         name: 'Pizza Palette | MERN',
         short_name: 'Pizza Palette',
-        description:
-          'Order your favorite pizza Now! We deliver the best pizza in town.',
+        description: 'Order your favorite pizza Now! We deliver the best pizza in town.',
         icons: [
           {
             src: '/android-chrome-512x512.png',
@@ -68,4 +67,9 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js'],
+  },
 });

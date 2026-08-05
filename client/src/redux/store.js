@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 // Import Reducers
 import adminReducer from './slices/adminSlice.js';
+import authReducer from './slices/authSlice.js';
 import cartReducer from './slices/cartSlice.js';
 import orderReducer from './slices/orderSlice.js';
 import pizzaReducer from './slices/pizzaSlice.js';
@@ -12,6 +13,7 @@ import inventoryReducer from './slices/inventorySlice.js';
 const store = configureStore({
   reducer: {
     admin: adminReducer,
+    auth: authReducer,
     cart: cartReducer,
     order: orderReducer,
     pizza: pizzaReducer,

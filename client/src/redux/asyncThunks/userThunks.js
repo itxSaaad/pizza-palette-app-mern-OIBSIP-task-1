@@ -1,45 +1,14 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { extractErrorMessage } from '../../utils/errorUtils';
+
 // Create Async Thunks
-
-// User Login
-export const loginUser = createAsyncThunk(
-  'user/userLogin',
-  async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/users/login`,
-        { email, password },
-        config
-      );
-
-      return data;
-    } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
-    }
-  }
-);
 
 // User Register
 export const registerUser = createAsyncThunk(
   'user/userRegister',
-  async (
-    { name, email, password, confirmPassword, phoneNumber, address },
-    { rejectWithValue }
-  ) => {
+  async ({ name, email, password, confirmPassword, phoneNumber, address }, { rejectWithValue }) => {
     try {
       const config = {
         headers: {
@@ -60,15 +29,9 @@ export const registerUser = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -95,78 +58,9 @@ export const verifyEmail = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
-    }
-  }
-);
-
-// User Forgot Password
-export const forgotPassword = createAsyncThunk(
-  'user/userForgotPassword',
-  async ({ email }, { rejectWithValue }) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/users/forgotpassword`,
-        { email },
-        config
-      );
-
-      return data;
-    } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
-    }
-  }
-);
-
-// User Reset Password
-export const resetPassword = createAsyncThunk(
-  'user/userResetPassword',
-  async (
-    { email, resetToken, newPassword, confirmNewPassword },
-    { rejectWithValue }
-  ) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.put(
-        `${import.meta.env.VITE_SERVER_URL}/users/resetpassword`,
-        { email, resetToken, newPassword, confirmNewPassword },
-        config
-      );
-
-      return data;
-    } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -200,15 +94,9 @@ export const updateUserProfile = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -228,20 +116,11 @@ export const getUserDetails = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/users/profile`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/users/profile`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -261,20 +140,11 @@ export const listUsers = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/users`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/users`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -294,20 +164,11 @@ export const getUserDetailsById = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/users/${id}`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/users/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -339,15 +200,9 @@ export const updateUserProfileById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -367,20 +222,11 @@ export const deleteUserById = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.delete(
-        `${import.meta.env.VITE_SERVER_URL}/users/${id}`,
-        config
-      );
+      const { data } = await axios.delete(`${import.meta.env.VITE_SERVER_URL}/users/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );

@@ -1,17 +1,27 @@
+const path = require('path');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 const emailBaseTemplate = require('../utils/emailBaseTemplate');
 
-dotenv.config();
+// Resolved relative to this file, not process.cwd() — see index.js for why.
+dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
+
+// SMTP provider settings are configurable via env vars so the mail
+// provider can be swapped (Gmail, Zoho, etc.) without a code change.
+// Defaults to Zoho Mail's global (US) data center settings.
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.zoho.com';
+const SMTP_PORT = Number(process.env.SMTP_PORT) || 465;
+const SMTP_SECURE = process.env.SMTP_SECURE
+  ? process.env.SMTP_SECURE === 'true'
+  : SMTP_PORT === 465;
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  host: SMTP_HOST,
+  port: SMTP_PORT,
+  secure: SMTP_SECURE,
   auth: {
-    user: `${process.env.SENDER_EMAIL}`,
-    pass: `${process.env.SENDER_PASSWORD}`,
+    user: process.env.SENDER_EMAIL,
+    pass: process.env.SENDER_PASSWORD,
   },
 });
 

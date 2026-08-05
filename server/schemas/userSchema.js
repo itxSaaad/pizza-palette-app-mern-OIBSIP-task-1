@@ -55,5 +55,11 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// Add indexes for frequently queried fields
+userSchema.index({ email: 1 });
+userSchema.index({ verificationCode: 1 });
+userSchema.index({ resetPasswordToken: 1 });
+userSchema.index({ createdAt: -1 });
+
 // Export the user schema model
 module.exports = mongoose.model('User', userSchema);

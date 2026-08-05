@@ -1,6 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { extractErrorMessage } from '../../utils/errorUtils';
+
 // Create Async Thunks
 
 // Create Pizza
@@ -15,14 +17,14 @@ export const createPizza = createAsyncThunk(
 
       const config = {
         headers: {
-          Authorization: `Bearer ${
-            adminUserInfo ? adminUserInfo.token : userInfo.token
-          }`,
+          Authorization: `Bearer ${adminUserInfo ? adminUserInfo.token : userInfo.token}`,
         },
       };
 
+      const endpoint = adminUserInfo ? '/pizzas/admin' : '/pizzas';
+
       const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/pizzas`,
+        `${import.meta.env.VITE_SERVER_URL}${endpoint}`,
         {
           name: pizzaData.name,
           description: pizzaData.description,
@@ -37,59 +39,34 @@ export const createPizza = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
 // Fetch All Pizzas
-export const listPizzas = createAsyncThunk(
-  'pizza/listPizzas',
-  async (_, { rejectWithValue }) => {
-    try {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/pizzas`
-      );
+export const listPizzas = createAsyncThunk('pizza/listPizzas', async (_, { rejectWithValue }) => {
+  try {
+    const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas`);
 
-      return data;
-    } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
-    }
+    return data.data || data;
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error));
   }
-);
+});
 
 // Fetch Single Pizza
 export const getPizzaById = createAsyncThunk(
   'pizza/getPizzaById',
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/pizzas/${id}`
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas/${id}`);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -98,18 +75,7 @@ export const getPizzaById = createAsyncThunk(
 export const updatePizzaById = createAsyncThunk(
   'pizza/updatePizzaById',
   async (
-    {
-      id,
-      name,
-      description,
-      base,
-      sauces,
-      cheeses,
-      veggies,
-      price,
-      size,
-      imageUrl,
-    },
+    { id, name, description, base, sauces, cheeses, veggies, price, size, imageUrl },
     { rejectWithValue, getState }
   ) => {
     try {
@@ -139,15 +105,9 @@ export const updatePizzaById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -172,15 +132,9 @@ export const deletePizzaById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );

@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 // Import Components
 import Home from './Home';
 import InventoryList from './Lists/InventoryList';
+import InvitesList from './Lists/InvitesList';
 import OrdersList from './Lists/OrdersList';
 import PizzasList from './Lists/PizzasList';
 import StaffList from './Lists/StaffList';
@@ -21,18 +22,19 @@ function MainContent({ activeMenuItem, collapsible, onToggleSidebar }) {
 
   return (
     <div
-      className={`bg-orange-600 ${
+      className={`bg-primary-500 ${
         collapsible ? 'w-10/12' : 'w-full'
-      } transition-width duration-300 ease-in-out p-10`}
+      } transition-all duration-300 ease-in-out p-4 sm:p-10`}
     >
       <SideBarToggleButton onClick={onToggleSidebar} isOpen={collapsible} />
       <div className="flex flex-col items-center justify-center">
-        <h1 className="text-4xl text-center font-bold">
+        <h1 className="font-display text-h2 text-center mt-16">
           Welcome to Admin Panel
-          <span className="text-orange-300"> {formattedUserName}</span>!
+          <span className="text-primary-200"> {formattedUserName}</span>!
         </h1>
         {activeMenuItem === 'Home' && <Home />}
         {activeMenuItem === 'Staff' && <StaffList />}
+        {activeMenuItem === 'Invites' && <InvitesList />}
         {activeMenuItem === 'Users' && <UsersList />}
         {activeMenuItem === 'Pizzas' && <PizzasList />}
         {activeMenuItem === 'Orders' && <OrdersList />}

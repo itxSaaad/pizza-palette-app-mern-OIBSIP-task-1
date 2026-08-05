@@ -5,14 +5,21 @@ const router = express.Router();
 
 // Import Middlewares
 const { protect, admin } = require('../middlewares/authMiddlewares');
+const validationHandler = require('../middlewares/validationHandler');
+const { registrationLimiter } = require('../middlewares/rateLimitMiddleware');
+
+// Import Validators
+const {
+  registerValidation,
+  verifyUserValidation,
+  updateProfileValidation,
+  updateUserByIdValidation,
+} = require('../validators/userValidators');
 
 // Import Controllers
 const {
-  authUser,
   registerUser,
   verifyUser,
-  forgotPassword,
-  resetPassword,
   getUserProfile,
   updateUserProfile,
   getAllUsers,
@@ -23,25 +30,23 @@ const {
 
 // Initialize Routes
 
-// Public Routes
-router.post('/login', authUser);
-router.post('/register', registerUser);
-router.post('/forgotpassword', forgotPassword);
-router.put('/resetpassword', resetPassword);
+// Public Routes — customers are the only self-serve signup path.
+// Login/forgot-password/reset-password live at /api/auth (shared with admin).
+router.post('/register', registrationLimiter, registerValidation, validationHandler, registerUser);
 
 // Private Routes
-router.post('/verify', protect, verifyUser);
+router.post('/verify', protect, verifyUserValidation, validationHandler, verifyUser);
 router
   .route('/profile')
   .get(protect, getUserProfile)
-  .put(protect, updateUserProfile);
+  .put(protect, updateProfileValidation, validationHandler, updateUserProfile);
 
 // Admin + Private Routes
 router.get('/', protect, admin, getAllUsers);
 router
   .route('/:id')
   .get(protect, admin, getUserById)
-  .put(protect, admin, updateUserById)
+  .put(protect, admin, updateUserByIdValidation, validationHandler, updateUserById)
   .delete(protect, admin, deleteUserById);
 
 // Export Router
