@@ -5,6 +5,7 @@ import { USER_ROLES } from '../../../constants';
 import { listPizzas } from '../../../redux/asyncThunks/pizzaThunks';
 import Card from '../Card';
 import Loader from '../Loader';
+import PizzaImage from '../PizzaImage';
 
 function FeaturedPizzasSection() {
   const dispatch = useDispatch();
@@ -25,11 +26,9 @@ function FeaturedPizzasSection() {
   return (
     <section
       id="featured-pizzas"
-      className="min-h-screen flex flex-col justify-center items-center py-16 sm:py-12 px-10 sm:px-16"
+      className="flex flex-col justify-center items-center py-16 sm:py-20 px-10 sm:px-16"
     >
-      <h2 className="font-display text-h2 text-center mb-8 text-neutral-900">
-        Featured Pizzas
-      </h2>
+      <h2 className="font-display text-h2 text-center mb-8 text-neutral-900">Featured Pizzas</h2>
       {loading ? (
         <Loader />
       ) : (
@@ -40,19 +39,15 @@ function FeaturedPizzasSection() {
               padding="none"
               className="overflow-hidden hover:scale-105 transition-transform duration-500 ease-in-out"
             >
-              <img
+              <PizzaImage
                 src={pizza.imageUrl}
                 alt={pizza.name}
                 className="w-full h-48 object-cover p-4 border-b border-neutral-100"
               />
               <div className="p-4 flex flex-col justify-between items-start">
                 <div className="flex justify-between items-center w-full">
-                  <h3 className="text-lg font-bold text-neutral-900 mb-1">
-                    {pizza.name}
-                  </h3>
-                  <span className="text-2xl font-bold text-primary-600">
-                    ${pizza.price}
-                  </span>
+                  <h3 className="text-lg font-bold text-neutral-900 mb-1">{pizza.name}</h3>
+                  <span className="text-2xl font-bold text-primary-600">${pizza.price}</span>
                 </div>
                 <p className="text-sm text-neutral-600">{pizza.description}</p>
               </div>

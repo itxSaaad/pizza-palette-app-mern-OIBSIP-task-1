@@ -7,6 +7,7 @@ import { PIZZA_SIZE_OPTIONS, getPizzaSizeMultiplier } from '../../../constants';
 
 // Import Components
 import Card from '../Card';
+import PizzaImage from '../PizzaImage';
 import AddtoCartButton from '../Cart/AddToCartButton';
 
 function PizzaItem({ pizza }) {
@@ -23,7 +24,7 @@ function PizzaItem({ pizza }) {
       padding="none"
       className="overflow-hidden hover:scale-105 transition-transform duration-500 ease-in-out"
     >
-      <img
+      <PizzaImage
         src={pizza.imageUrl}
         alt={pizza.name}
         className="w-full h-48 object-cover p-4 border-b border-neutral-100"
@@ -31,12 +32,8 @@ function PizzaItem({ pizza }) {
 
       <div className="p-4 flex flex-col justify-between items-start">
         <div className="flex justify-between items-center w-full">
-          <h3 className="text-lg font-bold text-neutral-900 mb-1">
-            {pizza.name}
-          </h3>
-          <span className="text-2xl font-bold text-primary-600">
-            ${calculatePrice()}
-          </span>
+          <h3 className="text-lg font-bold text-neutral-900 mb-1">{pizza.name}</h3>
+          <span className="text-2xl font-bold text-primary-600">${calculatePrice()}</span>
         </div>
         <p className="text-sm text-neutral-600">{pizza.description}</p>
 
@@ -57,12 +54,7 @@ function PizzaItem({ pizza }) {
         </div>
 
         <div className="flex justify-between items-center w-full space-x-1 mt-2">
-          <AddtoCartButton
-            id={pizza._id}
-            qty={qty}
-            size={selectedSize}
-            basePrice={pizza.price}
-          />
+          <AddtoCartButton id={pizza._id} qty={qty} size={selectedSize} basePrice={pizza.price} />
           <div className="flex justify-between items-center space-x-1">
             <button
               type="button"

@@ -40,6 +40,9 @@ out/
 # JetBrains IDEs
 .idea/
 
+# Claude Code local state (settings, agent worktrees)
+.claude/
+
 # Testing files
 coverage/
 .nyc_output/

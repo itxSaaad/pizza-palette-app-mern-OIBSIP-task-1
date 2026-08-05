@@ -14,6 +14,7 @@ import { clearCartData, createStripeCheckoutSession } from '../../../redux/slice
 import Button from '../Button';
 import Loader from '../Loader';
 import Message from '../Message';
+import PizzaImage from '../PizzaImage';
 
 function PlaceOrderStep({ setCurrentStep }) {
   const dispatch = useDispatch();
@@ -146,7 +147,7 @@ function PlaceOrderStep({ setCurrentStep }) {
                       key={item._id}
                       className="flex flex-col sm:flex-row items-center justify-between w-full space-x-5 border-b border-primary-200 py-2"
                     >
-                      <img
+                      <PizzaImage
                         src={item.imageUrl}
                         alt={item.name}
                         className="w-16 h-16 rounded-card object-cover"

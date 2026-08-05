@@ -1,7 +1,8 @@
 const pizzas = [
   {
     name: 'Simple Marinara',
-    description: 'Budget-friendly classic with tomato sauce, garlic, fresh basil and oregano on a thin crust',
+    description:
+      'Budget-friendly classic with tomato sauce, garlic, fresh basil and oregano on a thin crust',
     base: 'Classic',
     sauces: ['Tomato'],
     cheeses: [],
@@ -51,13 +52,14 @@ const pizzas = [
   },
   {
     name: 'Pesto Veggie Delight',
-    description: 'Aromatic pesto sauce with mozzarella, artichokes, broccoli and fresh basil on thin crust',
+    description:
+      'Aromatic pesto sauce with mozzarella, artichokes, broccoli and fresh basil on thin crust',
     base: 'Thin',
     sauces: ['Pesto'],
     cheeses: ['Mozzarella'],
     veggies: ['Artichokes', 'Broccoli', 'Basil'],
     price: 11.49,
-    imageUrl: 'https://images.unsplash.com/photo-1571407970349-bc81e7e96a47?w=400&h=300&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=400&h=300&fit=crop',
   },
   {
     name: 'Mediterranean Dream',
@@ -71,7 +73,8 @@ const pizzas = [
   },
   {
     name: 'Quattro Formaggi',
-    description: 'Premium four-cheese blend with mozzarella, parmesan, feta and gorgonzola on classic crust',
+    description:
+      'Premium four-cheese blend with mozzarella, parmesan, feta and gorgonzola on classic crust',
     base: 'Classic',
     sauces: ['Tomato'],
     cheeses: ['Mozzarella', 'Parmesan', 'Feta', 'Gorgonzola'],
@@ -91,7 +94,8 @@ const pizzas = [
   },
   {
     name: 'Cheese Lovers Deluxe',
-    description: 'Indulgent cheese-stuffed crust with creamy alfredo, mozzarella, parmesan and cheddar',
+    description:
+      'Indulgent cheese-stuffed crust with creamy alfredo, mozzarella, parmesan and cheddar',
     base: 'Cheese Stuffed',
     sauces: ['Alfredo'],
     cheeses: ['Mozzarella', 'Parmesan', 'Cheddar'],
@@ -101,7 +105,8 @@ const pizzas = [
   },
   {
     name: 'Ultimate Gourmet',
-    description: 'The crown jewel - thick crust with pesto, five-cheese blend, artichokes, olives and fresh herbs',
+    description:
+      'The crown jewel - thick crust with pesto, five-cheese blend, artichokes, olives and fresh herbs',
     base: 'Thick',
     sauces: ['Pesto'],
     cheeses: ['Mozzarella', 'Parmesan', 'Cheddar', 'Feta', 'Gorgonzola'],
