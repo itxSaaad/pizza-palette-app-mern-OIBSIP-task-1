@@ -1,9 +1,9 @@
-const bcrypt = require('bcryptjs');
 const emailValidator = require('email-validator');
 const asyncHandler = require('express-async-handler');
 
 // Import Utils
 const generateToken = require('../utils/generateToken');
+const { hashPassword } = require('../utils/passwordUtils');
 const { USER_ROLES } = require('../constants');
 const ApiError = require('../utils/ApiError');
 
@@ -47,8 +47,7 @@ const bootstrapFirstAdmin = asyncHandler(async (req, res) => {
     throw ApiError.emailExists('A customer account with this email already exists.');
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await hashPassword(password);
 
   const admin = await Admin.create({
     name,
@@ -106,9 +105,7 @@ const updateAdminProfile = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
   if (password && password !== '') {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    adminUser.password = hashedPassword;
+    adminUser.password = await hashPassword(password);
   }
 
   adminUser.name = name || adminUser.name;

@@ -18,6 +18,24 @@ const checkAndSendAlerts = asyncHandler(async (req, res) => {
   res.status(200).json(result);
 });
 
+// @desc    Run the same check on a schedule, triggered by Vercel Cron
+//          (see server/vercel.json) rather than an admin — node-cron can't
+//          run inside a serverless function, so production automation goes
+//          through this route instead.
+// @route   GET /api/inventory/cron/check-alerts
+// @access  Cron secret (see cronAuthMiddleware)
+
+const runScheduledCheck = asyncHandler(async (req, res) => {
+  const result = await runInventoryCheck();
+
+  if (!result.success) {
+    console.error('Scheduled inventory check failed:', result.error);
+    throw ApiError.serverError('Scheduled inventory check failed.');
+  }
+
+  res.status(200).json(result);
+});
+
 // @desc    Get current low inventory items
 // @route   GET /api/inventory/low-stock
 // @access  Private/Admin
@@ -30,4 +48,5 @@ const getLowInventoryItems = asyncHandler(async (req, res) => {
 module.exports = {
   checkAndSendAlerts,
   getLowInventoryItems,
+  runScheduledCheck,
 };

@@ -334,7 +334,7 @@ node seeder.js -d
 ### What Gets Seeded:
 - 2 admin users (admin + manager)
 - 3 regular users (2 verified, 1 unverified)
-- 6 pizzas with various sizes
+- 11 pizzas with various sizes
 - Inventory items (bases, sauces, cheeses, veggies)
 
 ---

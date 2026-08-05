@@ -39,6 +39,15 @@ const validateEnv = () => {
     );
   }
 
+  // Validate SALT is a usable bcrypt cost factor — every password-hashing
+  // call site reads this instead of hardcoding its own value, so a bad
+  // value here would otherwise only surface as a cryptic bcrypt error at
+  // the first registration/password-change request.
+  const saltRounds = Number(process.env.SALT);
+  if (!Number.isInteger(saltRounds) || saltRounds < 4 || saltRounds > 15) {
+    throw new Error('SALT must be an integer between 4 and 15 (bcrypt cost factor).');
+  }
+
   console.log('✅ Environment variables validated successfully');
 };
 

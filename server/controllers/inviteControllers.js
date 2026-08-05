@@ -1,9 +1,9 @@
-const bcrypt = require('bcryptjs');
 const asyncHandler = require('express-async-handler');
 
 // Import Utils
 const generateToken = require('../utils/generateToken');
 const { createInviteToken, hashInviteToken } = require('../utils/inviteTokenUtils');
+const { hashPassword } = require('../utils/passwordUtils');
 const { USER_ROLES } = require('../constants');
 const ApiError = require('../utils/ApiError');
 
@@ -149,8 +149,7 @@ const acceptInvite = asyncHandler(async (req, res) => {
     throw ApiError.emailExists('A customer account with this email already exists.');
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await hashPassword(password);
 
   const admin = await Admin.create({
     name,
