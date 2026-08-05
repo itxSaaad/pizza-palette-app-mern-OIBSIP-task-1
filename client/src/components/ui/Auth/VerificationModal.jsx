@@ -5,6 +5,9 @@ import { useDispatch, useSelector } from 'react-redux';
 // Import Thunks
 import { getUserDetails, verifyEmail } from '../../../redux/asyncThunks/userThunks';
 
+// Import Hooks
+import { useModalTransition } from '../../../hooks/useModalTransition';
+
 // Import Components
 import Button from '../Button';
 import Input from '../Input';
@@ -13,7 +16,7 @@ import Message from '../Message';
 import Modal from '../Modal';
 
 function VerificationModal({ onClose }) {
-  const [modalVisible, setModalVisible] = useState(false);
+  const { visible, requestClose } = useModalTransition(onClose);
 
   const dispatch = useDispatch();
 
@@ -22,13 +25,6 @@ function VerificationModal({ onClose }) {
 
   const [email, setEmail] = useState(userDetails?.email || '');
   const [verificationCode, setVerificationCode] = useState('');
-
-  const handleModalClose = () => {
-    setModalVisible(false);
-    setTimeout(() => {
-      onClose();
-    }, 300);
-  };
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -42,19 +38,13 @@ function VerificationModal({ onClose }) {
 
     if (userVerifyEmailSuccess) {
       dispatch(getUserDetails({}));
-      setModalVisible(false);
-      setTimeout(() => {
-        onClose();
-      }, 300);
+      requestClose();
     }
-
-    if (onClose) {
-      setModalVisible(true);
-    }
-  }, [dispatch, onClose, userVerifyEmailSuccess, userDetails]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, userVerifyEmailSuccess, userDetails]);
 
   return (
-    <Modal isOpen={modalVisible} onClose={handleModalClose} title="Verify Your Email" size="sm">
+    <Modal isOpen={visible} onClose={requestClose} title="Verify Your Email" size="sm">
       {loading ? (
         <Loader />
       ) : (

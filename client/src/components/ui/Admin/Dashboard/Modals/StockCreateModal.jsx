@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import { useEffect, useState } from 'react';
 import { FaPlusCircle } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -7,10 +6,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { INVENTORY_TYPES } from '../../../../../constants';
 
 // Import Thunks
-import {
-  createStock,
-  listInventory,
-} from '../../../../../redux/asyncThunks/inventoryThunks';
+import { createStock, listInventory } from '../../../../../redux/asyncThunks/inventoryThunks';
+
+// Import Hooks
+import { useModalTransition } from '../../../../../hooks/useModalTransition';
+import { useFormState } from '../../../../../hooks/useFormState';
 
 // Import Components
 import Button from '../../../Button';
@@ -20,24 +20,20 @@ import Message from '../../../Message';
 import Modal from '../../../Modal';
 
 function StockCreateModal({ onClose }) {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [type, setType] = useState('');
-  const [item, setItem] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [price, setPrice] = useState('');
-  const [threshold, setThreshold] = useState('');
+  const { visible, requestClose } = useModalTransition(onClose);
+  const { values, handleChange } = useFormState({
+    type: '',
+    item: '',
+    quantity: '',
+    price: '',
+    threshold: '',
+  });
+  const { type, item, quantity, price, threshold } = values;
 
   const dispatch = useDispatch();
 
   const inventory = useSelector((state) => state.inventory);
   const { loading, inventoryListError, inventoryCreateStockError } = inventory;
-
-  const handleModalClose = () => {
-    setModalVisible(false);
-    setTimeout(() => {
-      onClose();
-    }, 300);
-  };
 
   const handleCreateStock = (e) => {
     e.preventDefault();
@@ -46,18 +42,12 @@ function StockCreateModal({ onClose }) {
 
     dispatch(createStock(stockData)).then(() => {
       dispatch(listInventory({}));
-      handleModalClose();
+      requestClose();
     });
   };
 
-  useEffect(() => {
-    if (onClose) {
-      setModalVisible(true);
-    }
-  }, [onClose]);
-
   return (
-    <Modal isOpen={modalVisible} onClose={handleModalClose} title="Add a New Stock" size="md">
+    <Modal isOpen={visible} onClose={requestClose} title="Add a New Stock" size="md">
       {loading ? (
         <Loader />
       ) : inventoryListError || inventoryCreateStockError ? (
@@ -75,11 +65,11 @@ function StockCreateModal({ onClose }) {
                 >
                   <input
                     type="radio"
-                    name="item"
+                    name="type"
                     id={typeOption}
                     value={typeOption}
                     className="mr-2 h-4 w-4 accent-primary-700"
-                    onChange={(e) => setType(e.target.value)}
+                    onChange={handleChange}
                     required
                   />
                   {typeOption}
@@ -101,7 +91,7 @@ function StockCreateModal({ onClose }) {
                 type="text"
                 value={item}
                 placeholder="Enter Item Name"
-                onChange={(e) => setItem(e.target.value)}
+                onChange={handleChange}
                 disabled={loading || type === ''}
                 required
               />
@@ -110,7 +100,7 @@ function StockCreateModal({ onClose }) {
                 type="number"
                 value={quantity}
                 placeholder="Enter Quantity"
-                onChange={(e) => setQuantity(e.target.value)}
+                onChange={handleChange}
                 disabled={loading || type === ''}
                 required
               />
@@ -119,7 +109,7 @@ function StockCreateModal({ onClose }) {
                 type="number"
                 value={price}
                 placeholder="Enter Price"
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={handleChange}
                 disabled={loading || type === ''}
                 required
               />
@@ -128,7 +118,7 @@ function StockCreateModal({ onClose }) {
                 type="number"
                 value={threshold}
                 placeholder="Enter Threshold"
-                onChange={(e) => setThreshold(e.target.value)}
+                onChange={handleChange}
                 disabled={loading || type === ''}
                 required
               />

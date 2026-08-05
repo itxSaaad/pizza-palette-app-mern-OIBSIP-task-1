@@ -67,9 +67,7 @@ function PasswordForm({ setCurrentStep }) {
   return (
     <>
       {loading ? (
-        <div className="w-full flex justify-center items-center">
-          <Loader />
-        </div>
+        <Loader fullWidth />
       ) : (
         <form className="w-full" onSubmit={submitHandler}>
           <p className="text-center text-neutral-900 text-xl leading-relaxed">

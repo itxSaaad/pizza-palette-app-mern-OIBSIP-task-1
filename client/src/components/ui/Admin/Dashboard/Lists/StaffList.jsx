@@ -12,21 +12,12 @@ import {
 import { useEntityListActions } from '../../../../../hooks/useEntityListActions';
 
 // Import Components
-import Card from '../../../Card';
 import ConfirmDialog from '../../../ConfirmDialog';
-import Loader from '../../../Loader';
-import Message from '../../../Message';
+import AdminListLayout from '../AdminListLayout';
 import Table from '../Table';
 
 function StaffList() {
-  const adminUserColumns = [
-    '_id',
-    'name',
-    'email',
-    'role',
-    'permissions',
-    'isApproved',
-  ];
+  const adminUserColumns = ['_id', 'name', 'email', 'role', 'permissions', 'isApproved'];
 
   const dispatch = useDispatch();
 
@@ -71,6 +62,17 @@ function StaffList() {
     message: 'User Deleted Successfully!',
   };
 
+  const columnRenderers = {
+    isApproved: (row, onChange) => (
+      <input
+        type="checkbox"
+        className="w-5 h-5 accent-primary-500"
+        checked={row.isApproved}
+        onChange={() => onChange(row._id)}
+      />
+    ),
+  };
+
   useEffect(() => {
     if (!adminUserList) {
       dispatch(listAdminUsers({}));
@@ -78,44 +80,25 @@ function StaffList() {
   }, [dispatch, adminUserList]);
 
   return (
-    <div className="w-full p-4">
-      <h2 className="font-display text-h2 text-neutral-900 my-2">All Staff</h2>
-      {loading ? (
-        <Loader />
-      ) : (
-        <>
-          {(adminUserListError ||
-            adminUserDeleteByIdError ||
-            adminUserUpdateProfileByIdError) && (
-            <Message>
-              {adminUserListError ||
-                adminUserDeleteByIdError ||
-                adminUserUpdateProfileByIdError}
-            </Message>
-          )}
-          {(successMessageDelete || successMessageUpdate) && (
-            <Message>{successMessageDelete || successMessageUpdate}</Message>
-          )}
-          <div className="mt-4">
-            {adminUserList.length > 0 ? (
-              <Table
-                data={adminUserList}
-                columns={adminUserColumns}
-                handleDelete={handleDeleteRequest}
-                handleChange={handleChange}
-              />
-            ) : (
-              <Card className="text-center">
-                <p className="text-lg font-semibold text-neutral-800">
-                  No Staff Found..
-                </p>
-              </Card>
-            )}
-          </div>
-        </>
-      )}
+    <>
+      <AdminListLayout
+        title="All Staff"
+        loading={loading}
+        error={adminUserListError || adminUserDeleteByIdError || adminUserUpdateProfileByIdError}
+        successMessage={successMessageDelete || successMessageUpdate}
+        isEmpty={adminUserList.length === 0}
+        emptyLabel="No Staff Found.."
+      >
+        <Table
+          data={adminUserList}
+          columns={adminUserColumns}
+          handleDelete={handleDeleteRequest}
+          handleChange={handleChange}
+          columnRenderers={columnRenderers}
+        />
+      </AdminListLayout>
       <ConfirmDialog {...confirmDialogProps} />
-    </div>
+    </>
   );
 }
 

@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import Button from '../Button';
@@ -7,6 +6,7 @@ import Input from '../Input';
 import Loader from '../Loader';
 import Message from '../Message';
 
+import { useFormState } from '../../../hooks/useFormState';
 import { getUserDetails, updateUserProfile } from '../../../redux/asyncThunks/userThunks';
 
 function EditProfileForm({ setIsEditing }) {
@@ -15,23 +15,18 @@ function EditProfileForm({ setIsEditing }) {
   const user = useSelector((state) => state.user);
   const { loading, userUpdateProfileError, userDetails } = user;
 
-  const initialFormData = {
+  const {
+    values: formData,
+    handleChange: handleFieldChange,
+    reset,
+  } = useFormState({
     name: userDetails.name,
     email: userDetails.email,
     address: userDetails.address,
     phoneNumber: userDetails.phoneNumber,
     password: '',
     confirmPassword: '',
-  };
-
-  const [formData, setFormData] = useState(initialFormData);
-
-  const handleFieldChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -42,7 +37,7 @@ function EditProfileForm({ setIsEditing }) {
   };
 
   const handleCancel = () => {
-    setFormData(initialFormData);
+    reset();
     setIsEditing(false);
   };
 
