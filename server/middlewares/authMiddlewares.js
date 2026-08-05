@@ -38,6 +38,13 @@ const protect = asyncHandler(async (req, res, next) => {
 // Middleware to check if the user is an admin (or manager)
 const admin = asyncHandler(async (req, res, next) => {
   if (req.user && isAdminRole(req.user.role)) {
+    // Re-check isApproved on every request, not just at login — an admin
+    // whose approval is revoked should lose access immediately, not just
+    // once their existing JWT happens to expire.
+    if (req.user.isApproved === false) {
+      throw ApiError.accountNotApproved();
+    }
+
     return next();
   }
 

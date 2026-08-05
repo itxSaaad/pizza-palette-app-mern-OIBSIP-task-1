@@ -4,7 +4,11 @@ const asyncHandler = require('express-async-handler');
 
 // Import Utils
 const generateToken = require('../utils/generateToken');
-const { parsePaginationParams, parseSortParams, buildPaginationResponse } = require('../utils/paginationUtils');
+const {
+  parsePaginationParams,
+  parseSortParams,
+  buildPaginationResponse,
+} = require('../utils/paginationUtils');
 const ApiError = require('../utils/ApiError');
 
 // Import Middlewares
@@ -28,38 +32,6 @@ const generateVerificationCode = async () => {
 
 // Initialize Controllers
 
-// @desc    Auth user & get token
-// @route   POST /api/users/login
-// @access  Public
-
-const authUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-
-  const user = await User.findOne({ email });
-
-  if (user) {
-    const passwordsMatch = await bcrypt.compare(password, user.password);
-
-    if (passwordsMatch) {
-      res.status(200).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        address: user.address,
-        orders: user.orders,
-        isVerified: user.isVerified,
-        token: generateToken(user._id),
-        message: 'Login Successful!',
-      });
-    } else {
-      throw ApiError.invalidCredentials();
-    }
-  } else {
-    throw ApiError.invalidCredentials();
-  }
-});
-
 // @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
@@ -77,7 +49,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, salt);
 
   const verificationCode = await generateVerificationCode();
-  
+
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationCode}`;
 
   const emailSent = await sendEmail({
@@ -88,12 +60,14 @@ const registerUser = asyncHandler(async (req, res) => {
       greeting: `Hey ${name},`,
       message: `Account Successfully Created!<br><br><b>Your verification code:</b> <span style="font-size:1.3em;letter-spacing:2px;background:#f3f3f3;padding:4px 12px;border-radius:4px;">${verificationCode}</span><br><br>Please use this code within the next 10 minutes to activate your account, or click the button below to verify your email automatically.<br><br>P.S. If you did not create an account, please ignore this email.`,
       actionUrl: verifyUrl,
-      actionText: 'Verify Email'
+      actionText: 'Verify Email',
     },
   });
 
   if (!emailSent) {
-    throw ApiError.emailSendFailed('We could not send your confirmation code. Please try registering again.');
+    throw ApiError.emailSendFailed(
+      'We could not send your confirmation code. Please try registering again.'
+    );
   }
 
   const user = await User.create({
@@ -150,103 +124,6 @@ const verifyUser = asyncHandler(async (req, res) => {
     isVerified: verifiedUser.isVerified,
     token: generateToken(verifiedUser._id),
     message: 'User Verified Successfully!',
-  });
-});
-
-// @desc Forgot Password
-// @route POST /api/users/forgotpassword
-// @access Public
-
-const forgotPassword = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-
-  const user = await User.findOne({ email });
-
-  if (!user) {
-    throw ApiError.validation('We could not find an account with that email address.');
-  }
-
-  const resetToken = await generateVerificationCode();
-  user.resetPasswordToken = resetToken;
-  user.resetPasswordExpire = Date.now() + 600000;
-  
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
-
-  const emailSent = await sendEmail({
-    to: user.email,
-    subject: 'Password Reset Request',
-    templateOptions: {
-      title: 'Password Reset Request',
-      greeting: `Hi ${user.name || ''},`,
-      message: `You requested a password reset.<br><br><b>Your reset code:</b> <span style="font-size:1.3em;letter-spacing:2px;background:#f3f3f3;padding:4px 12px;border-radius:4px;">${resetToken}</span><br><br>Please use this code within the next 10 minutes to reset your password, or click the button below to reset your password directly.`,
-      actionUrl: resetUrl,
-      actionText: 'Reset Password'
-    },
-  });
-
-  if (!emailSent) {
-    throw ApiError.emailSendFailed('We could not send your password reset email. Please try again.');
-  }
-
-  await user.save();
-
-  res.status(200).json({
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    phoneNumber: user.phoneNumber,
-    address: user.address,
-    orders: user.orders,
-    isVerified: user.isVerified,
-    token: generateToken(user._id),
-    message: 'Password Reset Email Sent Successfully!',
-  });
-});
-
-// @desc Reset Password
-// @route POST /api/users/resetpassword
-// @access Public
-
-const resetPassword = asyncHandler(async (req, res) => {
-  const { email, resetToken, newPassword } = req.body;
-
-  const user = await User.findOne({ email });
-
-  if (!user) {
-    throw ApiError.notFound('Account');
-  }
-
-  if (!resetToken || !user.resetPasswordToken || !user.resetPasswordExpire) {
-    throw ApiError.validation('This password reset link is invalid. Please request a new one.');
-  }
-
-  if (user.resetPasswordExpire <= Date.now()) {
-    throw ApiError.validation('This password reset link has expired. Please request a new one.');
-  }
-
-  if (user.resetPasswordToken !== resetToken) {
-    throw ApiError.validation('This password reset link is invalid. Please request a new one.');
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-  user.password = hashedPassword;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpire = undefined;
-
-  const updatedUser = await user.save();
-
-  res.status(200).json({
-    _id: updatedUser._id,
-    name: updatedUser.name,
-    email: updatedUser.email,
-    phoneNumber: updatedUser.phoneNumber,
-    address: updatedUser.address,
-    orders: updatedUser.orders,
-    isVerified: updatedUser.isVerified,
-    token: generateToken(updatedUser._id),
-    message: 'Password Reset Successful!',
   });
 });
 
@@ -319,7 +196,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 const getAllUsers = asyncHandler(async (req, res) => {
   const { page, limit, skip } = parsePaginationParams(req.query);
   const sort = parseSortParams(req.query, '-createdAt');
-  
+
   // Build filter
   const filter = {};
   if (req.query.isVerified !== undefined) {
@@ -328,7 +205,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
   if (req.query.search) {
     filter.$or = [
       { name: { $regex: req.query.search, $options: 'i' } },
-      { email: { $regex: req.query.search, $options: 'i' } }
+      { email: { $regex: req.query.search, $options: 'i' } },
     ];
   }
 
@@ -338,7 +215,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
       .skip(skip)
       .limit(limit)
       .select('-password -verificationCode -resetPasswordToken -__v'),
-    User.countDocuments(filter)
+    User.countDocuments(filter),
   ]);
 
   res.status(200).json(buildPaginationResponse(users, total, page, limit));
@@ -409,11 +286,8 @@ const deleteUserById = asyncHandler(async (req, res) => {
 
 // Export Controllers
 module.exports = {
-  authUser,
   registerUser,
   verifyUser,
-  forgotPassword,
-  resetPassword,
   getUserProfile,
   updateUserProfile,
   getAllUsers,

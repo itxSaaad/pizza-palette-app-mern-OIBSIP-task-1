@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FaLock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
 // Import Thunks
-import { resetPassword } from '../../redux/asyncThunks/userThunks';
+import { resetPassword } from '../../redux/asyncThunks/authThunks';
 
 // Import Components
 import Card from '../../components/ui/Card';
@@ -25,18 +25,17 @@ function ResetPasswordScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [localError, setLocalError] = useState('');
 
-  const user = useSelector((state) => state.user);
-  const { loading, userResetPasswordSuccess, userResetPasswordError } = user;
+  const { loading, resetPasswordSuccess, resetPasswordError } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (userResetPasswordSuccess) {
+    if (resetPasswordSuccess) {
       const timer = setTimeout(() => {
         navigate('/login');
       }, 3000);
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [userResetPasswordSuccess, navigate]);
+  }, [resetPasswordSuccess, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -84,14 +83,12 @@ function ResetPasswordScreen() {
     );
   }
 
-  if (userResetPasswordSuccess) {
+  if (resetPasswordSuccess) {
     return (
       <section className="min-h-screen flex flex-col justify-center items-center bg-neutral-50 px-4">
         <Card className="max-w-md w-full text-center" padding="lg">
           <FaCheckCircle className="text-accent-green-500 text-6xl mx-auto mb-4" />
-          <h1 className="font-display text-h3 text-neutral-900 mb-4">
-            Password Reset Successful!
-          </h1>
+          <h1 className="font-display text-h3 text-neutral-900 mb-4">Password Reset Successful!</h1>
           <p className="text-neutral-600 mb-6">
             Your password has been reset successfully. You can now log in with your new password.
           </p>
@@ -113,8 +110,8 @@ function ResetPasswordScreen() {
           <p className="text-neutral-600 mt-2">Enter your new password below</p>
         </div>
 
-        {(userResetPasswordError || localError) && (
-          <Message variant="error">{userResetPasswordError || localError}</Message>
+        {(resetPasswordError || localError) && (
+          <Message variant="error">{resetPasswordError || localError}</Message>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">

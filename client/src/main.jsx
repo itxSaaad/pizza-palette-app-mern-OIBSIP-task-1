@@ -18,16 +18,16 @@ import AboutScreen from './screens/AboutScreen.jsx';
 import FAQScreen from './screens/FAQScreen.jsx';
 import TermsScreen from './screens/TermsScreen.jsx';
 import PrivacyScreen from './screens/PrivacyScreen.jsx';
+import AcceptInviteScreen from './screens/Admin/AcceptInviteScreen.jsx';
 import AdminDashboardScreen from './screens/Admin/AdminDashboardScreen.jsx';
-import AdminLoginScreen from './screens/Admin/AdminLoginScreen.jsx';
-import AdminRegisterScreen from './screens/Admin/AdminRegisterScreen.jsx';
+import SetupWizardScreen from './screens/Admin/SetupWizardScreen.jsx';
 import HomeScreen from './screens/HomeScreen.jsx';
+import LoginScreen from './screens/LoginScreen.jsx';
 import MenuScreen from './screens/MenuScreen.jsx';
 import CheckoutScreen from './screens/User/CheckoutScreen.jsx';
 import ForgetPasswordScreen from './screens/User/ForgetPasswordScreen.jsx';
 import ProfileScreen from './screens/User/ProfileScreen.jsx';
 import UserCreateCustomPizzaScreen from './screens/User/UserCreateCustomPizzaScreen.jsx';
-import UserLoginScreen from './screens/User/UserLoginScreen.jsx';
 import UserOrdersScreen from './screens/User/UserOrdersScreen.jsx';
 import UserRegisterScreen from './screens/User/UserRegisterScreen.jsx';
 import VerifyEmailScreen from './screens/User/VerifyEmailScreen.jsx';
@@ -49,7 +49,7 @@ const router = createBrowserRouter([
       },
       {
         path: '/login',
-        element: <UserLoginScreen />,
+        element: <LoginScreen />,
       },
       {
         path: '/register',
@@ -125,12 +125,12 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: '/admin/login',
-        element: <AdminLoginScreen />,
+        path: '/accept-invite',
+        element: <AcceptInviteScreen />,
       },
       {
-        path: '/admin/register',
-        element: <AdminRegisterScreen />,
+        path: '/setup',
+        element: <SetupWizardScreen />,
       },
       {
         path: '/menu',

@@ -1,7 +1,10 @@
 const { body } = require('express-validator');
 const { ADMIN_ROLES } = require('../constants');
 
-const adminRegisterValidation = [
+// Only used by the one-time first-admin bootstrap endpoint — every
+// subsequent admin/manager is created via the invite flow, so there's no
+// "register as admin" form/role choice here.
+const setupAdminValidation = [
   body('name')
     .trim()
     .notEmpty()
@@ -25,23 +28,6 @@ const adminRegisterValidation = [
     .withMessage('Confirm password is required')
     .custom((value, { req }) => value === req.body.password)
     .withMessage('Passwords do not match'),
-  body('role')
-    .optional()
-    .isIn(ADMIN_ROLES)
-    .withMessage(`Role must be one of: ${ADMIN_ROLES.join(', ')}`),
-];
-
-const adminLoginValidation = [
-  body('email')
-    .trim()
-    .notEmpty()
-    .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Invalid email address')
-    .normalizeEmail(),
-  body('password')
-    .notEmpty()
-    .withMessage('Password is required'),
 ];
 
 const updateAdminProfileValidation = [
@@ -50,12 +36,7 @@ const updateAdminProfileValidation = [
     .trim()
     .isLength({ min: 2 })
     .withMessage('Name must be at least 2 characters'),
-  body('email')
-    .optional()
-    .trim()
-    .isEmail()
-    .withMessage('Invalid email address')
-    .normalizeEmail(),
+  body('email').optional().trim().isEmail().withMessage('Invalid email address').normalizeEmail(),
   body('password')
     .optional()
     .isLength({ min: 8 })
@@ -77,25 +58,16 @@ const updateAdminByIdValidation = [
     .trim()
     .isLength({ min: 2 })
     .withMessage('Name must be at least 2 characters'),
-  body('email')
-    .optional()
-    .trim()
-    .isEmail()
-    .withMessage('Invalid email address')
-    .normalizeEmail(),
+  body('email').optional().trim().isEmail().withMessage('Invalid email address').normalizeEmail(),
   body('role')
     .optional()
     .isIn(ADMIN_ROLES)
     .withMessage(`Role must be one of: ${ADMIN_ROLES.join(', ')}`),
-  body('isApproved')
-    .optional()
-    .isBoolean()
-    .withMessage('isApproved must be a boolean'),
+  body('isApproved').optional().isBoolean().withMessage('isApproved must be a boolean'),
 ];
 
 module.exports = {
-  adminRegisterValidation,
-  adminLoginValidation,
+  setupAdminValidation,
   updateAdminProfileValidation,
   updateAdminByIdValidation,
 };

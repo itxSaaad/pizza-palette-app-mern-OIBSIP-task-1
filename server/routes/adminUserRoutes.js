@@ -6,20 +6,19 @@ const router = express.Router();
 // Import Middlewares
 const { protect, admin } = require('../middlewares/authMiddlewares');
 const validationHandler = require('../middlewares/validationHandler');
-const { authLimiter, registrationLimiter } = require('../middlewares/rateLimitMiddleware');
+const { registrationLimiter } = require('../middlewares/rateLimitMiddleware');
 
 // Import Validators
 const {
-  adminRegisterValidation,
-  adminLoginValidation,
+  setupAdminValidation,
   updateAdminProfileValidation,
   updateAdminByIdValidation,
 } = require('../validators/adminValidators');
 
 // Import Controllers
 const {
-  authAdmin,
-  registerAdmin,
+  getSetupStatus,
+  bootstrapFirstAdmin,
   getAdminProfile,
   updateAdminProfile,
   getAllAdmins,
@@ -30,9 +29,16 @@ const {
 
 // Initialize Routes
 
-// Public Routes
-router.post('/login', authLimiter, adminLoginValidation, validationHandler, authAdmin);
-router.post('/register', registrationLimiter, adminRegisterValidation, validationHandler, registerAdmin);
+// Public Routes — one-time bootstrap for the very first admin account.
+// Every subsequent admin/manager is created via the invite flow (see inviteRoutes.js).
+router.get('/setup-status', getSetupStatus);
+router.post(
+  '/setup',
+  registrationLimiter,
+  setupAdminValidation,
+  validationHandler,
+  bootstrapFirstAdmin
+);
 
 // Private Routes
 router

@@ -15,7 +15,9 @@ const { notFound, errorHandler } = require('./middlewares/errorMiddlewares');
 const { validateEnv } = require('./utils/envValidator');
 
 // Import Routes
+const authRoutes = require('./routes/authRoutes');
 const adminUserRoutes = require('./routes/adminUserRoutes');
+const inviteRoutes = require('./routes/inviteRoutes');
 const userRoutes = require('./routes/userRoutes');
 const pizzaRoutes = require('./routes/pizzaRoutes');
 const orderRoutes = require('./routes/orderRoutes');
@@ -46,19 +48,26 @@ connectDb();
 // Configure Middlewares
 
 // Security Headers with Helmet
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api.stripe.com"],
-      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://checkout.stripe.com"]
-    }
-  },
-  crossOriginEmbedderPolicy: false
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://js.stripe.com'],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https://api.stripe.com'],
+        frameSrc: [
+          "'self'",
+          'https://js.stripe.com',
+          'https://hooks.stripe.com',
+          'https://checkout.stripe.com',
+        ],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 if (process.env.NODE_ENV === 'development') {
   // Use morgan for logging during development
@@ -68,26 +77,29 @@ if (process.env.NODE_ENV === 'development') {
 // Enable Cross-Origin Resource Sharing with whitelist
 // Use FRONTEND_URL as the primary origin, with ALLOWED_ORIGINS for additional origins
 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-const additionalOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+const additionalOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
   : [];
 
 // Combine frontend URL with additional origins, remove duplicates
 const allowedOrigins = [...new Set([frontendUrl, ...additionalOrigins])];
 
-app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1 && process.env.NODE_ENV === 'production') {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) === -1 && process.env.NODE_ENV === 'production') {
+        const msg =
+          'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  })
+);
 
 // Stripe webhook needs the raw request body for signature verification.
 // It must be mounted before the global JSON body parsers below, since those
@@ -113,29 +125,29 @@ app.use(mongoSanitize());
 // Health check endpoints
 app.get('/health', (req, res) => {
   const dbStatus = getConnectionStatus();
-  
+
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     database: dbStatus,
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
   });
 });
 
 app.get('/ready', (req, res) => {
   const dbStatus = getConnectionStatus();
-  
+
   if (dbStatus.status === 'connected') {
     res.status(200).json({
       status: 'READY',
-      message: 'Application is ready to accept requests'
+      message: 'Application is ready to accept requests',
     });
   } else {
     res.status(503).json({
       status: 'NOT_READY',
       message: 'Database connection not ready',
-      database: dbStatus
+      database: dbStatus,
     });
   }
 });
@@ -160,6 +172,8 @@ app.get('/', (req, res) => {
 });
 
 // Configure API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/admin/invites', inviteRoutes);
 app.use('/api/admin', adminUserRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/pizzas', pizzaRoutes);
@@ -177,9 +191,7 @@ const PORT = process.env.PORT || 5000;
 // Start the server
 app.listen(
   PORT,
-  console.log(
-    `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
-  )
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold)
 );
 
 // Exported so Vercel's Node.js Functions runtime (server/api/index.js) can
