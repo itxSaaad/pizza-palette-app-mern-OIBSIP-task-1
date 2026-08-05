@@ -11,10 +11,9 @@ dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 // Defaults to Zoho Mail's global (US) data center settings.
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.zoho.com';
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 465;
-const SMTP_SECURE =
-  process.env.SMTP_SECURE !== undefined
-    ? process.env.SMTP_SECURE === 'true'
-    : SMTP_PORT === 465;
+const SMTP_SECURE = process.env.SMTP_SECURE
+  ? process.env.SMTP_SECURE === 'true'
+  : SMTP_PORT === 465;
 
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
