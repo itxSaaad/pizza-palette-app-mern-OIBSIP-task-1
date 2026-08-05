@@ -1,8 +1,10 @@
+const path = require('path');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 const emailBaseTemplate = require('../utils/emailBaseTemplate');
 
-dotenv.config();
+// Resolved relative to this file, not process.cwd() — see index.js for why.
+dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
 // SMTP provider settings are configurable via env vars so the mail
 // provider can be swapped (Gmail, Zoho, etc.) without a code change.
