@@ -116,7 +116,7 @@ function Home() {
                                 .filter((item) => item.quantity < item.threshold)
                                 .map((item) => (
                                   <li
-                                    key={item.id}
+                                    key={item._id}
                                     className="text-md text-white list-item"
                                   >
                                     <span className="font-bold mr-1">
