@@ -1,8 +1,10 @@
+const path = require('path');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 const emailBaseTemplate = require('../utils/emailBaseTemplate');
 
-dotenv.config();
+// Resolved relative to this file, not process.cwd() — see index.js for why.
+dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
 const SMTP_HOST = process.env.NODEMAILER_SMTP_HOST || process.env.SMTP_HOST || 'smtp.zoho.com';
 const SMTP_PORT = Number(process.env.NODEMAILER_SMTP_PORT || process.env.SMTP_PORT || 465);

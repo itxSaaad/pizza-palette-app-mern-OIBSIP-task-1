@@ -1,3 +1,4 @@
+const path = require('path');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const colors = require('colors');
@@ -15,7 +16,8 @@ const { users, admins } = require('./data/users');
 const pizzas = require('./data/pizzas');
 const { base, sauce, cheese, veggie } = require('./data/inventory');
 
-dotenv.config();
+// Resolved relative to this file, not process.cwd() — see index.js for why.
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 // Connect to MongoDB
 connectDb();
