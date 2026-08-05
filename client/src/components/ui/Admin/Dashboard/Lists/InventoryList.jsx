@@ -41,7 +41,12 @@ function InventoryList() {
     message: 'Inventory Item Deleted Successfully!',
   };
 
-  const groups = inventoryList
+  // inventoryList starts as [] in Redux (truthy) before the fetch resolves;
+  // the real payload is an object keyed by ingredient type, so an array
+  // means "not loaded yet" and must not be read as {bases, cheeses, ...}.
+  const inventoryLoaded = Boolean(inventoryList) && !Array.isArray(inventoryList);
+
+  const groups = inventoryLoaded
     ? [
         { label: 'All Bases', data: inventoryList.bases },
         { label: 'All Cheeses', data: inventoryList.cheeses },
@@ -51,10 +56,10 @@ function InventoryList() {
     : [];
 
   useEffect(() => {
-    if (!inventoryList) {
+    if (!inventoryLoaded) {
       dispatch(listInventory({}));
     }
-  }, [dispatch, inventoryList]);
+  }, [dispatch, inventoryLoaded]);
 
   return (
     <>
@@ -63,7 +68,7 @@ function InventoryList() {
         loading={loading}
         error={inventoryListError || inventoryDeleteByIdError}
         successMessage={successMessageDelete}
-        isEmpty={!inventoryList}
+        isEmpty={!inventoryLoaded}
         emptyLabel="No Stock Found.."
       >
         <GroupedTableSection

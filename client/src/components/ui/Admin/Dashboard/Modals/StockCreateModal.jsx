@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useEffect } from 'react';
 import { FaPlusCircle } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -33,27 +34,34 @@ function StockCreateModal({ onClose }) {
   const dispatch = useDispatch();
 
   const inventory = useSelector((state) => state.inventory);
-  const { loading, inventoryListError, inventoryCreateStockError } = inventory;
+  const { loading, inventoryListError, inventoryCreateStockError, inventoryCreateStockSuccess } =
+    inventory;
 
   const handleCreateStock = (e) => {
     e.preventDefault();
 
     const stockData = { type, item, price, quantity, threshold };
 
-    dispatch(createStock(stockData)).then(() => {
+    dispatch(createStock(stockData));
+  };
+
+  useEffect(() => {
+    if (inventoryCreateStockSuccess) {
       dispatch(listInventory({}));
       requestClose();
-    });
-  };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, inventoryCreateStockSuccess]);
 
   return (
     <Modal isOpen={visible} onClose={requestClose} title="Add a New Stock" size="md">
       {loading ? (
         <Loader />
-      ) : inventoryListError || inventoryCreateStockError ? (
-        <Message>{inventoryListError || inventoryCreateStockError}</Message>
+      ) : inventoryListError ? (
+        <Message>{inventoryListError}</Message>
       ) : (
         <div className="flex flex-col items-center justify-center w-full">
+          {inventoryCreateStockError && <Message>{inventoryCreateStockError}</Message>}
           <div className="flex flex-col md:flex-row items-center justify-between gap-2 my-2 w-full">
             <h1 className="text-lg text-neutral-900 font-bold">Select Stock Type</h1>
             <div className="flex flex-wrap items-center justify-center gap-2">

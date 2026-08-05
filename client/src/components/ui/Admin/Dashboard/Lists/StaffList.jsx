@@ -69,6 +69,7 @@ function StaffList() {
         className="w-5 h-5 accent-primary-500"
         checked={row.isApproved}
         onChange={() => onChange(row._id)}
+        aria-label={`Toggle approval for ${row.name || row.email || 'staff member'}`}
       />
     ),
   };
