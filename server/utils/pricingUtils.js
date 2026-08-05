@@ -30,10 +30,23 @@ const calculateOrderPricing = async (orderItems) => {
     return { ...item, price };
   });
 
-  const itemsTotal = pricedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const salesTax = parseFloat((SALES_TAX_RATE * itemsTotal).toFixed(2));
-  const deliveryCharges = itemsTotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_CHARGE;
-  const totalPrice = parseFloat((itemsTotal + deliveryCharges + salesTax).toFixed(2));
+  // Accumulate in integer cents rather than JS floats — summing many
+  // decimal prices can drift by fractions of a cent (e.g. 99.9999999997),
+  // which could otherwise flip the free-delivery threshold check right at
+  // the $100 boundary. Only convert back to dollars once, at the end.
+  const itemsTotalCents = pricedItems.reduce(
+    (sum, item) => sum + Math.round(item.price * 100) * item.qty,
+    0
+  );
+  const salesTaxCents = Math.round(SALES_TAX_RATE * itemsTotalCents);
+  const deliveryChargesCents =
+    itemsTotalCents >= FREE_DELIVERY_THRESHOLD * 100 ? 0 : DELIVERY_CHARGE * 100;
+  const totalPriceCents = itemsTotalCents + salesTaxCents + deliveryChargesCents;
+
+  const itemsTotal = itemsTotalCents / 100;
+  const salesTax = salesTaxCents / 100;
+  const deliveryCharges = deliveryChargesCents / 100;
+  const totalPrice = totalPriceCents / 100;
 
   return { pricedItems, itemsTotal, salesTax, deliveryCharges, totalPrice };
 };
