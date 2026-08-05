@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 // Import Components
 import Home from './Home';
 import InventoryList from './Lists/InventoryList';
+import InvitesList from './Lists/InvitesList';
 import OrdersList from './Lists/OrdersList';
 import PizzasList from './Lists/PizzasList';
 import StaffList from './Lists/StaffList';
@@ -33,6 +34,7 @@ function MainContent({ activeMenuItem, collapsible, onToggleSidebar }) {
         </h1>
         {activeMenuItem === 'Home' && <Home />}
         {activeMenuItem === 'Staff' && <StaffList />}
+        {activeMenuItem === 'Invites' && <InvitesList />}
         {activeMenuItem === 'Users' && <UsersList />}
         {activeMenuItem === 'Pizzas' && <PizzasList />}
         {activeMenuItem === 'Orders' && <OrdersList />}

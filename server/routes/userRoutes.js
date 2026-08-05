@@ -6,26 +6,20 @@ const router = express.Router();
 // Import Middlewares
 const { protect, admin } = require('../middlewares/authMiddlewares');
 const validationHandler = require('../middlewares/validationHandler');
-const { authLimiter, registrationLimiter, passwordResetLimiter } = require('../middlewares/rateLimitMiddleware');
+const { registrationLimiter } = require('../middlewares/rateLimitMiddleware');
 
 // Import Validators
 const {
   registerValidation,
-  loginValidation,
   verifyUserValidation,
-  forgotPasswordValidation,
-  resetPasswordValidation,
   updateProfileValidation,
   updateUserByIdValidation,
 } = require('../validators/userValidators');
 
 // Import Controllers
 const {
-  authUser,
   registerUser,
   verifyUser,
-  forgotPassword,
-  resetPassword,
   getUserProfile,
   updateUserProfile,
   getAllUsers,
@@ -36,11 +30,9 @@ const {
 
 // Initialize Routes
 
-// Public Routes
-router.post('/login', authLimiter, loginValidation, validationHandler, authUser);
+// Public Routes — customers are the only self-serve signup path.
+// Login/forgot-password/reset-password live at /api/auth (shared with admin).
 router.post('/register', registrationLimiter, registerValidation, validationHandler, registerUser);
-router.post('/forgotpassword', passwordResetLimiter, forgotPasswordValidation, validationHandler, forgotPassword);
-router.put('/resetpassword', passwordResetLimiter, resetPasswordValidation, validationHandler, resetPassword);
 
 // Private Routes
 router.post('/verify', protect, verifyUserValidation, validationHandler, verifyUser);

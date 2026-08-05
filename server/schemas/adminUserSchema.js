@@ -16,15 +16,23 @@ const adminUserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-  role: {
-    type: String,
-    enum: ADMIN_ROLES,
-    required: true,
-  },
+    role: {
+      type: String,
+      enum: ADMIN_ROLES,
+      required: true,
+    },
     permissions: [{ type: String }],
     isApproved: {
       type: Boolean,
       default: false,
+    },
+
+    // Password Reset (mirrors userSchema, so login/forgot-password can be unified)
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpire: {
+      type: Date,
     },
   },
   {

@@ -32,7 +32,7 @@ function UserRegisterScreen() {
         </div>
 
         <Card className="flex flex-col justify-center items-center md:w-1/2" padding="lg">
-          <AuthRegisterForm role="user" />
+          <AuthRegisterForm />
           <p className="text-center text-sm text-neutral-500 mt-2">
             Already have Account?{' '}
             <Link to="/login" className="underline text-primary-600 hover:text-primary-700">

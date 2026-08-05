@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -8,28 +7,22 @@ import Input from '../Input';
 import Loader from '../Loader';
 import Message from '../Message';
 
-import { loginUser } from '../../../redux/asyncThunks/userThunks';
-import { loginAdmin } from '../../../redux/asyncThunks/adminThunks';
+import { login } from '../../../redux/asyncThunks/authThunks';
 
-function AuthLoginForm({ role, forgotPasswordTo = '/forget-pwd' }) {
+// One login form/entry point for both customers and admin/manager accounts —
+// the server resolves the account type from the email, so this component
+// doesn't need to know or ask which kind of account is logging in.
+function AuthLoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const dispatch = useDispatch();
 
-  const userState = useSelector((state) => state.user);
-  const adminState = useSelector((state) => state.admin);
-
-  const loading = role === 'admin' ? adminState.loading : userState.loading;
-  const loginError = role === 'admin' ? adminState.adminUserLoginError : userState.userLoginError;
+  const { loading, loginError } = useSelector((state) => state.auth);
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (role === 'admin') {
-      dispatch(loginAdmin({ email, password }));
-    } else {
-      dispatch(loginUser({ email, password }));
-    }
+    dispatch(login({ email, password }));
   };
 
   return (
@@ -71,10 +64,7 @@ function AuthLoginForm({ role, forgotPasswordTo = '/forget-pwd' }) {
           </div>
           <div className="flex justify-between items-center w-full mt-4">
             <div className="flex items-center">
-              <Link
-                to={forgotPasswordTo}
-                className="text-sm text-primary-600 hover:text-primary-700"
-              >
+              <Link to="/forget-pwd" className="text-sm text-primary-600 hover:text-primary-700">
                 Forgot your password?
               </Link>
             </div>
@@ -88,10 +78,5 @@ function AuthLoginForm({ role, forgotPasswordTo = '/forget-pwd' }) {
     </>
   );
 }
-
-AuthLoginForm.propTypes = {
-  role: PropTypes.oneOf(['user', 'admin']).isRequired,
-  forgotPasswordTo: PropTypes.string,
-};
 
 export default AuthLoginForm;

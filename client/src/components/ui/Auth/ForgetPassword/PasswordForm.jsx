@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
-import { resetPassword } from '../../../../redux/asyncThunks/userThunks';
-import { setPasswordResetOTP, setPasswordResetEmail } from '../../../../redux/slices/userSlice';
+import { resetPassword } from '../../../../redux/asyncThunks/authThunks';
+import { setPasswordResetOTP, setPasswordResetEmail } from '../../../../redux/slices/authSlice';
 
 // Import Components
 import Button from '../../Button';
@@ -20,21 +20,20 @@ function PasswordForm({ setCurrentStep }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const user = useSelector((state) => state.user);
   const {
     loading,
-    userPasswordResetOTP,
-    userPasswordResetEmail,
-    userResetPasswordError,
-    userResetPasswordSuccess,
-  } = user;
+    passwordResetOTP,
+    passwordResetEmail,
+    resetPasswordError,
+    resetPasswordSuccess,
+  } = useSelector((state) => state.auth);
 
   const submitHandler = (e) => {
     e.preventDefault();
     dispatch(
       resetPassword({
-        email: userPasswordResetEmail,
-        resetToken: userPasswordResetOTP,
+        email: passwordResetEmail,
+        resetToken: passwordResetOTP,
         newPassword: password,
         confirmNewPassword: confirmPassword,
       })
@@ -45,17 +44,17 @@ function PasswordForm({ setCurrentStep }) {
   };
 
   useEffect(() => {
-    if (userResetPasswordError) {
+    if (resetPasswordError) {
       const timer = setTimeout(() => {
         setCurrentStep('EmailForm');
       }, 1000);
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [userResetPasswordError, setCurrentStep]);
+  }, [resetPasswordError, setCurrentStep]);
 
   useEffect(() => {
-    if (userResetPasswordSuccess) {
+    if (resetPasswordSuccess) {
       navigate('/login');
       const timer = setTimeout(() => {
         setCurrentStep('EmailForm');
@@ -63,7 +62,7 @@ function PasswordForm({ setCurrentStep }) {
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [userResetPasswordSuccess, setCurrentStep, navigate]);
+  }, [resetPasswordSuccess, setCurrentStep, navigate]);
 
   return (
     <>
@@ -79,7 +78,7 @@ function PasswordForm({ setCurrentStep }) {
             <span className="text-sm text-primary-600">Enter New Password</span>
           </p>
 
-          {userResetPasswordError && <Message>{userResetPasswordError}</Message>}
+          {resetPasswordError && <Message>{resetPasswordError}</Message>}
 
           <div className="w-full my-4">
             <Input

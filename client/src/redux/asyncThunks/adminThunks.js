@@ -4,54 +4,8 @@ import axios from 'axios';
 import { extractErrorMessage } from '../../utils/errorUtils';
 
 // Create Thunks
-
-// Login Admin User
-export const loginAdmin = createAsyncThunk(
-  'admin/login',
-  async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/admin/login`,
-        { email, password },
-        config
-      );
-
-      return data.data || data;
-    } catch (error) {
-      return rejectWithValue(extractErrorMessage(error));
-    }
-  }
-);
-
-// Register Admin User
-export const registerAdmin = createAsyncThunk(
-  'admin/register',
-  async ({ name, email, password, confirmPassword }, { rejectWithValue }) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/admin/register`,
-        { name, email, password, confirmPassword },
-        config
-      );
-
-      return data.data || data;
-    } catch (error) {
-      return rejectWithValue(extractErrorMessage(error));
-    }
-  }
-);
+// Login/first-admin-setup live in authThunks.js (shared with customers);
+// invite-based admin creation lives in inviteThunks.js.
 
 // Admin Update Profile
 export const updateAdminProfile = createAsyncThunk(

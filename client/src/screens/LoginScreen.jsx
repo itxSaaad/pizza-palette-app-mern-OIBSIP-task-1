@@ -2,21 +2,22 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 
-import AuthLoginForm from '../../components/ui/Auth/AuthLoginForm';
-import Card from '../../components/ui/Card';
+import AuthLoginForm from '../components/ui/Auth/AuthLoginForm';
+import Card from '../components/ui/Card';
 import Logo from '/android-chrome-512x512.png';
 
-function UserLoginScreen() {
+// A single login entry point for both customers and admin/manager accounts —
+// the server resolves the account type, so there's no separate "staff login".
+function LoginScreen() {
   const navigate = useNavigate();
 
-  const user = useSelector((state) => state.user);
-  const { userInfo } = user;
-
-  const admin = useSelector((state) => state.admin);
-  const { adminUserInfo } = admin;
+  const { userInfo } = useSelector((state) => state.user);
+  const { adminUserInfo } = useSelector((state) => state.admin);
 
   useEffect(() => {
-    if (userInfo || adminUserInfo) {
+    if (adminUserInfo) {
+      navigate('/admin/dashboard');
+    } else if (userInfo) {
       navigate('/');
     }
   }, [navigate, userInfo, adminUserInfo]);
@@ -32,7 +33,7 @@ function UserLoginScreen() {
         </div>
 
         <Card className="flex flex-col justify-center items-center md:w-1/2 lg:w-1/3" padding="lg">
-          <AuthLoginForm role="user" />
+          <AuthLoginForm />
           <p className="text-center text-sm text-neutral-500 mt-2">
             No Account?{' '}
             <Link to="/register" className="underline text-primary-600 hover:text-primary-700">
@@ -45,4 +46,4 @@ function UserLoginScreen() {
   );
 }
 
-export default UserLoginScreen;
+export default LoginScreen;

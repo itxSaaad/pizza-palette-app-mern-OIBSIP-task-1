@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
-import { forgotPassword } from '../../../../redux/asyncThunks/userThunks';
-import { setPasswordResetEmail } from '../../../../redux/slices/userSlice';
+import { forgotPassword } from '../../../../redux/asyncThunks/authThunks';
+import { setPasswordResetEmail } from '../../../../redux/slices/authSlice';
 
 // Import Components
 import Button from '../../Button';
@@ -16,8 +16,9 @@ function EmailForm({ setCurrentStep }) {
   const [email, setEmail] = useState('');
   const dispatch = useDispatch();
 
-  const user = useSelector((state) => state.user);
-  const { loading, userForgotPasswordError, userForgotPasswordSuccess } = user;
+  const { loading, forgotPasswordError, forgotPasswordSuccess } = useSelector(
+    (state) => state.auth
+  );
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -26,10 +27,10 @@ function EmailForm({ setCurrentStep }) {
   };
 
   useEffect(() => {
-    if (userForgotPasswordSuccess) {
+    if (forgotPasswordSuccess) {
       setCurrentStep('OTPForm');
     }
-  }, [userForgotPasswordSuccess, setCurrentStep]);
+  }, [forgotPasswordSuccess, setCurrentStep]);
 
   return (
     <>
@@ -44,7 +45,7 @@ function EmailForm({ setCurrentStep }) {
             <br />
             <span className="text-sm text-primary-600">Enter your Email Address to get OTP</span>
           </p>
-          {userForgotPasswordError && <Message>{userForgotPasswordError}</Message>}
+          {forgotPasswordError && <Message>{forgotPasswordError}</Message>}
           <div className="w-full my-4">
             <Input
               name="email"
