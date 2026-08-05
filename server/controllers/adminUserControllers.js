@@ -7,109 +7,67 @@ const generateToken = require('../utils/generateToken');
 const { USER_ROLES } = require('../constants');
 const ApiError = require('../utils/ApiError');
 
-// Import Middlewares
-const sendEmail = require('../middlewares/nodemailerMiddleware');
-
 // Import Schema
 const Admin = require('../schemas/adminUserSchema');
+const User = require('../schemas/userSchema');
 
 // Initialize Controllers
 
-// @desc    Auth Admin & get token
-// @route   POST /api/admin/login
+// @desc    Report whether any admin account exists yet
+// @route   GET /api/admin/setup-status
 // @access  Public
 
-const authAdmin = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+const getSetupStatus = asyncHandler(async (req, res) => {
+  const adminCount = await Admin.countDocuments();
 
-  const adminUser = await Admin.findOne({ email });
-
-  if (!adminUser) {
-    throw ApiError.invalidCredentials();
-  }
-
-  if (!adminUser.isApproved) {
-    throw ApiError.accountNotApproved();
-  }
-
-  const passwordsMatch = await bcrypt.compare(password, adminUser.password);
-
-  if (!passwordsMatch) {
-    throw ApiError.invalidCredentials();
-  }
-
-  res.status(200).json({
-    _id: adminUser._id,
-    name: adminUser.name,
-    email: adminUser.email,
-    role: adminUser.role,
-    permissions: adminUser.permissions,
-    isApproved: adminUser.isApproved,
-    token: generateToken(adminUser._id),
-    message: 'Login Successful!',
-  });
+  res.status(200).json({ needsSetup: adminCount === 0 });
 });
 
-// @desc    Register a new Admin
-// @route   POST /api/admin/register
-// @access  Public
+// @desc    Create the very first admin account (one-time bootstrap only)
+// @route   POST /api/admin/setup
+// @access  Public, but only succeeds while no admin account exists yet.
+//          Every admin/manager created after this one must go through the
+//          invite flow (see inviteControllers.js).
 
-const registerAdmin = asyncHandler(async (req, res) => {
+const bootstrapFirstAdmin = asyncHandler(async (req, res) => {
+  const adminCount = await Admin.countDocuments();
+
+  if (adminCount > 0) {
+    throw ApiError.forbidden(
+      'Initial setup has already been completed. New admin accounts are invite-only.'
+    );
+  }
+
   const { name, email, password } = req.body;
 
-  const adminExists = await Admin.findOne({ email });
-
-  if (adminExists) {
-    throw ApiError.emailExists();
+  // An email can only belong to one account across User + Admin in unified
+  // auth — otherwise login/password-reset resolution becomes ambiguous.
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    throw ApiError.emailExists('A customer account with this email already exists.');
   }
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const newAdmin = new Admin({
+  const admin = await Admin.create({
     name,
     email,
     password: hashedPassword,
-    role: USER_ROLES.MANAGER,
-    permissions: [USER_ROLES.MANAGER],
-    isApproved: false,
+    role: USER_ROLES.ADMIN,
+    permissions: [USER_ROLES.ADMIN],
+    isApproved: true,
   });
 
-  const emailSentToAdmin = await sendEmail({
-    to: email,
-    subject: 'Admin Account Created Successfully!',
-    templateOptions: {
-      title: 'Admin Account Created',
-      greeting: `Hello ${name},`,
-      message: `Your Admin Account has been created successfully.<br><br>Please wait for the Super Admin to approve your account.`,
-    },
-  });
-
-  const emailSentToSuperAdmin = await sendEmail({
-    to: process.env.SENDER_EMAIL,
-    subject: 'New Admin Account Approval!',
-    templateOptions: {
-      title: 'New Admin Account Approval',
-      greeting: `Hello Super Admin,`,
-      message: `A new Admin Account for <b>${name} (${email})</b> has been created.<br><br>Please review and approve the account.`,
-    },
-  });
-
-  if (!emailSentToAdmin || !emailSentToSuperAdmin) {
-    throw ApiError.emailSendFailed('We could not send the account confirmation emails. Please try again.');
-  }
-
-  const savedAdmin = await newAdmin.save();
-
-  res.status(200).json({
-    _id: savedAdmin._id,
-    name: savedAdmin.name,
-    email: savedAdmin.email,
-    role: savedAdmin.role,
-    permissions: savedAdmin.permissions,
-    isApproved: savedAdmin.isApproved,
-    token: generateToken(savedAdmin._id),
-    message: 'Admin Created Successfully!',
+  res.status(201).json({
+    _id: admin._id,
+    name: admin.name,
+    email: admin.email,
+    role: admin.role,
+    permissions: admin.permissions,
+    isApproved: admin.isApproved,
+    token: generateToken(admin._id),
+    message: 'Admin account created successfully!',
   });
 });
 
@@ -217,7 +175,7 @@ const updateAdminById = asyncHandler(async (req, res) => {
   admin.email = email || admin.email;
   admin.role = role || admin.role;
   admin.permissions = permissions || admin.permissions;
-  
+
   if (isApproved !== undefined) {
     admin.isApproved = isApproved;
   }
@@ -251,8 +209,8 @@ const deleteAdminById = asyncHandler(async (req, res) => {
 
 // Export Controllers
 module.exports = {
-  authAdmin,
-  registerAdmin,
+  getSetupStatus,
+  bootstrapFirstAdmin,
   getAdminProfile,
   updateAdminProfile,
   getAllAdmins,

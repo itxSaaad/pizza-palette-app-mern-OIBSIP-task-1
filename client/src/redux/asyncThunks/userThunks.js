@@ -5,31 +5,6 @@ import { extractErrorMessage } from '../../utils/errorUtils';
 
 // Create Async Thunks
 
-// User Login
-export const loginUser = createAsyncThunk(
-  'user/userLogin',
-  async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/users/login`,
-        { email, password },
-        config
-      );
-
-      // Return data directly (success response has data property)
-      return data.data || data;
-    } catch (error) {
-      return rejectWithValue(extractErrorMessage(error));
-    }
-  }
-);
-
 // User Register
 export const registerUser = createAsyncThunk(
   'user/userRegister',
@@ -80,54 +55,6 @@ export const verifyEmail = createAsyncThunk(
       const { data } = await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/users/verify`,
         { email, verificationCode },
-        config
-      );
-
-      return data.data || data;
-    } catch (error) {
-      return rejectWithValue(extractErrorMessage(error));
-    }
-  }
-);
-
-// User Forgot Password
-export const forgotPassword = createAsyncThunk(
-  'user/userForgotPassword',
-  async ({ email }, { rejectWithValue }) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/users/forgotpassword`,
-        { email },
-        config
-      );
-
-      return data.data || data;
-    } catch (error) {
-      return rejectWithValue(extractErrorMessage(error));
-    }
-  }
-);
-
-// User Reset Password
-export const resetPassword = createAsyncThunk(
-  'user/userResetPassword',
-  async ({ email, resetToken, newPassword, confirmNewPassword }, { rejectWithValue }) => {
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      const { data } = await axios.put(
-        `${import.meta.env.VITE_SERVER_URL}/users/resetpassword`,
-        { email, resetToken, newPassword, confirmNewPassword },
         config
       );
 

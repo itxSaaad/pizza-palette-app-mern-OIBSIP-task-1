@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
-import { setPasswordResetOTP } from '../../../../redux/slices/userSlice';
-import { forgotPassword } from '../../../../redux/asyncThunks/userThunks';
+import { setPasswordResetOTP } from '../../../../redux/slices/authSlice';
+import { forgotPassword } from '../../../../redux/asyncThunks/authThunks';
 
 // Import Components
 import Button from '../../Button';
@@ -17,8 +17,7 @@ function OTPForm({ setCurrentStep }) {
 
   const dispatch = useDispatch();
 
-  const user = useSelector((state) => state.user);
-  const { loading, userPasswordResetEmail, userForgotPasswordError } = user;
+  const { loading, passwordResetEmail, forgotPasswordError } = useSelector((state) => state.auth);
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -29,14 +28,14 @@ function OTPForm({ setCurrentStep }) {
   };
 
   useEffect(() => {
-    if (userForgotPasswordError) {
+    if (forgotPasswordError) {
       const timer = setTimeout(() => {
         setCurrentStep('EmailForm');
       }, 1000);
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [userForgotPasswordError, setCurrentStep]);
+  }, [forgotPasswordError, setCurrentStep]);
 
   return (
     <>
@@ -51,7 +50,7 @@ function OTPForm({ setCurrentStep }) {
             <br />
             <span className="text-sm text-primary-600">Enter OTP sent to your Email Address</span>
           </p>
-          {userForgotPasswordError && <Message>{userForgotPasswordError}</Message>}
+          {forgotPasswordError && <Message>{forgotPasswordError}</Message>}
 
           <div className="w-full my-4">
             <Input
@@ -72,7 +71,7 @@ function OTPForm({ setCurrentStep }) {
                 onClick={() => {
                   dispatch(
                     forgotPassword({
-                      email: userPasswordResetEmail,
+                      email: passwordResetEmail,
                     })
                   );
                 }}
