@@ -13,6 +13,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const { connectDb, getConnectionStatus } = require('./config/db');
 const { notFound, errorHandler } = require('./middlewares/errorMiddlewares');
 const { validateEnv } = require('./utils/envValidator');
+const { startInventoryScheduler } = require('./utils/inventoryScheduler');
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -44,6 +45,15 @@ const app = express();
 
 // Connect to Database
 connectDb();
+
+// node-cron needs a long-running process to keep its timer alive, which
+// Vercel's serverless functions don't provide — there, automatic low-stock
+// checks run via Vercel Cron hitting /api/stocks/cron/check-alerts instead
+// (see server/vercel.json). Skip starting a scheduler that would never
+// actually fire.
+if (!process.env.VERCEL) {
+  startInventoryScheduler();
+}
 
 // Configure Middlewares
 
@@ -87,10 +97,16 @@ const allowedOrigins = [...new Set([frontendUrl, ...additionalOrigins])];
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
+      // Requests with no Origin header (server-to-server calls like the
+      // Stripe webhook, curl, mobile apps) aren't browser cross-origin
+      // requests at all — always allow them, in every environment.
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.indexOf(origin) === -1 && process.env.NODE_ENV === 'production') {
+      // Enforce the whitelist everywhere except local development, not just
+      // "production" — so a misconfigured/unset NODE_ENV in a deployed
+      // environment (staging, or production left on some other value)
+      // fails closed instead of silently accepting any origin.
+      if (process.env.NODE_ENV !== 'development' && allowedOrigins.indexOf(origin) === -1) {
         const msg =
           'The CORS policy for this site does not allow access from the specified Origin.';
         return callback(new Error(msg), false);

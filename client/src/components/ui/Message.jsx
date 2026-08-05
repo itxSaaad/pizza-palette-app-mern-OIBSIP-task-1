@@ -1,16 +1,11 @@
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
-import {
-  FaCheckCircle,
-  FaExclamationCircle,
-  FaTimesCircle,
-  FaInfoCircle,
-} from 'react-icons/fa';
+import { FaCheckCircle, FaExclamationCircle, FaTimesCircle, FaInfoCircle } from 'react-icons/fa';
 import { extractErrorMessage, getFieldErrors, getErrorCode } from '../../utils/errorUtils';
 
 /**
  * Message Component
- * 
+ *
  * Flexible alert component that supports multiple error formats:
  * - New standardized format: { code: 'ERROR_CODE', message: 'message', details: [] }
  * - Legacy format: { status: 400, message: 'message' }
@@ -62,10 +57,10 @@ const Message = ({ children, variant = 'auto', onClose }) => {
   const message = extractErrorMessage(children);
   const errorCode = getErrorCode(children);
   const fieldErrors = getFieldErrors(children);
-  
+
   // Determine variant based on error code or children properties
   let messageVariant = variant;
-  
+
   if (messageVariant === 'auto') {
     // Check for success
     if (children && children.success) {
@@ -130,11 +125,11 @@ const Message = ({ children, variant = 'auto', onClose }) => {
           <div>
             <strong className="font-bold">
               {getStatusLabel()}
-              {errorCode && ` (${errorCode})`}:
+              {errorCode && errorCode !== 'UNKNOWN_ERROR' && ` (${errorCode})`}:
             </strong>
             <span className="block sm:inline sm:ml-2">{message}</span>
           </div>
-          
+
           {/* Display field-level errors if present */}
           {fieldErrors.length > 0 && (
             <ul className="mt-2 ml-4 list-disc text-sm">
@@ -146,7 +141,7 @@ const Message = ({ children, variant = 'auto', onClose }) => {
             </ul>
           )}
         </div>
-        
+
         {/* Close button */}
         <button
           onClick={() => {
@@ -164,10 +159,7 @@ const Message = ({ children, variant = 'auto', onClose }) => {
 };
 
 Message.propTypes = {
-  children: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.object,
-  ]).isRequired,
+  children: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
   variant: PropTypes.oneOf(['auto', 'success', 'warning', 'error', 'info']),
   onClose: PropTypes.func,
 };

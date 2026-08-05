@@ -4,6 +4,7 @@ const asyncHandler = require('express-async-handler');
 // Import Utils
 const generateToken = require('../utils/generateToken');
 const { generateSixDigitCode } = require('../utils/authUtils');
+const { hashPassword } = require('../utils/passwordUtils');
 const ApiError = require('../utils/ApiError');
 
 // Import Middlewares
@@ -149,10 +150,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     throw ApiError.validation('This password reset link is invalid. Please request a new one.');
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-  account.password = hashedPassword;
+  account.password = await hashPassword(newPassword);
   account.resetPasswordToken = undefined;
   account.resetPasswordExpire = undefined;
 

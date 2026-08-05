@@ -209,26 +209,29 @@ const sauces = await Sauce.find();
 **File:** `server/constants/paymentConstants.js`
 
 ```javascript
-const PAYMENT_METHODS = Object.freeze({
-  RAZORPAY: 'razorpay'
-});
-
-const PAYMENT_METHOD_VALUES = Object.values(PAYMENT_METHODS);
+const PAYMENT_METHODS = Object.freeze(['stripe', 'cod']);
 
 const PAYMENT_STATUS = Object.freeze({
   PENDING: 'pending',
-  COMPLETED: 'completed',
+  SUCCESS: 'success',
+  PAID: 'paid', // For COD when admin confirms payment received
   FAILED: 'failed',
   REFUNDED: 'refunded'
 });
 
 const PAYMENT_STATUS_VALUES = Object.values(PAYMENT_STATUS);
 
+// Stripe webhook event types this app handles
+const STRIPE_EVENTS = Object.freeze({
+  CHECKOUT_COMPLETED: 'checkout.session.completed',
+  PAYMENT_FAILED: 'payment_intent.payment_failed'
+});
+
 module.exports = {
   PAYMENT_METHODS,
-  PAYMENT_METHOD_VALUES,
   PAYMENT_STATUS,
-  PAYMENT_STATUS_VALUES
+  PAYMENT_STATUS_VALUES,
+  STRIPE_EVENTS
 };
 ```
 
@@ -240,7 +243,7 @@ const { PAYMENT_METHODS, PAYMENT_STATUS } = require('../constants');
 payment: {
   method: {
     type: String,
-    enum: PAYMENT_METHOD_VALUES,
+    enum: PAYMENT_METHODS,
     required: true
   },
   status: {
@@ -347,7 +350,7 @@ throw new ApiError(404, ERROR_CODES.NOT_FOUND, 'Pizza not found');
 const { ORDER_STATUS, ORDER_STATUS_VALUES } = require('./orderStatus');
 const { PIZZA_SIZES, PIZZA_SIZE_VALUES, PIZZA_SIZE_MULTIPLIERS } = require('./pizzaSizes');
 const { INVENTORY_TYPES, INVENTORY_TYPE_VALUES } = require('./inventoryTypes');
-const { PAYMENT_METHODS, PAYMENT_METHOD_VALUES, PAYMENT_STATUS, PAYMENT_STATUS_VALUES } = require('./paymentConstants');
+const { PAYMENT_METHODS, PAYMENT_STATUS, PAYMENT_STATUS_VALUES, STRIPE_EVENTS } = require('./paymentConstants');
 const { USER_ROLES, ADMIN_ROLES } = require('./userRoles');
 const { ERROR_CODES } = require('./errorCodes');
 
@@ -360,9 +363,9 @@ module.exports = {
   INVENTORY_TYPES,
   INVENTORY_TYPE_VALUES,
   PAYMENT_METHODS,
-  PAYMENT_METHOD_VALUES,
   PAYMENT_STATUS,
   PAYMENT_STATUS_VALUES,
+  STRIPE_EVENTS,
   USER_ROLES,
   ADMIN_ROLES,
   ERROR_CODES
@@ -532,15 +535,17 @@ import { INVENTORY_TYPE_OPTIONS } from '../../../constants';
 **File:** `client/src/constants/paymentConstants.js`
 
 ```javascript
-export const PAYMENT_METHODS = Object.freeze({
-  RAZORPAY: 'razorpay'
-});
+export const PAYMENT_METHODS = Object.freeze(['stripe', 'cod']);
 
-export const PAYMENT_METHOD_VALUES = Object.values(PAYMENT_METHODS);
+export const PAYMENT_METHOD_LABELS = Object.freeze({
+  stripe: 'Credit/Debit Card (Stripe)',
+  cod: 'Cash on Delivery'
+});
 
 export const PAYMENT_STATUS = Object.freeze({
   PENDING: 'pending',
-  COMPLETED: 'completed',
+  SUCCESS: 'success',
+  PAID: 'paid', // For COD when admin confirms payment received
   FAILED: 'failed',
   REFUNDED: 'refunded'
 });
