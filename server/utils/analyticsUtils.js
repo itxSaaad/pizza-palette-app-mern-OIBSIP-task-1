@@ -9,8 +9,8 @@ const getOrderStatistics = async () => {
       $group: {
         _id: '$status',
         count: { $sum: 1 },
-        totalRevenue: { $sum: '$totalPrice' }
-      }
+        totalRevenue: { $sum: '$totalPrice' },
+      },
     },
     {
       $group: {
@@ -19,21 +19,21 @@ const getOrderStatistics = async () => {
           $push: {
             status: '$_id',
             count: '$count',
-            revenue: '$totalRevenue'
-          }
+            revenue: '$totalRevenue',
+          },
         },
         totalOrders: { $sum: '$count' },
-        totalRevenue: { $sum: '$totalRevenue' }
-      }
+        totalRevenue: { $sum: '$totalRevenue' },
+      },
     },
     {
       $project: {
         _id: 0,
         statsByStatus: 1,
         totalOrders: 1,
-        totalRevenue: { $round: ['$totalRevenue', 2] }
-      }
-    }
+        totalRevenue: { $round: ['$totalRevenue', 2] },
+      },
+    },
   ]);
 
   return stats.length > 0 ? stats[0] : { statsByStatus: [], totalOrders: 0, totalRevenue: 0 };
@@ -47,18 +47,18 @@ const getPopularPizzas = async (limit = 10) => {
       $group: {
         _id: '$orderItems.pizza',
         totalOrdered: { $sum: '$orderItems.qty' },
-        revenue: { 
-          $sum: { $multiply: ['$orderItems.price', '$orderItems.qty'] } 
-        }
-      }
+        revenue: {
+          $sum: { $multiply: ['$orderItems.price', '$orderItems.qty'] },
+        },
+      },
     },
     {
       $lookup: {
         from: 'pizzas',
         localField: '_id',
         foreignField: '_id',
-        as: 'pizzaDetails'
-      }
+        as: 'pizzaDetails',
+      },
     },
     { $unwind: '$pizzaDetails' },
     { $sort: { totalOrdered: -1 } },
@@ -68,9 +68,9 @@ const getPopularPizzas = async (limit = 10) => {
         _id: 1,
         name: '$pizzaDetails.name',
         totalOrdered: 1,
-        revenue: { $round: ['$revenue', 2] }
-      }
-    }
+        revenue: { $round: ['$revenue', 2] },
+      },
+    },
   ]);
 
   return popularPizzas;
@@ -88,8 +88,8 @@ const getInventoryUsageTrends = async () => {
         from: 'pizzas',
         localField: 'orderItems.pizza',
         foreignField: '_id',
-        as: 'pizza'
-      }
+        as: 'pizza',
+      },
     },
     { $unwind: '$pizza' },
     {
@@ -98,8 +98,8 @@ const getInventoryUsageTrends = async () => {
         sauces: '$pizza.sauces',
         cheeses: '$pizza.cheeses',
         veggies: '$pizza.veggies',
-        quantity: '$orderItems.qty'
-      }
+        quantity: '$orderItems.qty',
+      },
     },
     {
       $facet: {
@@ -108,110 +108,112 @@ const getInventoryUsageTrends = async () => {
           {
             $group: {
               _id: '$bases',
-              usageCount: { $sum: '$quantity' }
-            }
+              usageCount: { $sum: '$quantity' },
+            },
           },
           {
             $lookup: {
               from: 'bases',
               localField: '_id',
               foreignField: '_id',
-              as: 'details'
-            }
+              as: 'details',
+            },
           },
           { $unwind: { path: '$details', preserveNullAndEmptyArrays: true } },
           {
             $project: {
               _id: 1,
               item: '$details.item',
-              usageCount: 1
-            }
+              usageCount: 1,
+            },
           },
-          { $sort: { usageCount: -1 } }
+          { $sort: { usageCount: -1 } },
         ],
         sauces: [
           { $unwind: '$sauces' },
           {
             $group: {
               _id: '$sauces',
-              usageCount: { $sum: '$quantity' }
-            }
+              usageCount: { $sum: '$quantity' },
+            },
           },
           {
             $lookup: {
               from: 'sauces',
               localField: '_id',
               foreignField: '_id',
-              as: 'details'
-            }
+              as: 'details',
+            },
           },
           { $unwind: { path: '$details', preserveNullAndEmptyArrays: true } },
           {
             $project: {
               _id: 1,
               item: '$details.item',
-              usageCount: 1
-            }
+              usageCount: 1,
+            },
           },
-          { $sort: { usageCount: -1 } }
+          { $sort: { usageCount: -1 } },
         ],
         cheeses: [
           { $unwind: '$cheeses' },
           {
             $group: {
               _id: '$cheeses',
-              usageCount: { $sum: '$quantity' }
-            }
+              usageCount: { $sum: '$quantity' },
+            },
           },
           {
             $lookup: {
               from: 'cheeses',
               localField: '_id',
               foreignField: '_id',
-              as: 'details'
-            }
+              as: 'details',
+            },
           },
           { $unwind: { path: '$details', preserveNullAndEmptyArrays: true } },
           {
             $project: {
               _id: 1,
               item: '$details.item',
-              usageCount: 1
-            }
+              usageCount: 1,
+            },
           },
-          { $sort: { usageCount: -1 } }
+          { $sort: { usageCount: -1 } },
         ],
         veggies: [
           { $unwind: '$veggies' },
           {
             $group: {
               _id: '$veggies',
-              usageCount: { $sum: '$quantity' }
-            }
+              usageCount: { $sum: '$quantity' },
+            },
           },
           {
             $lookup: {
               from: 'veggies',
               localField: '_id',
               foreignField: '_id',
-              as: 'details'
-            }
+              as: 'details',
+            },
           },
           { $unwind: { path: '$details', preserveNullAndEmptyArrays: true } },
           {
             $project: {
               _id: 1,
               item: '$details.item',
-              usageCount: 1
-            }
+              usageCount: 1,
+            },
           },
-          { $sort: { usageCount: -1 } }
-        ]
-      }
-    }
+          { $sort: { usageCount: -1 } },
+        ],
+      },
+    },
   ]);
 
-  return usageTrends.length > 0 ? usageTrends[0] : { bases: [], sauces: [], cheeses: [], veggies: [] };
+  return usageTrends.length > 0
+    ? usageTrends[0]
+    : { bases: [], sauces: [], cheeses: [], veggies: [] };
 };
 
 // Get user analytics
@@ -223,16 +225,16 @@ const getUserAnalytics = async (limit = 20) => {
         totalOrders: { $sum: 1 },
         totalSpent: { $sum: '$totalPrice' },
         avgOrderValue: { $avg: '$totalPrice' },
-        lastOrderDate: { $max: '$createdAt' }
-      }
+        lastOrderDate: { $max: '$createdAt' },
+      },
     },
     {
       $lookup: {
         from: 'users',
         localField: '_id',
         foreignField: '_id',
-        as: 'userDetails'
-      }
+        as: 'userDetails',
+      },
     },
     { $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true } },
     {
@@ -243,11 +245,11 @@ const getUserAnalytics = async (limit = 20) => {
         totalOrders: 1,
         totalSpent: { $round: ['$totalSpent', 2] },
         avgOrderValue: { $round: ['$avgOrderValue', 2] },
-        lastOrderDate: 1
-      }
+        lastOrderDate: 1,
+      },
     },
     { $sort: { totalSpent: -1 } },
-    { $limit: limit }
+    { $limit: limit },
   ]);
 
   return userAnalytics;
@@ -260,19 +262,19 @@ const getDailyRevenueReport = async (days = 30) => {
   const dailyRevenue = await Order.aggregate([
     {
       $match: {
-        createdAt: { $gte: startDate }
-      }
+        createdAt: { $gte: startDate },
+      },
     },
     {
       $group: {
         _id: {
           year: { $year: '$createdAt' },
           month: { $month: '$createdAt' },
-          day: { $dayOfMonth: '$createdAt' }
+          day: { $dayOfMonth: '$createdAt' },
         },
         dailyRevenue: { $sum: '$totalPrice' },
-        orderCount: { $sum: 1 }
-      }
+        orderCount: { $sum: 1 },
+      },
     },
     {
       $project: {
@@ -281,14 +283,14 @@ const getDailyRevenueReport = async (days = 30) => {
           $dateFromParts: {
             year: '$_id.year',
             month: '$_id.month',
-            day: '$_id.day'
-          }
+            day: '$_id.day',
+          },
         },
         revenue: { $round: ['$dailyRevenue', 2] },
-        orderCount: 1
-      }
+        orderCount: 1,
+      },
     },
-    { $sort: { date: 1 } }
+    { $sort: { date: 1 } },
   ]);
 
   return dailyRevenue;
@@ -296,57 +298,31 @@ const getDailyRevenueReport = async (days = 30) => {
 
 // Get low stock items with usage rate
 const getLowStockAlert = async () => {
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  // Shared across Base/Sauce/Cheese/Veggie: project isLow + deficit, keep
+  // only the low items, sort by most-depleted first. `deficit` is computed
+  // here (rather than in JS afterwards) so this is the single source of
+  // truth for low-stock data — inventoryAlertUtils.js's alert-email flow
+  // consumes this same result instead of re-querying independently.
+  const lowStockPipeline = [
+    {
+      $project: {
+        item: 1,
+        quantity: 1,
+        threshold: 1,
+        isLow: { $lte: ['$quantity', '$threshold'] },
+        deficit: { $subtract: ['$threshold', '$quantity'] },
+      },
+    },
+    { $match: { isLow: true } },
+    { $sort: { quantity: 1 } },
+    { $unset: 'isLow' },
+  ];
 
   const [bases, sauces, cheeses, veggies] = await Promise.all([
-    Base.aggregate([
-      {
-        $project: {
-          item: 1,
-          quantity: 1,
-          threshold: 1,
-          isLow: { $lte: ['$quantity', '$threshold'] }
-        }
-      },
-      { $match: { isLow: true } },
-      { $sort: { quantity: 1 } }
-    ]),
-    Sauce.aggregate([
-      {
-        $project: {
-          item: 1,
-          quantity: 1,
-          threshold: 1,
-          isLow: { $lte: ['$quantity', '$threshold'] }
-        }
-      },
-      { $match: { isLow: true } },
-      { $sort: { quantity: 1 } }
-    ]),
-    Cheese.aggregate([
-      {
-        $project: {
-          item: 1,
-          quantity: 1,
-          threshold: 1,
-          isLow: { $lte: ['$quantity', '$threshold'] }
-        }
-      },
-      { $match: { isLow: true } },
-      { $sort: { quantity: 1 } }
-    ]),
-    Veggie.aggregate([
-      {
-        $project: {
-          item: 1,
-          quantity: 1,
-          threshold: 1,
-          isLow: { $lte: ['$quantity', '$threshold'] }
-        }
-      },
-      { $match: { isLow: true } },
-      { $sort: { quantity: 1 } }
-    ])
+    Base.aggregate(lowStockPipeline),
+    Sauce.aggregate(lowStockPipeline),
+    Cheese.aggregate(lowStockPipeline),
+    Veggie.aggregate(lowStockPipeline),
   ]);
 
   return {
@@ -354,7 +330,7 @@ const getLowStockAlert = async () => {
     sauces,
     cheeses,
     veggies,
-    totalLowStockItems: bases.length + sauces.length + cheeses.length + veggies.length
+    totalLowStockItems: bases.length + sauces.length + cheeses.length + veggies.length,
   };
 };
 
@@ -365,18 +341,18 @@ const getNewUsersCount = async (days = 30) => {
   const newUsers = await User.aggregate([
     {
       $match: {
-        createdAt: { $gte: startDate }
-      }
+        createdAt: { $gte: startDate },
+      },
     },
     {
       $group: {
         _id: {
           year: { $year: '$createdAt' },
           month: { $month: '$createdAt' },
-          day: { $dayOfMonth: '$createdAt' }
+          day: { $dayOfMonth: '$createdAt' },
         },
-        count: { $sum: 1 }
-      }
+        count: { $sum: 1 },
+      },
     },
     {
       $project: {
@@ -385,17 +361,17 @@ const getNewUsersCount = async (days = 30) => {
           $dateFromParts: {
             year: '$_id.year',
             month: '$_id.month',
-            day: '$_id.day'
-          }
+            day: '$_id.day',
+          },
         },
-        count: 1
-      }
+        count: 1,
+      },
     },
-    { $sort: { date: 1 } }
+    { $sort: { date: 1 } },
   ]);
 
   const totalNewUsers = await User.countDocuments({
-    createdAt: { $gte: startDate }
+    createdAt: { $gte: startDate },
   });
 
   return { dailyNewUsers: newUsers, totalNewUsers };
@@ -408,5 +384,5 @@ module.exports = {
   getUserAnalytics,
   getDailyRevenueReport,
   getLowStockAlert,
-  getNewUsersCount
+  getNewUsersCount,
 };

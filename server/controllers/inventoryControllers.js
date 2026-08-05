@@ -14,21 +14,19 @@ const ApiError = require('../utils/ApiError');
 // @access  Private
 
 const getAllStocks = asyncHandler(async (req, res) => {
-  const base = await Base.find({});
-  const sauce = await Sauce.find({});
-  const cheese = await Cheese.find({});
-  const veggie = await Veggie.find({});
+  const [base, sauce, cheese, veggie] = await Promise.all([
+    Base.find({}),
+    Sauce.find({}),
+    Cheese.find({}),
+    Veggie.find({}),
+  ]);
 
-  if (base && sauce && cheese && veggie) {
-    res.status(200).json({
-      bases: base,
-      sauces: sauce,
-      cheeses: cheese,
-      veggies: veggie,
-    });
-  } else {
-    throw ApiError.notFound('Stock', 'No stock found.');
-  }
+  res.status(200).json({
+    bases: base,
+    sauces: sauce,
+    cheeses: cheese,
+    veggies: veggie,
+  });
 });
 
 // @desc    Get Stock by Id
