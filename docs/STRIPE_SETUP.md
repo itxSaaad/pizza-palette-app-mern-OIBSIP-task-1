@@ -57,6 +57,7 @@ local machine during development (Stripe's servers can't reach `localhost`
 directly).
 
 **macOS (Homebrew):**
+
 ```bash
 brew install stripe/stripe-cli/stripe
 ```
@@ -64,6 +65,7 @@ brew install stripe/stripe-cli/stripe
 **Other platforms:** see [Stripe's CLI install docs](https://docs.stripe.com/stripe-cli).
 
 Verify it installed:
+
 ```bash
 stripe --version
 ```
@@ -72,26 +74,9 @@ stripe --version
 
 ## Get Your API Keys
 
-You have two ways to get test-mode keys. Either works — the CLI login is
-faster and also sets up webhook forwarding in one step.
+You have two ways to get test-mode keys.
 
-### Option A: Stripe CLI login (recommended)
-
-```bash
-stripe login
-```
-
-This opens a browser to confirm a pairing code, then links the CLI to your
-Stripe account. Once done, you can print your test-mode keys any time with:
-
-```bash
-stripe config --list
-```
-
-Look for `test_mode_api_key` (this is your `STRIPE_SECRET_KEY`, starts with
-`sk_test_...`) under the `[default]` section for your active project.
-
-### Option B: Dashboard
+### Option A: Dashboard (recommended for `STRIPE_SECRET_KEY`)
 
 1. Log in to [dashboard.stripe.com](https://dashboard.stripe.com)
 2. Make sure the **Test mode** toggle (top-right) is ON
@@ -99,10 +84,25 @@ Look for `test_mode_api_key` (this is your `STRIPE_SECRET_KEY`, starts with
 4. Copy the **Secret key** (starts with `sk_test_...`)
 
 > **Important:** the secret key starts with `sk_test_`, not `pk_test_`. The
-> `pk_test_` key is the *publishable* key and is not used anywhere in this
+> `pk_test_` key is the _publishable_ key and is not used anywhere in this
 > project (Checkout is hosted by Stripe, not embedded client-side) — don't
 > put a `pk_test_` value in `STRIPE_SECRET_KEY`, the server will fail to
 > start.
+
+### Option B: Stripe CLI login (webhook forwarding only)
+
+```bash
+stripe login
+```
+
+This opens a browser to confirm a pairing code, then links the CLI to your
+Stripe account — useful for `stripe listen` (webhook forwarding, below).
+
+> **Don't use `stripe config --list`'s `test_mode_api_key` for
+> `STRIPE_SECRET_KEY`.** That's a CLI-generated _restricted_ key that
+> expires after 90 days — fine for a quick local test, but it will silently
+> stop working in any long-lived `.env` file. Always get `STRIPE_SECRET_KEY`
+> from the Dashboard (Option A) instead.
 
 ---
 
@@ -212,7 +212,7 @@ of this repo from before that fix, pull the latest `dev` branch.
 ### Webhook always returns 400: signature verification failed (but the raw-body bug above is already fixed)
 
 Your `STRIPE_WEBHOOK_SECRET` doesn't match the secret `stripe listen` printed
-for your *current* session. Re-copy it — remember it's regenerated every time
+for your _current_ session. Re-copy it — remember it's regenerated every time
 you restart `stripe listen`.
 
 ### Payment succeeds in Stripe but the order never updates
@@ -239,7 +239,11 @@ When ready for production:
    `https://your-backend.example.com/api/orders/stripe-webhook`. Select at
    minimum the `checkout.session.completed` and `payment_intent.payment_failed`
    events (matching what `handleStripeWebhook` in
-   `server/controllers/orderControllers.js` handles).
+   `server/controllers/orderControllers.js` handles). Note that
+   `payment_intent.payment_failed` delivers a PaymentIntent object, not the
+   Checkout Session — `createStripeCheckoutSession` sets `orderId`/`userId`
+   on `payment_intent_data.metadata` (in addition to the session-level
+   `metadata`) specifically so this event still carries the order ID.
 5. Copy the **signing secret** shown for that live endpoint into your
    production `STRIPE_WEBHOOK_SECRET` — this is different from your local
    `stripe listen` secret and does not expire/regenerate on its own.

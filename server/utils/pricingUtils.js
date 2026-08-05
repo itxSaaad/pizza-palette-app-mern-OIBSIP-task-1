@@ -32,10 +32,15 @@ const calculateOrderPricing = async (orderItems) => {
 
   const itemsTotal = pricedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
   const salesTax = parseFloat((SALES_TAX_RATE * itemsTotal).toFixed(2));
-  const deliveryCharges = itemsTotal > FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_CHARGE;
-  const totalPrice = Math.round(itemsTotal + deliveryCharges + salesTax);
+  const deliveryCharges = itemsTotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_CHARGE;
+  const totalPrice = parseFloat((itemsTotal + deliveryCharges + salesTax).toFixed(2));
 
   return { pricedItems, itemsTotal, salesTax, deliveryCharges, totalPrice };
 };
 
-module.exports = { calculateOrderPricing, SALES_TAX_RATE, FREE_DELIVERY_THRESHOLD, DELIVERY_CHARGE };
+module.exports = {
+  calculateOrderPricing,
+  SALES_TAX_RATE,
+  FREE_DELIVERY_THRESHOLD,
+  DELIVERY_CHARGE,
+};

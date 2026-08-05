@@ -1,7 +1,11 @@
 const asyncHandler = require('express-async-handler');
 
 // Import Utils
-const { parsePaginationParams, parseSortParams, buildPaginationResponse } = require('../utils/paginationUtils');
+const {
+  parsePaginationParams,
+  parseSortParams,
+  buildPaginationResponse,
+} = require('../utils/paginationUtils');
 const { USER_ROLES } = require('../constants');
 const ApiError = require('../utils/ApiError');
 
@@ -17,12 +21,9 @@ const Pizza = require('../schemas/pizzaSchema');
 const getAllPizzas = asyncHandler(async (req, res) => {
   const { page, limit, skip } = parsePaginationParams(req.query);
   const sort = parseSortParams(req.query, '-createdAt');
-  
+
   // Build filter
   const filter = {};
-  if (req.query.size) {
-    filter.size = req.query.size;
-  }
   if (req.query.createdBy) {
     filter.createdBy = req.query.createdBy;
   }
@@ -34,12 +35,8 @@ const getAllPizzas = asyncHandler(async (req, res) => {
   }
 
   const [pizzas, total] = await Promise.all([
-    Pizza.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .select('-__v'),
-    Pizza.countDocuments(filter)
+    Pizza.find(filter).sort(sort).skip(skip).limit(limit).select('-__v'),
+    Pizza.countDocuments(filter),
   ]);
 
   res.status(200).json(buildPaginationResponse(pizzas, total, page, limit));
