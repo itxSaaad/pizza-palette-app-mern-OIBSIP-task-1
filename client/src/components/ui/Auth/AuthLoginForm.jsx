@@ -28,9 +28,7 @@ function AuthLoginForm() {
   return (
     <>
       {loading ? (
-        <div className="flex justify-center items-center w-full py-20 px-14">
-          <Loader />
-        </div>
+        <Loader fullWidth />
       ) : (
         <form onSubmit={handleLogin} className="w-full">
           <p className="text-center text-neutral-900 text-xl leading-relaxed">
