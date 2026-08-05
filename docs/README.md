@@ -28,7 +28,7 @@ Complete step-by-step guide to set up the application locally or in production:
 - Prerequisites and dependencies
 - Environment configuration
 - Database setup (MongoDB)
-- Razorpay payment gateway configuration
+- Stripe payment gateway configuration
 - Email service setup
 - Running the application
 
@@ -73,7 +73,7 @@ Centralized constants documentation:
 ### [Testing Guide](./TESTING.md)
 Complete testing documentation:
 - Test credentials (admin, user accounts)
-- Razorpay test cards
+- Stripe test cards
 - API testing examples
 - Frontend testing
 - Running automated tests
@@ -84,7 +84,7 @@ Production deployment instructions:
 - Vercel deployment (frontend + backend)
 - Environment variables
 - Database configuration
-- Razorpay live mode
+- Stripe live mode
 - Post-deployment checklist
 - Monitoring and logging
 
@@ -111,7 +111,7 @@ Version history and release notes:
 - [First Time Setup](./SETUP.md#first-time-setup)
 - [Test Credentials](./TESTING.md#test-credentials)
 - [API Authentication](./API.md#authentication)
-- [Razorpay Configuration](./SETUP.md#razorpay-setup)
+- [Stripe Configuration](./SETUP.md#stripe-setup)
 
 ### Common Tasks
 - [Running Tests](./TESTING.md#running-tests)
@@ -122,7 +122,7 @@ Version history and release notes:
 ### Troubleshooting
 - [Common Errors](./ERROR_HANDLING.md#common-errors)
 - [Database Issues](./SETUP.md#troubleshooting)
-- [Payment Issues](./SETUP.md#razorpay-troubleshooting)
+- [Payment Issues](./SETUP.md#stripe-payment-fails)
 - [Email Issues](./SETUP.md#email-troubleshooting)
 
 ---

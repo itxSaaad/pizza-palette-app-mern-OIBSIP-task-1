@@ -198,14 +198,23 @@ curl -X DELETE $API_URL/pizzas/507f1f77bcf86cd799439011 \
 
 ### Order Endpoints
 
-#### Create Razorpay Order
+#### Create Stripe Checkout Session
 
 ```bash
-curl -X POST $API_URL/orders/checkout \
+curl -X POST $API_URL/orders/create-checkout-session \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $USER_TOKEN" \
   -d '{
-    "amount": 2499
+    "orderItems": [
+      { "_id": "pizza_id_1", "qty": 2, "size": "medium", "name": "Margherita" }
+    ],
+    "deliveryAddress": {
+      "phoneNumber": "1234567890",
+      "address": "123 Main St",
+      "city": "New York",
+      "postalCode": "10001",
+      "country": "USA"
+    }
   }'
 ```
 
@@ -214,14 +223,17 @@ curl -X POST $API_URL/orders/checkout \
 {
   "success": true,
   "data": {
-    "id": "order_xxxxx",
-    "amount": 2499,
-    "currency": "INR"
-  }
+    "sessionId": "cs_test_xxxxx",
+    "url": "https://checkout.stripe.com/c/pay/cs_test_xxxxx",
+    "orderId": "order_id"
+  },
+  "message": "Stripe checkout session created successfully"
 }
 ```
 
-#### Create Order After Payment
+Redirect the browser to `data.url` to complete payment on Stripe's hosted checkout page — see [Stripe Setup Guide](./STRIPE_SETUP.md) for the full local testing flow (test cards, `stripe listen`, triggering webhook events).
+
+#### Create Order (Cash on Delivery)
 
 ```bash
 curl -X POST $API_URL/orders \
@@ -230,9 +242,10 @@ curl -X POST $API_URL/orders \
   -d '{
     "orderItems": [
       {
-        "pizza": "pizza_id_1",
+        "_id": "pizza_id_1",
         "qty": 2,
-        "price": 12.99
+        "size": "medium",
+        "name": "Margherita"
       }
     ],
     "deliveryAddress": {
@@ -242,17 +255,13 @@ curl -X POST $API_URL/orders \
       "postalCode": "10001",
       "country": "USA"
     },
-    "salesTax": 2.50,
-    "deliveryCharges": 5.00,
-    "totalPrice": 35.48,
     "payment": {
-      "method": "razorpay",
-      "razorpayOrderId": "order_xxxxx",
-      "razorpayPaymentId": "pay_xxxxx",
-      "razorpaySignature": "signature_xxxxx"
+      "method": "cod"
     }
   }'
 ```
+
+Pricing (`salesTax`/`deliveryCharges`/`totalPrice`/item `price`) is always recomputed server-side — no need to (and no point trying to) pass it in the request.
 
 #### Get My Orders
 
@@ -445,11 +454,11 @@ curl $API_URL/orders/myorders
 2. Navigate to `/cart`
 3. Click "Proceed to Checkout"
 4. Fill in delivery address
-5. Click "Place Order"
-6. Razorpay modal should appear
-7. Complete payment (use test card)
-8. Should redirect to order confirmation
-9. Order should appear in "My Orders"
+5. Choose Stripe as the payment method and click "Place Order"
+6. Browser redirects to a Stripe-hosted checkout page
+7. Complete payment (use a test card — see below)
+8. Stripe redirects back to `/checkout/success` (or `/checkout/cancel`)
+9. Order should appear in "My Orders" once the webhook confirms payment (near-instant locally with `stripe listen` running)
 
 ### Admin Dashboard
 
@@ -471,33 +480,25 @@ curl $API_URL/orders/myorders
 
 ## Payment Testing
 
-### Razorpay Test Mode
+### Stripe Test Mode
+
+See the [Stripe Setup Guide](./STRIPE_SETUP.md) for installing the Stripe CLI and running `stripe listen` locally — required for webhook events (order confirmation) to reach your local server at all.
 
 #### Test Card Numbers
 
 **Success:**
-- **Card:** `4111 1111 1111 1111`
-- **CVV:** Any 3 digits (e.g., `123`)
-- **Expiry:** Any future date (e.g., `12/25`)
-- **Name:** Any name
-
-**Failed Payment:**
-- **Card:** `4000 0000 0000 0002`
+- **Card:** `4242 4242 4242 4242`
 - **CVV:** Any 3 digits
 - **Expiry:** Any future date
+- **ZIP:** Any 5 digits
+
+**Failed Payment (generic decline):**
+- **Card:** `4000 0000 0000 0002`
 
 **Insufficient Funds:**
 - **Card:** `4000 0000 0000 9995`
 
-#### Test UPI IDs
-
-- **Success:** `success@razorpay`
-- **Failed:** `failure@razorpay`
-
-#### Test Wallets
-
-- **Paytm:** Use test number `9988776655` with OTP `1234`
-- **PhonePe:** Use test number `9988776655`
+Full list of Stripe test cards: https://docs.stripe.com/testing#cards
 
 ### Payment Flow Testing
 
@@ -506,34 +507,32 @@ curl $API_URL/orders/myorders
 1. Add items to cart
 2. Proceed to checkout
 3. Enter delivery address
-4. Click "Place Order"
-5. Razorpay modal appears
-6. Enter test card: `4111 1111 1111 1111`
-7. CVV: `123`, Expiry: `12/25`
+4. Choose Stripe, click "Place Order"
+5. Redirected to Stripe-hosted checkout
+6. Enter test card: `4242 4242 4242 4242`
+7. Any future expiry, any CVV, any ZIP
 8. Click "Pay"
-9. Payment should succeed
-10. Order created in database
+9. Payment should succeed, Stripe redirects to `/checkout/success`
+10. Order created in database, marked paid via the webhook
 11. Inventory deducted
-12. Email sent to user
-13. Redirect to order confirmation
+12. Confirmation email sent to user
 
 #### Test Failed Payment
 
-1. Follow steps 1-5 above
-2. Enter test card: `4000 0000 0000 0002`
+1. Follow steps 1-4 above
+2. On the Stripe-hosted page, enter test card: `4000 0000 0000 0002`
 3. Click "Pay"
-4. Payment should fail
-5. Error message displayed
-6. No order created
-7. No inventory deducted
+4. Payment should be declined by Stripe (stays on the Stripe page with an error, or redirects to `/checkout/cancel` depending on how you cancel out)
+5. Order's payment status should reflect the failure once `payment_intent.payment_failed` is delivered
+6. Inventory deducted for the order is **not** currently rolled back if you abandon checkout without either succeeding or Stripe sending a definitive failure event — see the inventory-rollback note in `docs/STRIPE_SETUP.md`/PR history if testing this edge case specifically
 
-#### Test Payment Verification
+#### Test Webhook Signature Verification
 
-1. Complete successful payment
-2. Backend receives webhook from Razorpay
-3. Signature verification happens
-4. Order status updated
-5. Check server logs for webhook data
+1. Complete a successful payment with `stripe listen` running
+2. Backend receives the webhook at `POST /api/orders/stripe-webhook`
+3. `stripe.webhooks.constructEvent` verifies the `stripe-signature` header against `STRIPE_WEBHOOK_SECRET`
+4. Order status updates to paid; a duplicate delivery of the same event is a no-op (idempotency check on the order's existing payment status)
+5. Check server logs for `Payment confirmed for order: ...` / `Duplicate webhook delivery ignored for order: ...`
 
 ---
 

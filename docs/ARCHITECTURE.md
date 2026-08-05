@@ -47,7 +47,7 @@ Pizza Palette is a full-stack MERN application following modern web development 
 - **bcryptjs** - Password hashing
 - **express-validator** - Input validation
 - **Nodemailer** - Email sending
-- **Razorpay SDK** - Payment processing
+- **Stripe SDK** - Payment processing
 
 ### Security & Middleware
 - **Helmet** - Security headers
@@ -76,7 +76,7 @@ graph TB
     Frontend[React Frontend<br/>Vite + Tailwind]
     Backend[Express Backend<br/>Node.js API]
     Database[(MongoDB<br/>Atlas/Local)]
-    Payment[Razorpay<br/>Payment Gateway]
+    Payment[Stripe<br/>Payment Gateway]
     Email[Email Service<br/>Nodemailer]
     
     User -->|HTTPS| Frontend
@@ -190,9 +190,10 @@ server/
 │   ├── errorCodeMapper.js     # Error code mapping
 │   ├── generateToken.js       # JWT generation
 │   ├── paginationUtils.js     # Pagination helpers
-│   ├── razorpayUtils.js       # Razorpay verification
+│   ├── pricingUtils.js        # Server-side trusted price recomputation
 │   ├── inventoryDeductionUtils.js
 │   ├── inventoryAlertUtils.js
+│   ├── analyticsUtils.js      # Aggregation-pipeline reporting
 │   └── envValidator.js        # Env validation
 ├── data/                       # Seed data
 │   ├── users.js
@@ -283,7 +284,7 @@ sequenceDiagram
     F-->>U: Redirect to menu
 ```
 
-### Order Creation Flow
+### Order Creation Flow (Stripe)
 
 ```mermaid
 sequenceDiagram
@@ -291,28 +292,33 @@ sequenceDiagram
     participant F as Frontend
     participant B as Backend
     participant DB as MongoDB
-    participant R as Razorpay
+    participant S as Stripe
     participant E as Email Service
-    
+
     U->>F: Add items to cart
     U->>F: Proceed to checkout
-    F->>B: POST /api/orders/checkout
-    B->>R: Create Razorpay order
-    R-->>B: Order ID
-    B-->>F: Razorpay order details
-    F->>U: Show Razorpay modal
-    U->>R: Complete payment
-    R->>B: Webhook notification
-    B->>DB: Verify payment signature
+    F->>B: POST /api/orders/create-checkout-session
     B->>DB: Check inventory availability
     DB-->>B: Inventory available
+    B->>DB: Recompute trusted pricing, create order (payment: pending)
     B->>DB: Deduct inventory
-    B->>DB: Create order
-    DB-->>B: Order created
-    B->>E: Send confirmation email
-    E-->>U: Order confirmation
-    B-->>F: Success response
-    F-->>U: Show order confirmation
+    B->>S: Create Checkout Session (server-recomputed prices only)
+    alt Session creation fails
+        S-->>B: Error
+        B->>DB: Roll back deducted inventory, mark order failed
+        B-->>F: Error response
+    else Session created
+        S-->>B: Session id + hosted checkout URL
+        B-->>F: { sessionId, url, orderId }
+        F->>U: Redirect browser to Stripe-hosted checkout
+        U->>S: Complete payment
+        S-->>U: Redirect to /checkout/success or /checkout/cancel
+        S->>B: Webhook: checkout.session.completed (raw body + stripe-signature)
+        B->>B: Verify signature (stripe.webhooks.constructEvent)
+        B->>DB: Mark order paid (idempotent — skips if already paid for this session)
+        B->>E: Send confirmation email
+        E-->>U: Order confirmation
+    end
 ```
 
 ---
@@ -395,8 +401,9 @@ sequenceDiagram
   deliveryCharges: Number,
   totalPrice: Number,
   payment: {
-    method: String (enum: ['razorpay']),
-    razorpayOrderId: String,
+    method: String (enum: PAYMENT_METHODS — 'stripe' | 'cod'),
+    stripeSessionId: String,
+    stripePaymentIntentId: String,
     status: String
   },
   status: String (enum: ORDER_STATUS_VALUES, indexed),
@@ -494,42 +501,17 @@ sequenceDiagram
 
 ## Payment Flow
 
-### Razorpay Integration
+### Stripe Integration
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant F as Frontend
-    participant B as Backend
-    participant R as Razorpay
-    participant DB as Database
-    
-    U->>F: Click "Checkout"
-    F->>B: POST /orders/checkout {amount}
-    B->>R: Create Razorpay order
-    R-->>B: {id, amount, currency}
-    B-->>F: Razorpay order details
-    
-    F->>F: Open Razorpay modal
-    U->>R: Enter card details
-    R->>R: Process payment
-    R->>B: Webhook: payment.captured
-    
-    B->>B: Verify webhook signature
-    B->>DB: Check inventory
-    B->>DB: Deduct inventory
-    B->>DB: Create order record
-    DB-->>B: Order saved
-    
-    B->>F: Payment success
-    F-->>U: Show confirmation
-```
+See the [Order Creation Flow](#order-creation-flow-stripe) diagram above for the full sequence (checkout session creation, inventory deduction/rollback, webhook confirmation).
 
 ### Payment States
-- **Created**: Razorpay order created
-- **Authorized**: Payment authorized (pending capture)
-- **Captured**: Payment successful
-- **Failed**: Payment failed
+(`server/constants/paymentConstants.js` `PAYMENT_STATUS`)
+- **pending**: Order created, checkout session issued, payment not yet confirmed
+- **success**: `checkout.session.completed` webhook received and verified
+- **paid**: COD order manually marked paid by an admin
+- **failed**: `payment_intent.payment_failed` webhook received, or checkout session creation itself failed
+- **refunded**: Payment refunded (status value exists; refund flow itself is not yet implemented)
 
 ---
 
@@ -733,7 +715,7 @@ graph TB
 5. **JWT Authentication** - Stateless auth
 6. **Password Hashing** - bcrypt with salt rounds
 7. **express-validator** - Input validation
-8. **Razorpay Signature Verification** - Payment security
+8. **Stripe Webhook Signature Verification** - Payment security
 
 ---
 
