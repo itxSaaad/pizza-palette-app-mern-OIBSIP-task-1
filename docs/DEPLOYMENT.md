@@ -9,7 +9,7 @@ Complete guide for deploying Pizza Palette to production on Vercel.
 - [Vercel Deployment](#vercel-deployment)
 - [Environment Variables](#environment-variables)
 - [Database Configuration](#database-configuration)
-- [Razorpay Live Mode](#razorpay-live-mode)
+- [Stripe Live Mode](#stripe-live-mode)
 - [Post-Deployment](#post-deployment)
 - [Monitoring](#monitoring)
 - [Troubleshooting](#troubleshooting)
@@ -22,7 +22,7 @@ Pizza Palette uses Vercel for both frontend and backend deployment:
 - **Frontend:** Static React app with Vite
 - **Backend:** Serverless functions (Express API)
 - **Database:** MongoDB Atlas (cloud)
-- **Payments:** Razorpay (live mode)
+- **Payments:** Stripe (live mode)
 - **CI/CD:** Automatic deployment via GitHub integration
 
 ### Architecture
@@ -36,7 +36,7 @@ Vercel Backend (Serverless)
      ↓
 MongoDB Atlas
      ↓
-Razorpay API
+Stripe API
 ```
 
 ---
@@ -48,7 +48,7 @@ Before deploying:
 - [ ] GitHub account
 - [ ] Vercel account (free tier works)
 - [ ] MongoDB Atlas account
-- [ ] Razorpay account (KYC completed for live mode)
+- [ ] Stripe account (activated for live mode — see [Stripe Setup Guide](./STRIPE_SETUP.md#going-live))
 - [ ] Domain name (optional)
 - [ ] All code pushed to GitHub
 
@@ -188,10 +188,9 @@ SALT=10
 SENDER_EMAIL=your-email@example.com
 SENDER_PASSWORD=your-app-password
 
-# Payment Gateway (Razorpay LIVE)
-RAZORPAY_KEY_ID=rzp_live_xxxxx
-RAZORPAY_KEY_SECRET=your_live_secret
-RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+# Payment Gateway (Stripe LIVE)
+STRIPE_SECRET_KEY=sk_live_xxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxx
 ```
 
 ### Frontend Environment Variables (Vercel Project Settings)
@@ -203,8 +202,8 @@ VITE_SERVER_URL=https://your-backend.vercel.app/api
 # Client URL
 VITE_CLIENT_URL=https://your-frontend.vercel.app
 
-# Payment Gateway (Razorpay LIVE)
-VITE_RAZORPAY_KEY_ID=rzp_live_xxxxx
+# No Stripe configuration is needed here — checkout redirects to a
+# Stripe-hosted page server-side.
 ```
 
 ### How to Add in Vercel
@@ -289,54 +288,24 @@ pnpm run data:import
 
 ---
 
-## Razorpay Live Mode
+## Stripe Live Mode
 
-### Switch to Live Mode
+Full walkthrough — account activation, generating live keys, creating the live webhook endpoint (`https://your-backend.vercel.app/api/orders/stripe-webhook`), and which events to select — is in the [Stripe Setup Guide's "Going Live" section](./STRIPE_SETUP.md#going-live). Summary:
 
-1. **Complete KYC**
-   - Login to Razorpay Dashboard
-   - Complete KYC verification
-   - Wait for approval (1-2 business days)
+1. Complete Stripe's account activation in the dashboard (required for real payments).
+2. Toggle Live mode, generate live keys, set `STRIPE_SECRET_KEY` (`sk_live_...`) in Vercel's backend project env vars.
+3. Create a live webhook endpoint pointing at your deployed backend, select `checkout.session.completed` and `payment_intent.payment_failed`, and set the resulting signing secret as `STRIPE_WEBHOOK_SECRET`.
+4. Test with a small real charge before considering it production-ready.
 
-2. **Generate Live Keys**
-   - Switch to "Live Mode" (toggle in top-right)
-   - Navigate to Settings → API Keys
-   - Generate live keys
-   - Copy Key ID and Key Secret
-   - **IMPORTANT:** Store securely, never commit to Git
-
-3. **Update Environment Variables**
-   Update both backend and frontend in Vercel:
-   ```bash
-   # Backend
-   RAZORPAY_KEY_ID=rzp_live_xxxxx
-   RAZORPAY_KEY_SECRET=xxxxx
-   
-   # Frontend
-   VITE_RAZORPAY_KEY_ID=rzp_live_xxxxx
-   ```
-
-4. **Configure Live Webhook**
-   - Settings → Webhooks
-   - Create new webhook
-   - URL: `https://your-backend.vercel.app/api/orders/webhook`
-   - Events: `payment.authorized`, `payment.captured`, `payment.failed`
-   - Generate webhook secret
-   - Add to backend env: `RAZORPAY_WEBHOOK_SECRET`
-
-5. **Test Live Payments**
-   - Use real card (small amount like ₹10)
-   - Verify payment flow works
-   - Check webhook logs in Razorpay dashboard
+No frontend (Vercel frontend project) environment variables are needed for Stripe — checkout redirects to a Stripe-hosted page server-side.
 
 ### Important Live Mode Notes
 
 ⚠️ **Production Considerations:**
 - Test thoroughly in test mode first
 - Use real payments only after complete testing
-- Monitor Razorpay dashboard for failed transactions
-- Set up payment alerts
-- Configure auto-refunds for failed orders
+- Monitor the Stripe Dashboard's Events/Payments views for failed transactions
+- Set up Stripe email alerts for failed payments and disputes
 
 ---
 
@@ -353,7 +322,7 @@ After deployment, verify:
 - [ ] JWT authentication works
 - [ ] File upload works (if applicable)
 - [ ] Email sending works
-- [ ] Razorpay payment flow works
+- [ ] Stripe checkout session creation works
 - [ ] Webhooks receiving properly
 - [ ] Error handling correct
 - [ ] Logs visible in Vercel dashboard
@@ -367,7 +336,7 @@ After deployment, verify:
 - [ ] Pizza menu displays
 - [ ] Cart functionality works
 - [ ] Checkout process works
-- [ ] Razorpay modal appears
+- [ ] Redirects to Stripe-hosted checkout
 - [ ] Payment completes successfully
 - [ ] Order confirmation displays
 - [ ] Admin dashboard accessible
@@ -401,8 +370,8 @@ Update any hardcoded URLs in:
    - Update `VITE_CLIENT_URL` in frontend
    - Update `VITE_SERVER_URL` if backend has custom domain
 
-3. **Update Razorpay Webhook**
-   - Update webhook URL to use custom domain
+3. **Update Stripe Webhook**
+   - Update the webhook endpoint URL in the Stripe Dashboard to use the custom domain
    - Test webhook delivery
 
 ---
@@ -442,7 +411,7 @@ Update any hardcoded URLs in:
      - Slow queries
 
 3. **Payment Monitoring**
-   - Razorpay Dashboard → Analytics
+   - Stripe Dashboard → Payments / Analytics
    - Track:
      - Success rate
      - Failed payments
@@ -463,7 +432,7 @@ Update any hardcoded URLs in:
      - Low storage
      - Connection spikes
 
-3. **Razorpay Alerts**
+3. **Stripe Alerts**
    - Settings → Alerts
    - Configure alerts for:
      - Payment failures
@@ -514,14 +483,14 @@ Update any hardcoded URLs in:
 
 ### Payment Issues
 
-**Problem:** Razorpay payment not working
+**Problem:** Stripe payment not working
 
 **Solutions:**
-1. Verify live keys are used (not test keys)
-2. Check `RAZORPAY_KEY_ID` matches in backend and frontend
-3. Verify webhook URL is accessible
-4. Check webhook signature verification
-5. Review Razorpay logs
+1. Verify live keys are used (`sk_live_...`, not `sk_test_...`)
+2. Verify the live webhook endpoint URL in the Stripe Dashboard is accessible and matches your deployed backend
+3. Check `STRIPE_WEBHOOK_SECRET` matches the live endpoint's signing secret (not the local `stripe listen` one)
+4. Check webhook signature verification errors in the backend logs
+5. Review the Stripe Dashboard's Events log for delivery failures
 
 ### Environment Variables Not Working
 
