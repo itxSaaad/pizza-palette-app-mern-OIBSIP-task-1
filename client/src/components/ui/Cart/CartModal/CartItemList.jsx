@@ -6,6 +6,7 @@ import { updateCartItemQuantity, removeFromCart } from '../../../../redux/slices
 
 // Import Components
 import Button from '../../Button';
+import PizzaImage from '../../PizzaImage';
 
 function CartItemList() {
   const dispatch = useDispatch();
@@ -23,7 +24,11 @@ function CartItemList() {
             key={itemKey}
             className="flex items-center space-x-4 border-b border-b-neutral-200 pb-2"
           >
-            <img src={item.imageUrl} alt={item.name} className="w-12 h-12 rounded-control object-cover" />
+            <PizzaImage
+              src={item.imageUrl}
+              alt={item.name}
+              className="w-12 h-12 rounded-control object-cover"
+            />
             <div className="flex-grow">
               <p className="font-semibold text-neutral-900">{item.name}</p>
               <p className="text-neutral-600">
@@ -37,11 +42,13 @@ function CartItemList() {
                   onClick={() => {
                     const newQuantity = item.qty - 1;
                     if (newQuantity >= 1) {
-                      dispatch(updateCartItemQuantity({
-                        id: item._id,
-                        size: item.size,
-                        qty: newQuantity
-                      }));
+                      dispatch(
+                        updateCartItemQuantity({
+                          id: item._id,
+                          size: item.size,
+                          qty: newQuantity,
+                        })
+                      );
                     }
                   }}
                   disabled={item.qty <= 1}
@@ -49,18 +56,22 @@ function CartItemList() {
                 >
                   <FaMinus />
                 </button>
-                <p className="font-semibold min-w-[60px] text-center text-neutral-800">Qty: {item.qty}</p>
+                <p className="font-semibold min-w-[60px] text-center text-neutral-800">
+                  Qty: {item.qty}
+                </p>
                 <button
                   type="button"
                   className="text-accent-green-600 hover:text-accent-green-700 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center rounded-control disabled:opacity-40 disabled:cursor-not-allowed"
                   onClick={() => {
                     const newQuantity = item.qty + 1;
                     if (newQuantity <= 10) {
-                      dispatch(updateCartItemQuantity({
-                        id: item._id,
-                        size: item.size,
-                        qty: newQuantity
-                      }));
+                      dispatch(
+                        updateCartItemQuantity({
+                          id: item._id,
+                          size: item.size,
+                          qty: newQuantity,
+                        })
+                      );
                     }
                   }}
                   disabled={item.qty >= 10}

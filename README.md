@@ -36,7 +36,7 @@
 - ✅ **Custom Pizza Creation:** Build your own pizza with custom ingredients
 - ✅ **Pizza Browsing:** View all available pizzas with details
 - ✅ **Shopping Cart:** Add items, update quantities, remove items
-- ✅ **Secure Checkout:** Razorpay payment integration
+- ✅ **Secure Checkout:** Stripe-hosted payment integration
 - ✅ **Order History:** Track past and current orders
 - ✅ **Order Status Tracking:** Real-time order status updates
 - ✅ **Profile Management:** Update user information
@@ -58,7 +58,7 @@
 - ✅ **Centralized Constants:** Single source of truth for enums and types
 - ✅ **Email Notifications:** Automated emails for orders and account actions
 - ✅ **Inventory Deduction:** Automatic stock updates on orders
-- ✅ **Payment Verification:** Secure Razorpay signature verification
+- ✅ **Payment Verification:** Stripe webhook signature verification
 - ✅ **Responsive Design:** Mobile-first, works on all devices
 - ✅ **Security:** JWT auth, password hashing, input validation, rate limiting
 
@@ -105,7 +105,7 @@
 - **bcryptjs** - Password hashing
 - **express-validator** - Input validation
 - **Nodemailer** - Email sending
-- **Razorpay SDK** - Payment processing
+- **Stripe SDK** - Payment processing
 
 ### Security & Middleware
 - **Helmet** - Security headers
@@ -133,7 +133,7 @@ Express Backend (Vercel Serverless)
      ↓
 MongoDB Atlas
      ↓
-Razorpay Payment Gateway
+Stripe Payment Gateway
 ```
 
 ### Key Design Patterns
@@ -186,7 +186,7 @@ See [Error Handling Guide](./docs/ERROR_HANDLING.md) for complete reference.
 
 - **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
 - **MongoDB** - Local installation or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account
-- **Razorpay Account** - [Sign up](https://razorpay.com/) for test keys
+- **Stripe Account** - [Sign up](https://dashboard.stripe.com/register) for test keys (see [Stripe Setup Guide](./docs/STRIPE_SETUP.md))
 
 ### Quick Start
 
@@ -298,12 +298,12 @@ Email: john@example.com
 Password: User@123456
 ```
 
-### Razorpay Test Cards
+### Stripe Test Cards
 
 **Successful Payment:**
 ```
-Card: 4111 1111 1111 1111
-CVV: 123
+Card: 4242 4242 4242 4242
+CVV: Any 3 digits
 Expiry: Any future date
 ```
 
@@ -335,7 +335,7 @@ Card: 4000 0000 0000 0002
 
 **Frontend (Vercel):**
 - Set `VITE_SERVER_URL` to your backend URL
-- Set `VITE_RAZORPAY_KEY_ID` (use live key for production)
+- No Stripe configuration is needed on the frontend — checkout redirects to a Stripe-hosted page, the client never handles a publishable key or card details directly
 
 ---
 

@@ -243,51 +243,65 @@ const getPizzaById = async (req, res, next) => {
 
 ### All Error Codes
 
+These are string codes (not the numeric `AUTH_1001`-style scheme this doc previously described) — this is the actual content of `server/constants/errorCodes.js`:
+
 ```javascript
 const ERROR_CODES = {
-  // Authentication (1xxx)
-  INVALID_CREDENTIALS: 'AUTH_1001',
-  INVALID_TOKEN: 'AUTH_1002',
-  TOKEN_EXPIRED: 'AUTH_1003',
-  UNAUTHORIZED: 'AUTH_1004',
-  FORBIDDEN: 'AUTH_1005',
-  ADMIN_NOT_APPROVED: 'AUTH_1006',
+  // Validation Errors (400)
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  INVALID_INPUT: 'INVALID_INPUT',
+  MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD',
 
-  // Resource (2xxx)
-  NOT_FOUND: 'RESOURCE_2001',
-  ALREADY_EXISTS: 'RESOURCE_2002',
-  
-  // Validation (3xxx)
-  VALIDATION_ERROR: 'VALIDATION_3001',
-  BAD_REQUEST: 'VALIDATION_3002',
-  INVALID_INPUT: 'VALIDATION_3003',
-  
-  // Payment (4xxx)
-  PAYMENT_FAILED: 'PAYMENT_4001',
-  PAYMENT_VERIFICATION_FAILED: 'PAYMENT_4002',
-  
-  // Server (5xxx)
-  INTERNAL_SERVER_ERROR: 'SERVER_5001',
-  DATABASE_ERROR: 'SERVER_5002',
-  
-  // Other
-  UNKNOWN_ERROR: 'UNKNOWN_0000'
+  // Authentication Errors (401)
+  AUTHENTICATION_ERROR: 'AUTH_ERROR',
+  INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+  TOKEN_INVALID: 'TOKEN_INVALID',
+  EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
+
+  // Authorization Errors (403)
+  AUTHORIZATION_ERROR: 'FORBIDDEN',
+  INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
+  ACCOUNT_NOT_APPROVED: 'ACCOUNT_NOT_APPROVED',
+
+  // Not Found Errors (404)
+  NOT_FOUND: 'NOT_FOUND',
+  RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
+  USER_NOT_FOUND: 'USER_NOT_FOUND',
+  ORDER_NOT_FOUND: 'ORDER_NOT_FOUND',
+  PIZZA_NOT_FOUND: 'PIZZA_NOT_FOUND',
+
+  // Conflict Errors (409)
+  DUPLICATE_ENTRY: 'DUPLICATE',
+  EMAIL_ALREADY_EXISTS: 'EMAIL_EXISTS',
+  RESOURCE_ALREADY_EXISTS: 'RESOURCE_EXISTS',
+
+  // Business Logic Errors (400/422)
+  INSUFFICIENT_INVENTORY: 'LOW_STOCK',
+  INVENTORY_UNAVAILABLE: 'INVENTORY_UNAVAILABLE',
+  INVALID_ORDER_STATUS: 'INVALID_ORDER_STATUS',
+
+  // Payment Errors (402/500)
+  PAYMENT_FAILED: 'PAYMENT_ERROR',
+  PAYMENT_INVALID: 'PAYMENT_INVALID',
+  PAYMENT_SIGNATURE_INVALID: 'PAYMENT_SIGNATURE_INVALID',
+  WEBHOOK_VERIFICATION_FAILED: 'WEBHOOK_VERIFICATION_FAILED',
+
+  // Server Errors (500)
+  SERVER_ERROR: 'INTERNAL_ERROR',
+  DATABASE_ERROR: 'DATABASE_ERROR',
+  EMAIL_SEND_FAILED: 'EMAIL_SEND_FAILED',
+
+  // Network Errors (Client-side)
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  REQUEST_TIMEOUT: 'REQUEST_TIMEOUT',
+
+  // Rate Limiting (429)
+  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
 };
 ```
 
-### Error Code Mapping
-
-```javascript
-// Maps HTTP status codes to generic error codes
-const statusToErrorCode = {
-  400: 'BAD_REQUEST',
-  401: 'UNAUTHORIZED',
-  403: 'FORBIDDEN',
-  404: 'NOT_FOUND',
-  409: 'ALREADY_EXISTS',
-  500: 'INTERNAL_SERVER_ERROR'
-};
-```
+Each `ApiError` factory method (`server/utils/ApiError.js`) is paired with one of these codes and its matching HTTP status — e.g. `ApiError.invalidCredentials()` → `INVALID_CREDENTIALS` / 401, `ApiError.notFound()` → `NOT_FOUND` / 404, `ApiError.emailExists()` → `EMAIL_EXISTS` / 409, `ApiError.accountNotApproved()` → `ACCOUNT_NOT_APPROVED` / 403.
 
 ---
 
@@ -614,7 +628,7 @@ const getPizzaById = async (req, res, next) => {
 {
   "success": false,
   "error": {
-    "code": "RESOURCE_2001",
+    "code": "NOT_FOUND",
     "message": "Pizza not found: 507f1f77bcf86cd799439011",
     "timestamp": "2026-02-22T10:30:00.000Z",
     "path": "/api/pizzas/507f1f77bcf86cd799439011",
@@ -656,7 +670,7 @@ router.post(
 {
   "success": false,
   "error": {
-    "code": "VALIDATION_3001",
+    "code": "VALIDATION_ERROR",
     "message": "Email is required",
     "details": [
       { "field": "email", "message": "Email is required", "value": "" },
@@ -673,7 +687,7 @@ router.post(
 ```jsx
 <Message>{error}</Message>
 // Displays:
-// ⚠️ Warning (VALIDATION_3001): Email is required
+// ⚠️ Warning (VALIDATION_ERROR): Email is required
 // • email: Email is required
 // • password: Password must be at least 6 characters
 ```
@@ -704,8 +718,8 @@ const loginUser = async (req, res, next) => {
 {
   "success": false,
   "error": {
-    "code": "AUTH_1001",
-    "message": "Invalid email or password",
+    "code": "INVALID_CREDENTIALS",
+    "message": "The email or password you entered is incorrect. Please try again.",
     "timestamp": "2026-02-22T10:30:00.000Z",
     "path": "/api/users/login",
     "requestId": "req_abc123"
@@ -715,24 +729,25 @@ const loginUser = async (req, res, next) => {
 
 ### Example 4: Payment Error
 
-**Backend:**
+Payments go through Stripe Checkout, not client-submitted signature fields — the server verifies the webhook signature Stripe sends, not anything the client posts.
+
+**Backend** (`server/controllers/orderControllers.js`, `handleStripeWebhook`):
 ```javascript
-const verifyPayment = async (req, res, next) => {
-  try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    
-    const isValid = verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
-    
-    if (!isValid) {
-      throw ApiError.paymentVerificationFailed();
-    }
-    
-    // ... create order
-    res.json(ApiResponse.created(order, 'Order created successfully'));
-  } catch (error) {
-    next(error);
-  }
-};
+const sig = req.headers['stripe-signature'];
+let event;
+
+try {
+  event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+} catch (err) {
+  console.error('Webhook signature verification failed:', err.message);
+  return res.status(400).send('Webhook signature verification failed');
+}
+```
+
+If checkout session creation itself fails (e.g. Stripe API error), `createStripeCheckoutSession` rolls back the inventory it deducted and responds with:
+
+```javascript
+throw ApiError.paymentError('Failed to create checkout session. Please try again.');
 ```
 
 ---
@@ -751,7 +766,7 @@ const verifyPayment = async (req, res, next) => {
 **Status:** 401
 **Solution:** Verify credentials
 
-### UNAUTHORIZED
+### AUTH_ERROR
 
 **Cause:** Missing or invalid JWT token
 **Status:** 401
@@ -769,17 +784,17 @@ const verifyPayment = async (req, res, next) => {
 **Status:** 404
 **Solution:** Verify resource ID
 
-### ALREADY_EXISTS
+### EMAIL_EXISTS
 
 **Cause:** Duplicate resource (e.g., email already registered)
 **Status:** 409
 **Solution:** Use different identifier
 
-### PAYMENT_FAILED
+### PAYMENT_ERROR
 
-**Cause:** Payment processing failed
-**Status:** 400
-**Solution:** Try different payment method or card
+**Cause:** Payment processing failed (e.g. Stripe checkout session creation failed)
+**Status:** 402
+**Solution:** Try again; if it persists, try a different payment method
 
 ---
 

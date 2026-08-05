@@ -88,17 +88,25 @@ All errors follow a standardized format:
 
 ### Common Error Codes
 
+These match `server/constants/errorCodes.js` exactly — the values shown are what actually appears in the response `code` field.
+
 | Code | Status | Description |
 |------|--------|-------------|
-| `AUTH_1001` | 401 | Invalid credentials |
-| `AUTH_1002` | 401 | Invalid token |
-| `AUTH_1003` | 401 | Token expired |
-| `AUTH_1004` | 401 | Unauthorized |
-| `AUTH_1005` | 403 | Forbidden |
-| `VALIDATION_3001` | 400 | Validation error |
-| `RESOURCE_2001` | 404 | Resource not found |
-| `RESOURCE_2002` | 409 | Already exists |
-| `PAYMENT_4001` | 400 | Payment failed |
+| `AUTH_ERROR` | 401 | Missing/invalid JWT token |
+| `INVALID_CREDENTIALS` | 401 | Wrong email or password |
+| `TOKEN_EXPIRED` | 401 | JWT has expired |
+| `TOKEN_INVALID` | 401 | JWT is malformed/invalid |
+| `EMAIL_NOT_VERIFIED` | 401 | Account email not yet verified |
+| `FORBIDDEN` | 403 | Insufficient role/permissions |
+| `ACCOUNT_NOT_APPROVED` | 403 | Admin/manager account pending approval |
+| `NOT_FOUND` | 404 | Generic resource not found |
+| `EMAIL_EXISTS` | 409 | Email already registered |
+| `RESOURCE_EXISTS` | 409 | Resource already exists |
+| `VALIDATION_ERROR` | 400 | Request body failed validation |
+| `LOW_STOCK` | 400 | Insufficient inventory for the order |
+| `PAYMENT_ERROR` | 402 | Stripe payment/checkout failed |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
 
 See [Error Handling Guide](./ERROR_HANDLING.md) for complete reference.
 
@@ -661,18 +669,27 @@ Delete a pizza.
 
 ## Order Endpoints
 
-### Create Razorpay Order
+### Create Stripe Checkout Session
 
-Create Razorpay order for checkout.
+Create a Stripe Checkout session for the cart and redirect to Stripe's hosted checkout page. Pricing (item prices, sales tax, delivery charges) is recomputed server-side from the database — client-supplied prices/totals are never trusted. Inventory is checked and deducted before the session is created, and rolled back if session creation fails.
 
-**Endpoint:** `POST /orders/checkout`
+**Endpoint:** `POST /orders/create-checkout-session`
 
 **Auth Required:** Yes (User)
 
 **Request Body:**
 ```json
 {
-  "amount": 2499
+  "orderItems": [
+    { "_id": "pizza_id_1", "qty": 2, "size": "medium", "name": "Margherita", "imageUrl": "..." }
+  ],
+  "deliveryAddress": {
+    "phoneNumber": "1234567890",
+    "address": "123 Main St",
+    "city": "New York",
+    "postalCode": "10001",
+    "country": "USA"
+  }
 }
 ```
 
@@ -681,18 +698,21 @@ Create Razorpay order for checkout.
 {
   "success": true,
   "data": {
-    "id": "order_xxxxxxxxxxxxx",
-    "amount": 2499,
-    "currency": "INR"
-  }
+    "sessionId": "cs_test_xxxxxxxxxxxxx",
+    "url": "https://checkout.stripe.com/c/pay/cs_test_xxxxxxxxxxxxx",
+    "orderId": "order_id"
+  },
+  "message": "Stripe checkout session created successfully"
 }
 ```
 
+The client redirects the browser to `data.url`. Stripe redirects back to `${FRONTEND_URL}/checkout/success` or `/checkout/cancel` after payment; the order's actual payment status is confirmed separately via the webhook below, not by the redirect itself.
+
 ---
 
-### Create Order
+### Create Order (Cash on Delivery)
 
-Create order after successful payment.
+Create an order directly, without going through Stripe — used for the COD payment method.
 
 **Endpoint:** `POST /orders`
 
@@ -702,11 +722,7 @@ Create order after successful payment.
 ```json
 {
   "orderItems": [
-    {
-      "pizza": "pizza_id_1",
-      "qty": 2,
-      "price": 12.99
-    }
+    { "_id": "pizza_id_1", "qty": 2, "size": "medium", "name": "Margherita" }
   ],
   "deliveryAddress": {
     "phoneNumber": "1234567890",
@@ -715,17 +731,13 @@ Create order after successful payment.
     "postalCode": "10001",
     "country": "USA"
   },
-  "salesTax": 2.50,
-  "deliveryCharges": 5.00,
-  "totalPrice": 35.48,
   "payment": {
-    "method": "razorpay",
-    "razorpayOrderId": "order_xxxxx",
-    "razorpayPaymentId": "pay_xxxxx",
-    "razorpaySignature": "signature_xxxxx"
+    "method": "cod"
   }
 }
 ```
+
+Note: `salesTax`/`deliveryCharges`/`totalPrice`/item `price` are all recomputed server-side (`pricingUtils.calculateOrderPricing`) regardless of what's sent — they don't need to be (and won't be trusted if) included in the request.
 
 **Success Response:** (201 Created)
 ```json
@@ -869,26 +881,32 @@ Update order status.
 
 ---
 
-### Razorpay Webhook
+### Stripe Webhook
 
-Handle Razorpay payment webhooks.
+Handles Stripe payment events: `checkout.session.completed` (marks the order paid, sends the confirmation email — idempotent against Stripe's at-least-once delivery retries) and `payment_intent.payment_failed` (marks the order payment failed).
 
-**Endpoint:** `POST /orders/webhook`
+**Endpoint:** `POST /api/orders/stripe-webhook`
 
-**Auth Required:** No (Razorpay signature verification)
+Note this is the one route in the API *not* prefixed under `/api/orders` relative to the documented base URL the way other order endpoints are — it's registered directly on the Express app in `server/index.js`, ahead of the global JSON body parsers, because Stripe's signature verification requires the raw, unparsed request body.
+
+**Auth Required:** No (Stripe signature verification instead — see below)
 
 **Headers:**
 ```
-X-Razorpay-Signature: <signature>
+stripe-signature: <signature>
 ```
 
-**Request Body:** (Razorpay webhook payload)
+Verified server-side via `stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET)`. A missing/invalid signature gets a `400` before any event is processed.
+
+**Request Body:** raw Stripe event payload, e.g.:
 ```json
 {
-  "event": "payment.captured",
-  "payload": {
-    "payment": {
-      "entity": {...}
+  "type": "checkout.session.completed",
+  "data": {
+    "object": {
+      "id": "cs_test_xxxxxxxxxxxxx",
+      "payment_intent": "pi_xxxxxxxxxxxxx",
+      "metadata": { "orderId": "...", "userId": "..." }
     }
   }
 }
@@ -897,7 +915,7 @@ X-Razorpay-Signature: <signature>
 **Success Response:** (200 OK)
 ```json
 {
-  "success": true
+  "received": true
 }
 ```
 
@@ -1084,10 +1102,13 @@ Get revenue data over time.
 
 ## Rate Limiting
 
-API endpoints are rate-limited to prevent abuse:
+API endpoints are rate-limited to prevent abuse (`server/middlewares/rateLimitMiddleware.js`):
 
-- **Global:** 100 requests per 15 minutes
-- **Login/Register:** 5 requests per 15 minutes
+- **Global (`apiLimiter`):** 100 requests per 15 minutes
+- **Login (`authLimiter`):** 5 requests per 15 minutes (successful requests don't count against the limit)
+- **Registration (`registrationLimiter`):** 3 requests per hour
+- **Payment (`paymentLimiter`):** 10 requests per 15 minutes
+- **Password reset (`passwordResetLimiter`):** 3 requests per hour
 
 **Rate Limit Headers:**
 ```

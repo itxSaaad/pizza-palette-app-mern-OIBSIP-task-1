@@ -1,31 +1,30 @@
 /**
  * Currency Constants
- * 
+ *
  * Defines currency codes and symbols used throughout the application.
- * These must match the supported currencies in your payment gateway (Razorpay).
- * 
+ * These must match the supported currencies in your payment gateway (Stripe).
+ *
  * @module constants/currency
  */
 
 /**
- * Default currency code
- * Razorpay test mode and most Indian accounts support INR only
+ * Default currency code — matches the `currency: 'usd'` Stripe Checkout
+ * line items are created with server-side.
  */
-export const DEFAULT_CURRENCY = 'INR';
+export const DEFAULT_CURRENCY = 'USD';
 
 /**
  * Currency display symbols
  */
 export const CURRENCY_SYMBOLS = Object.freeze({
-  INR: '₹',
   USD: '$',
 });
 
 /**
  * Get currency symbol for a given currency code
- * @param {string} currencyCode - ISO currency code (e.g., 'INR', 'USD')
+ * @param {string} currencyCode - ISO currency code (e.g., 'USD')
  * @returns {string} Currency symbol
  */
 export const getCurrencySymbol = (currencyCode = DEFAULT_CURRENCY) => {
-  return CURRENCY_SYMBOLS[currencyCode] || CURRENCY_SYMBOLS.INR;
+  return CURRENCY_SYMBOLS[currencyCode] || CURRENCY_SYMBOLS.USD;
 };
