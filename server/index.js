@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 // Import Configs and Middlewares
 const connectDb = require('./config/db');
@@ -44,9 +45,16 @@ app.get('/api', (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ service: 'pizza-palette-api', status: 'ok' });
-});
+const healthHandler = (req, res) => {
+  const databaseReady = mongoose.connection.readyState === 1;
+  res.status(databaseReady ? 200 : 503).json({
+    service: 'pizza-palette-api',
+    status: databaseReady ? 'ok' : 'degraded',
+    database: databaseReady ? 'connected' : 'not-ready',
+  });
+};
+
+app.get(['/api/health', '/health'], healthHandler);
 
 // Parse incoming JSON data
 app.use(express.json());
