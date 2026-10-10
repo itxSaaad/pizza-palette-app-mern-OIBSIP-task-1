@@ -1,24 +1,24 @@
 /**
  * Currency Constants
- * 
+ *
  * Defines currency codes used throughout the application.
- * These must match the supported currencies in your payment gateway (Razorpay).
- * 
+ * These must match the supported currencies in your payment gateway (Stripe).
+ *
  * @module constants/currency
  */
 
 /**
- * Default currency code
- * Razorpay test mode and most Indian accounts support INR only
+ * Default currency code — matches the `currency: 'usd'` Stripe Checkout
+ * line items are created with in orderControllers.js.
  */
-const DEFAULT_CURRENCY = 'INR';
+const DEFAULT_CURRENCY = 'USD';
 
 /**
  * Supported currencies
- * Add more currencies here if your Razorpay account supports them
+ * Add more currencies here if you enable additional currencies in Stripe.
  */
 const SUPPORTED_CURRENCIES = Object.freeze([
-  'INR', // Indian Rupee (required for Razorpay test mode)
+  'USD', // US Dollar
 ]);
 
 module.exports = {

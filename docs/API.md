@@ -1084,10 +1084,13 @@ Get revenue data over time.
 
 ## Rate Limiting
 
-API endpoints are rate-limited to prevent abuse:
+API endpoints are rate-limited to prevent abuse (`server/middlewares/rateLimitMiddleware.js`):
 
-- **Global:** 100 requests per 15 minutes
-- **Login/Register:** 5 requests per 15 minutes
+- **Global (`apiLimiter`):** 100 requests per 15 minutes
+- **Login (`authLimiter`):** 5 requests per 15 minutes (successful requests don't count against the limit)
+- **Registration (`registrationLimiter`):** 3 requests per hour
+- **Payment (`paymentLimiter`):** 10 requests per 15 minutes
+- **Password reset (`passwordResetLimiter`):** 3 requests per hour
 
 **Rate Limit Headers:**
 ```

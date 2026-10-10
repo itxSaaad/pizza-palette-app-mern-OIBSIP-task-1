@@ -5,6 +5,7 @@ const router = express.Router();
 
 // Import Middlewares
 const { protect, admin } = require('../middlewares/authMiddlewares');
+const { verifyCronSecret } = require('../middlewares/cronAuthMiddleware');
 const validationHandler = require('../middlewares/validationHandler');
 
 // Import Validators
@@ -25,6 +26,7 @@ const {
 const {
   checkAndSendAlerts,
   getLowInventoryItems,
+  runScheduledCheck,
 } = require('../controllers/inventoryAlertControllers');
 
 // Initialize Routes
@@ -39,6 +41,10 @@ router.get('/', protect, getAllStocks);
 // routes would never be reached.
 router.post('/check-alerts', protect, admin, checkAndSendAlerts);
 router.get('/low-stock', protect, admin, getLowInventoryItems);
+// Triggered by Vercel Cron in production (see server/vercel.json) since
+// node-cron can't run inside a serverless function — auth is a shared
+// secret, not an admin session (see cronAuthMiddleware).
+router.get('/cron/check-alerts', verifyCronSecret, runScheduledCheck);
 
 router.get('/:id', protect, getStockById);
 
