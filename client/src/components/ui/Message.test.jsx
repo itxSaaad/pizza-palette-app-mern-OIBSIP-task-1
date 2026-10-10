@@ -24,7 +24,10 @@ describe('Message auto variant inference', () => {
   it('renders a legacy { status, message } 5xx error as an error', () => {
     render(<Message>{{ status: 500, message: 'Server exploded' }}</Message>);
     expect(screen.getByText(/Error/)).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent('Server exploded');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Something went wrong on our end. Please try again in a moment.'
+    );
+    expect(screen.getByRole('alert')).not.toHaveTextContent('Server exploded');
   });
 
   it('renders a { success: true, message } object as a success alert', () => {
