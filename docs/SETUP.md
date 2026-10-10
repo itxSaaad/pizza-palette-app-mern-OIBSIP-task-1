@@ -251,26 +251,49 @@ For detailed Razorpay configuration, see [RAZORPAY_SETUP.md](../RAZORPAY_SETUP.m
 
 ## Email Configuration
 
-### Using Gmail
+The backend sends transactional emails (verification, password reset, order
+status updates) via [Nodemailer](https://nodemailer.com/), configured
+through environment variables so any SMTP provider can be used — it
+defaults to Zoho Mail if `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE` are left
+unset.
 
-1. **Enable 2-Factor Authentication**
-   - Go to Google Account settings
-   - Security → 2-Step Verification
-   - Enable 2FA
+### Using Zoho Mail (default)
 
-2. **Create App Password**
-   - Go to Google Account → Security
-   - App passwords
-   - Select "Mail" and "Other (Custom name)"
-   - Enter "Pizza Palette"
-   - Copy the 16-character password
+1. **Generate an App-Specific Password**
+   - Log in to [Zoho Mail](https://mail.zoho.com)
+   - Go to **Settings → Security → App Passwords**
+   - Generate a new app password for "Pizza Palette"
+   - Copy the generated password
 
-3. **Update .env**
+2. **Update .env**
    ```bash
-   SENDER_EMAIL=your.email@gmail.com
-   SENDER_PASSWORD=xxxx xxxx xxxx xxxx  # App password
+   SENDER_EMAIL=your.email@yourdomain.com
+   SENDER_PASSWORD=your_zoho_app_password
    SUPERADMIN_EMAIL=admin@example.com
    ```
+
+   `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE` don't need to be set for Zoho's
+   global (US) data center — they default to `smtp.zoho.com:465` (SSL). If
+   your account is on a different Zoho data center (e.g. India), set:
+   ```bash
+   SMTP_HOST=smtp.zoho.in
+   ```
+
+### Using a Different Provider (e.g. Gmail)
+
+Override the SMTP settings explicitly:
+
+```bash
+SENDER_EMAIL=your.email@gmail.com
+SENDER_PASSWORD=xxxx xxxx xxxx xxxx  # App password, not your regular password
+SUPERADMIN_EMAIL=admin@example.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+```
+
+For Gmail specifically: enable 2-Factor Authentication in your Google
+Account, then go to **Security → App passwords** to generate one.
 
 ---
 
