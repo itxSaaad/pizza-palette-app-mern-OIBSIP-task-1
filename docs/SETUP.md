@@ -83,6 +83,8 @@ MONGO_URI=mongodb://localhost:27017/pizza-delivery-app
 # Generate: openssl rand -base64 64
 JWT_SECRET=your_super_secret_jwt_key_at_least_32_characters_long
 SALT=10
+# Production bootstrap gate for an empty database; configure privately in the host.
+# INITIAL_ADMIN_SETUP_KEY=your_private_random_value
 
 # Email Configuration (Nodemailer)
 # For Gmail: Enable 2FA and create App Password
@@ -257,9 +259,7 @@ Account, then go to **Security → App passwords** to generate one.
 
 ## Seed Database
 
-Populate the database with test data:
-
-This command is for a local development database only. The importer waits for MongoDB before writing, and it refuses to run when `NODE_ENV=production`. Deployed demo users are not created automatically; create the first production administrator through the one-time `/setup` flow described in [Health Checks and Login Troubleshooting](./operations/HEALTH_AND_LOGIN.md).
+Populate the database with the sample accounts, catalog, and inventory in `server/data/`. The importer waits for MongoDB before writing. Production mode is explicit and uses the same demo account credentials as the local seed; those credentials are in the repository, so change them before sharing the live deployment.
 
 ### Import Data
 
@@ -272,19 +272,20 @@ cd server
 node seeder.js
 ```
 
-**Output:**
-```
-✅ Database seeded successfully!
+Local mode creates demo accounts, sample catalog, and inventory. Credentials are defined in `server/data/users.js`; production import is available only through the explicit production command below. These committed sample passwords are public, so change them immediately after using them in production.
 
-TEST CREDENTIALS:
-Admin: admin1@pizzapalette.com / Admin@123456
-Admin: admin2@pizzapalette.com / Manager@123456
-User: john@example.com / User@123456
-User: jane@example.com / User@123456
-User: test@example.com / User@123456
+### Seed a production catalog
+
+1. Set `MONGO_URI` in the root `.env` to the intended production MongoDB database. Keep this ignored file private and double-check the target before proceeding.
+2. From the repository root, explicitly run the production importer:
+
+```powershell
+pnpm run data:import:production
 ```
 
-### Destroy Data
+This inserts the sample users, admins, pizzas, and inventory. Existing inventory is reused by item name and matching sample pizzas are left in place. To remove existing sample records and recreate them in one explicit operation, use `pnpm run data:sync:production` after checking that the root `.env` targets the intended database.
+
+### Remove seeded data only
 
 ```bash
 # From root directory
@@ -295,11 +296,17 @@ cd server
 node seeder.js -d
 ```
 
-### What Gets Seeded:
-- 2 admin users (admin + manager)
-- 3 regular users (2 verified, 1 unverified)
-- 11 pizzas with various sizes
-- Inventory items (bases, sauces, cheeses, veggies)
+Cleanup uses identities from the checked-in seed data rather than a database-wide wipe: it removes only users/admins whose email is listed in `server/data/users.js`, pizzas matching the seeded name/description/price/image/creator, and inventory matching a seeded item/price/threshold tuple. Seed-account imports upsert only those listed emails, which also repairs their passwords and prevents duplicate-email errors. Other signup emails, orders, and non-matching records stay in place. The inventory match intentionally ignores quantity so used sample stock can be reset. Review the target database before running production cleanup:
+
+```powershell
+pnpm run data:destroy:production
+```
+
+The production destroy and sync commands require the explicit `--production` and `--confirm-production-destroy` flags (included in the scripts). This is not a database reset. Any seed record you edited so its identifying fields no longer match is preserved for manual review.
+
+### What Gets Seeded
+- Local mode: 2 demo admins, 3 demo users, sample pizzas, and inventory items (bases, sauces, cheeses, veggies).
+- Production mode: sample admins, users, pizzas, and inventory. Change sample account passwords immediately. If you use `/setup` instead, production requires the private `INITIAL_ADMIN_SETUP_KEY` and `/setup` closes after the first admin exists.
 
 ---
 
@@ -525,13 +532,13 @@ db.users.find().pretty()
 db.pizzas.find().pretty()
 ```
 
-### Clear All Data
+### Reset the tagged sample seed batch
 
 ```bash
-# Destroy all seeded data
+# Remove only records tagged by the sample seeder
 pnpm run data:destroy
 
-# Reseed fresh data
+# Import a fresh local sample batch
 pnpm run data:import
 ```
 

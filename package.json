@@ -16,7 +16,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "data:import": "node server/seeder",
-    "data:destroy": "node server/seeder -d"
+    "data:destroy": "node server/seeder --destroy",
+    "data:import:production": "node server/seeder --production",
+    "data:destroy:production": "node server/seeder --production --destroy --confirm-production-destroy",
+    "data:sync:production": "node server/seeder --production --sync --confirm-production-destroy"
   },
   "repository": {
     "type": "git",
