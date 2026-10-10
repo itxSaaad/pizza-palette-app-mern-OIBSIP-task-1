@@ -23,7 +23,7 @@ Pizza Palette uses **Stripe Checkout** for payments — the backend creates a
 Stripe-hosted checkout session and redirects the browser to it
 (`window.location.href = session.url`). There is no Stripe.js/Elements
 integration on the frontend; the client never handles card details directly,
-so no Stripe publishable key is needed in `client/.env`.
+so no Stripe publishable key is needed in frontend configuration.
 
 Two pieces of Stripe configuration matter for local development:
 
@@ -101,14 +101,14 @@ Stripe account — useful for `stripe listen` (webhook forwarding, below).
 > **Don't use `stripe config --list`'s `test_mode_api_key` for
 > `STRIPE_SECRET_KEY`.** That's a CLI-generated _restricted_ key that
 > expires after 90 days — fine for a quick local test, but it will silently
-> stop working in any long-lived `.env` file. Always get `STRIPE_SECRET_KEY`
+> stop working in any long-lived local configuration. Always get `STRIPE_SECRET_KEY`
 > from the Dashboard (Option A) instead.
 
 ---
 
 ## Configure Environment Variables
 
-In the root `.env` file (see [SETUP.md](./SETUP.md#environment-configuration)
+In the local backend environment (see [SETUP.md](./SETUP.md#environment-configuration)
 for the full list), set:
 
 ```bash
@@ -121,7 +121,7 @@ section. Don't use a placeholder value here; the webhook route will
 correctly reject every event with a `400` if the secret doesn't match what
 signed the incoming request, so a placeholder means webhooks silently never work.
 
-No frontend (`client/.env`) Stripe configuration is needed for local
+No frontend Stripe configuration is needed for local
 development, since the app doesn't use Stripe.js/Elements client-side.
 
 ---
@@ -140,7 +140,7 @@ This prints something like:
 Ready! You are using Stripe API Version [...]. Your webhook signing secret is whsec_xxxxxxxxxxxx (^C to quit)
 ```
 
-Copy that `whsec_...` value into `STRIPE_WEBHOOK_SECRET` in your `.env`, then
+Copy that `whsec_...` value into `STRIPE_WEBHOOK_SECRET` in your local environment, then
 (re)start the backend so it picks up the new value:
 
 ```bash
@@ -149,7 +149,7 @@ npm run server
 
 > **Note:** this webhook secret is generated fresh **every time** you run
 > `stripe listen` — it's not a permanent value like your API key. If you
-> restart `stripe listen` in a new session, update `.env` again with the new
+> restart `stripe listen` in a new session, update the local environment with the new
 > secret it prints, or your webhook signature checks will fail until you do.
 
 ---
@@ -194,12 +194,12 @@ not a bug, since it wasn't created through a real checkout session).
 
 ### Server crashes on startup: `Error: Neither apiKey nor config.authenticator provided`
 
-`STRIPE_SECRET_KEY` is missing or empty in `.env`. Double check the variable
-name and that `.env` is in the **repo root** (not inside `server/`) — the
+`STRIPE_SECRET_KEY` is missing or empty in the local backend environment. Double check the variable
+name and that it is loaded before the controller imports — the
 backend's `dotenv.config()` reads from whatever directory the process is
 launched from, and the documented `npm run server` / `npm run dev` scripts
-(run from the repo root) are what correctly pick up the root `.env`. If you
-`cd server` and run `npm run dev` directly instead, `.env` won't be found.
+(run from the repo root) are what correctly load the local backend environment. If you
+`cd server` and run `npm run dev` directly instead, confirm the repository-root configuration is loaded.
 
 ### Webhook always returns 400: `Webhook payload must be provided as a string or Buffer`
 
@@ -218,7 +218,7 @@ you restart `stripe listen`.
 ### Payment succeeds in Stripe but the order never updates
 
 Check that `stripe listen --forward-to localhost:5000/api/orders/stripe-webhook`
-is actually running and pointed at the right port (`PORT` in `.env`, default
+is actually running and pointed at the right port (`PORT`, default
 `5000`). If `npm run dev` is using a different port, adjust the `--forward-to`
 URL to match.
 

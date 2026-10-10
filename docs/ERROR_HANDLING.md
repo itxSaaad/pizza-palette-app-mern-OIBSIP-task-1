@@ -459,7 +459,7 @@ import Message from './components/ui/Message';
 Features:
 - Auto-detects error type and severity
 - Displays field-level validation errors
-- Shows error codes
+- Keeps internal error codes out of customer-facing alerts
 - Auto-dismiss after 8 seconds
 - Manual close button
 

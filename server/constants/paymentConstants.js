@@ -37,6 +37,7 @@ const PAYMENT_STATUS_VALUES = Object.values(PAYMENT_STATUS);
 const STRIPE_EVENTS = Object.freeze({
   CHECKOUT_COMPLETED: 'checkout.session.completed',
   PAYMENT_FAILED: 'payment_intent.payment_failed',
+  CHECKOUT_EXPIRED: 'checkout.session.expired',
 });
 
 module.exports = {

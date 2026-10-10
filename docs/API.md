@@ -25,7 +25,7 @@ http://localhost:5000/api
 
 **Production:**
 ```
-https://your-backend.vercel.app/api
+https://pizza-palette-app-mern.vercel.app/api
 ```
 
 ---
@@ -106,6 +106,7 @@ These match `server/constants/errorCodes.js` exactly — the values shown are wh
 | `LOW_STOCK` | 400 | Insufficient inventory for the order |
 | `PAYMENT_ERROR` | 402 | Stripe payment/checkout failed |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |
+| `SERVICE_UNAVAILABLE` | 503 | Readiness check failed because a required service (MongoDB) is not available |
 | `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
 
 See [Error Handling Guide](./ERROR_HANDLING.md) for complete reference.
@@ -164,42 +165,37 @@ Create a new user account.
 
 ---
 
-### Login User
+### Unified Login
 
-Authenticate existing user.
+Authenticate either a customer or an approved administrator/manager. Email is normalized before lookup; the server checks customers and then administrators.
 
-**Endpoint:** `POST /users/login`
+**Endpoint:** `POST /auth/login`
 
 **Auth Required:** No
 
 **Request Body:**
 ```json
 {
-  "email": "john@example.com",
-  "password": "Password@123"
+  "email": "person@example.com",
+  "password": "your-password"
 }
 ```
 
-**Success Response:** (200 OK)
+**Success Response:** (200 OK; the response identifies the account type)
 ```json
 {
-  "success": true,
-  "data": {
-    "_id": "507f1f77bcf86cd799439011",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "token": "eyJhbGciOiJIUzI1NiIs..."
-  },
-  "message": "Login successful"
+  "type": "user",
+  "_id": "507f1f77bcf86cd799439011",
+  "name": "Example User",
+  "email": "person@example.com",
+  "token": "<jwt>",
+  "message": "Login Successful!"
 }
 ```
 
-**Error Responses:**
-- 401: Invalid credentials
-- 400: Validation error
+For an administrator response, `type` is `admin` and the payload includes `role`, `permissions`, and `isApproved`. The API returns a 401 `INVALID_CREDENTIALS` when no matching account/password pair exists. Demo seed credentials are local-only; see [Health and Login Troubleshooting](./operations/HEALTH_AND_LOGIN.md) for deployed account setup.
 
 ---
-
 ### Get User Profile
 
 Get authenticated user's profile.
@@ -264,7 +260,7 @@ Update authenticated user's profile.
 
 Verify user email with verification code.
 
-**Endpoint:** `PUT /users/verify`
+**Endpoint:** `POST /users/verify`
 
 **Auth Required:** Yes (User)
 
@@ -289,7 +285,7 @@ Verify user email with verification code.
 
 Request password reset.
 
-**Endpoint:** `POST /users/forgot-password`
+**Endpoint:** `POST /auth/forgotpassword`
 
 **Auth Required:** No
 
@@ -314,7 +310,7 @@ Request password reset.
 
 Reset password with reset token.
 
-**Endpoint:** `PUT /users/reset-password/:resetToken`
+**Endpoint:** `PUT /auth/resetpassword`
 
 **Auth Required:** No
 
@@ -337,136 +333,46 @@ Reset password with reset token.
 
 ## Admin Endpoints
 
-### Register Admin
+### Check First-Admin Setup Status
 
-Create a new admin account (requires approval).
-
-**Endpoint:** `POST /admin/users/register`
+**Endpoint:** `GET /admin/setup-status`
 
 **Auth Required:** No
 
-**Request Body:**
-```json
-{
-  "name": "Admin User",
-  "email": "admin@pizzapalette.com",
-  "password": "Admin@123456",
-  "role": "manager"
-}
-```
+Returns `{ "needsSetup": true }` only while this database has no administrator.
 
-**Validation:**
-- `role`: Optional, must be "admin" or "manager", defaults to "manager"
+### Create the First Administrator
 
-**Success Response:** (201 Created)
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "507f1f77bcf86cd799439011",
-    "name": "Admin User",
-    "email": "admin@pizzapalette.com",
-    "role": "manager",
-    "isApproved": false,
-    "token": "eyJhbGciOiJIUzI1NiIs..."
-  },
-  "message": "Admin registered. Awaiting approval."
-}
-```
+**Endpoint:** `POST /admin/setup`
 
----
+**Auth Required:** No; the operation is one-time and fails once an administrator exists.
 
-### Login Admin
+**Request Body:** `{ "name": "...", "email": "...", "password": "..." }`
 
-Authenticate admin user.
+The endpoint hashes the password, creates an approved admin, and returns a JWT. Use `/setup` in the application instead of calling this endpoint manually where possible. Do not use demo seed passwords in a deployed environment.
 
-**Endpoint:** `POST /admin/users/login`
+### Invite Admins and Managers
 
-**Auth Required:** No
-
-**Request Body:**
-```json
-{
-  "email": "admin1@pizzapalette.com",
-  "password": "Admin@123456"
-}
-```
-
-**Success Response:** (200 OK)
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "507f1f77bcf86cd799439011",
-    "name": "Admin User",
-    "email": "admin1@pizzapalette.com",
-    "role": "admin",
-    "token": "eyJhbGciOiJIUzI1NiIs..."
-  },
-  "message": "Login successful"
-}
-```
-
-**Error Responses:**
-- 403: Admin not approved
-- 401: Invalid credentials
-
----
-
-### Get All Admins
-
-List all admin accounts (Admin only).
-
-**Endpoint:** `GET /admin/users`
+**Endpoint:** `POST /admin/invites`
 
 **Auth Required:** Yes (Admin)
 
-**Success Response:** (200 OK)
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439011",
-      "name": "Admin User",
-      "email": "admin1@pizzapalette.com",
-      "role": "admin",
-      "isApproved": true
-    }
-  ]
-}
-```
+Creates a time-limited invite email. The invited person completes account creation through `POST /admin/invites/accept` with the invite token, name, and password. `GET /admin/invites` lists pending invites; `DELETE /admin/invites/:id` revokes one.
+
+### List and Manage Admin Accounts
+
+- `GET /admin` — list admins (Admin only)
+- `GET /admin/profile` and `PUT /admin/profile` — read/update the current admin profile
+- `GET /admin/:id`, `PUT /admin/:id`, `DELETE /admin/:id` — inspect, update, or remove an admin (Admin only)
+
+There is no public admin registration or separate admin login route. Admins and customers use the unified `/auth/login` endpoint.
 
 ---
-
-### Approve Admin
-
-Approve pending admin account (Admin only).
-
-**Endpoint:** `PUT /admin/users/:id/approve`
-
-**Auth Required:** Yes (Admin)
-
-**Success Response:** (200 OK)
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "507f1f77bcf86cd799439011",
-    "name": "Admin User",
-    "isApproved": true
-  },
-  "message": "Admin approved successfully"
-}
-```
-
----
-
 ### Get All Users (Admin)
 
 List all user accounts (Admin only).
 
-**Endpoint:** `GET /admin/users/all-users`
+**Endpoint:** `GET /users`
 
 **Auth Required:** Yes (Admin)
 
@@ -769,7 +675,7 @@ Note: `salesTax`/`deliveryCharges`/`totalPrice`/item `price` are all recomputed 
 
 Get authenticated user's orders.
 
-**Endpoint:** `GET /orders/myorders`
+**Endpoint:** `GET /orders/user`
 
 **Auth Required:** Yes (User)
 
@@ -852,7 +758,7 @@ Get all orders with filters.
 
 Update order status.
 
-**Endpoint:** `PUT /orders/:id/status`
+**Endpoint:** `PUT /orders/:id`
 
 **Auth Required:** Yes (Admin)
 
@@ -927,7 +833,7 @@ Verified server-side via `stripe.webhooks.constructEvent(req.body, sig, process.
 
 Get all inventory items.
 
-**Endpoint:** `GET /inventory`
+**Endpoint:** `GET /stocks`
 
 **Auth Required:** No
 
@@ -950,7 +856,7 @@ Get all inventory items.
 
 Add new inventory item.
 
-**Endpoint:** `POST /inventory`
+**Endpoint:** `POST /stocks`
 
 **Auth Required:** Yes (Admin)
 
@@ -993,7 +899,7 @@ Add new inventory item.
 
 Update inventory item.
 
-**Endpoint:** `PUT /inventory/:id`
+**Endpoint:** `PUT /stocks/:id`
 
 **Auth Required:** Yes (Admin)
 
@@ -1025,7 +931,7 @@ Update inventory item.
 
 Delete inventory item.
 
-**Endpoint:** `DELETE /inventory/:id`
+**Endpoint:** `DELETE /stocks/:id`
 
 **Auth Required:** Yes (Admin)
 
@@ -1045,7 +951,7 @@ Delete inventory item.
 
 Get dashboard statistics.
 
-**Endpoint:** `GET /analytics/dashboard-stats`
+**Endpoint:** `GET /analytics/dashboard`
 
 **Auth Required:** Yes (Admin)
 

@@ -13,6 +13,20 @@
  * @returns {string} User-friendly error message
  */
 export const extractErrorMessage = (error) => {
+  const status = error?.response?.status || error?.status || error?.statusCode;
+
+  if (
+    error?.code === 'NETWORK_ERROR' ||
+    error?.message === 'Network Error' ||
+    (!error?.response && error?.isAxiosError)
+  ) {
+    return "We couldn't reach the server. Check your connection and try again.";
+  }
+
+  if (status >= 500) {
+    return 'Something went wrong on our end. Please try again in a moment.';
+  }
+
   // Handle string errors (legacy format)
   if (typeof error === 'string') {
     return error;
@@ -44,8 +58,15 @@ export const extractErrorMessage = (error) => {
     return error.message;
   }
 
-  // Handle legacy format with status and message
-  if (error && error.message) {
+  // Axios messages such as "Request failed with status code 404" are
+  // implementation details; show a useful action instead.
+  if (status === 404) return 'We could not find what you were looking for.';
+  if (status === 401) return 'Please sign in again to continue.';
+  if (status === 403) return "You don't have permission to do that.";
+  if (status === 429) return 'You are making requests too quickly. Please wait and try again.';
+
+  // Handle legacy application errors, but hide raw Axios transport messages.
+  if (error?.message && !error?.isAxiosError) {
     return error.message;
   }
 

@@ -19,11 +19,19 @@ const { base, sauce, cheese, veggie } = require('./data/inventory');
 // Resolved relative to this file, not process.cwd() — see index.js for why.
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
-// Connect to MongoDB
-connectDb();
+const assertSeedIsNotProduction = () => {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'Sample seed data is disabled in production. Create the first administrator through /setup instead.'
+    );
+  }
+};
 
 const importData = async () => {
   try {
+    assertSeedIsNotProduction();
+    await connectDb();
+
     // Insert users and admins first
     const createdUsers = await User.insertMany(users);
     const createdAdmins = await Admin.insertMany(admins);
@@ -82,17 +90,22 @@ const importData = async () => {
     console.log('  • jane@example.com / User@123456'.green + ' (Verified)'.gray);
     console.log('  • test@example.com / User@123456'.green + ' (Not Verified)'.gray);
     console.log('\n' + '═'.repeat(60).cyan);
-    console.log('IMPORTANT:'.red.bold + ' Change these passwords in production!\n'.gray);
-
-    process.exit();
+    console.log('IMPORTANT:'.red.bold + ' These accounts are for local development only.\n'.gray);
   } catch (error) {
     console.error(`${error}`.red.inverse);
-    process.exit(1);
+    process.exitCode = 1;
+  } finally {
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect().catch((error) => console.error('MongoDB disconnect failed:', error.message));
+    }
   }
 };
 
 const destroyData = async () => {
   try {
+    assertSeedIsNotProduction();
+    await connectDb();
+
     await Admin.deleteMany();
     await Order.deleteMany();
     await Pizza.deleteMany();
@@ -103,10 +116,13 @@ const destroyData = async () => {
     await Veggie.deleteMany();
 
     console.log('Data Destroyed!'.red.inverse);
-    process.exit();
   } catch (error) {
     console.error(`${error}`.red.inverse);
-    process.exit(1);
+    process.exitCode = 1;
+  } finally {
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect().catch((error) => console.error('MongoDB disconnect failed:', error.message));
+    }
   }
 };
 

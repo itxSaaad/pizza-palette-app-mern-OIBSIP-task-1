@@ -17,12 +17,49 @@ const { calculateOrderPricing } = require('../utils/pricingUtils');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const { ORDER_STATUS, PAYMENT_STATUS, STRIPE_EVENTS, isAdminRole } = require('../constants');
+const Order = require('../schemas/orderSchema');
+const { Base, Sauce, Cheese, Veggie } = require('../schemas/inventorySchema');
+const inventoryModels = { base: Base, sauce: Sauce, cheese: Cheese, veggie: Veggie };
+
+const restoreExpiredOrderInventory = async (session) => {
+  const orderId = session.metadata?.orderId;
+  if (!orderId) return;
+
+  // Atomically claim the one-time restoration before incrementing inventory;
+  // Stripe retries and parallel webhook deliveries therefore cannot double it.
+  const dbSession = await mongoose.startSession();
+  try {
+    await dbSession.withTransaction(async () => {
+      const order = await Order.findOneAndUpdate(
+        {
+          _id: orderId,
+          'payment.status': { $nin: [PAYMENT_STATUS.SUCCESS, PAYMENT_STATUS.PAID] },
+          inventoryRestoredAt: { $exists: false },
+        },
+        { $set: { 'payment.status': PAYMENT_STATUS.FAILED, inventoryRestoredAt: new Date() } },
+        { new: false, session: dbSession }
+      );
+      if (!order) return;
+
+      for (const deduction of order.inventoryDeductions || []) {
+        const Model = inventoryModels[deduction.type];
+        if (!Model) throw new Error(`Unknown inventory type on order ${order._id}`);
+        await Model.findByIdAndUpdate(
+          deduction.ingredient,
+          { $inc: { quantity: deduction.quantity } },
+          { session: dbSession }
+        );
+      }
+    });
+  } finally {
+    await dbSession.endSession();
+  }
+};
 
 // Initialize Stripe
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Import Schemas
-const Order = require('../schemas/orderSchema');
 const Pizza = require('../schemas/pizzaSchema');
 const User = require('../schemas/userSchema');
 const sendEmail = require('../middlewares/nodemailerMiddleware');
@@ -398,13 +435,24 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
     }
 
     deductedInventory = deductionResult.deductions;
+    createdOrder.inventoryDeductions = deductedInventory.map(({ id, quantity, type, item }) => ({
+      ingredient: id,
+      quantity,
+      type,
+      item,
+    }));
+    await createdOrder.save();
     console.log(`Inventory deducted for order ${createdOrder._id}`);
   } catch (error) {
+    if (deductedInventory.length > 0) {
+      await rollbackInventoryDeductions(deductedInventory);
+    }
     // Rollback order if inventory deduction fails
     await Order.findByIdAndDelete(createdOrder._id);
     throw error;
   }
 
+  let checkoutSession;
   try {
     // Create line items for Stripe using server-recomputed prices only
     const lineItems = pricedItems.map((item) => ({
@@ -455,6 +503,7 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
       mode: 'payment',
       success_url: `${process.env.FRONTEND_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}&order_id=${createdOrder._id}`,
       cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel?order_id=${createdOrder._id}`,
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
       customer_email: req.user.email,
       metadata: {
         userId: req.user._id.toString(),
@@ -470,6 +519,9 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
         },
       },
     });
+    checkoutSession = session;
+    createdOrder.payment.stripeSessionId = session.id;
+    await createdOrder.save();
 
     return res.json(
       ApiResponse.success(
@@ -483,6 +535,11 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
     );
   } catch (error) {
     console.error('Stripe Checkout Session Error:', error);
+    if (checkoutSession?.id) {
+      await stripe.checkout.sessions.expire(checkoutSession.id).catch((expireError) => {
+        console.error('Could not expire unrecorded Stripe Checkout Session:', expireError.message);
+      });
+    }
     // If Stripe session creation fails, we should keep the order but mark it as failed
     // Or delete it - depending on business logic. For now, let's update its status
     await Order.findByIdAndUpdate(createdOrder._id, {
@@ -490,6 +547,7 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
     });
     // Give back the inventory we deducted before Stripe session creation failed
     await rollbackInventoryDeductions(deductedInventory);
+    await Order.findByIdAndUpdate(createdOrder._id, { inventoryRestoredAt: new Date() });
     throw ApiError.paymentError('Failed to create checkout session. Please try again.');
   }
 });
@@ -574,6 +632,7 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
         console.log(`Payment confirmed for order: ${order._id}`);
       } catch (error) {
         console.error('Error processing Stripe webhook:', error);
+        throw error;
       }
       break;
 
@@ -589,7 +648,12 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
         }
       } catch (error) {
         console.error('Error handling payment failure:', error);
+        throw error;
       }
+      break;
+
+    case STRIPE_EVENTS.CHECKOUT_EXPIRED:
+      await restoreExpiredOrderInventory(event.data.object);
       break;
 
     default:

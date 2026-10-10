@@ -3,6 +3,8 @@ const path = require('path');
 const colors = require('colors');
 const cors = require('cors');
 const dotenv = require('dotenv');
+// Load credentials before importing controllers and the mail transport.
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
@@ -10,10 +12,12 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 
 // Import Configs and Middlewares
-const { connectDb, getConnectionStatus } = require('./config/db');
+const { connectDb } = require('./config/db');
 const { notFound, errorHandler } = require('./middlewares/errorMiddlewares');
 const { validateEnv } = require('./utils/envValidator');
 const { startInventoryScheduler } = require('./utils/inventoryScheduler');
+const { getReadiness } = require('./controllers/healthControllers');
+const ApiResponse = require('./utils/ApiResponse');
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -24,12 +28,7 @@ const pizzaRoutes = require('./routes/pizzaRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
-
-// Configure DotEnv
-// Resolved relative to this file (not process.cwd()) so env loading is
-// correct whether this is launched from the repo root or from server/
-// directly (e.g. by a workspace task runner that cd's into the package).
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+const healthRoutes = require('./routes/healthRoutes');
 
 // Validate Environment Variables
 try {
@@ -37,20 +36,16 @@ try {
 } catch (error) {
   console.error('❌ Environment validation failed:'.red.bold);
   console.error(error.message.red);
-  process.exit(1);
+  throw error;
 }
 
 // Create Express App
 const app = express();
 
-// Connect to Database
-connectDb();
-
 // node-cron needs a long-running process to keep its timer alive, which
-// Vercel's serverless functions don't provide — there, automatic low-stock
-// checks run via Vercel Cron hitting /api/stocks/cron/check-alerts instead
-// (see server/vercel.json). Skip starting a scheduler that would never
-// actually fire.
+// Vercel's serverless functions don't provide — there, Vercel Cron calls
+// /api/stocks/cron/check-alerts (configured in the root deployment file).
+// Skip starting a scheduler that would never actually fire.
 if (!process.env.VERCEL) {
   startInventoryScheduler();
 }
@@ -117,6 +112,21 @@ app.use(
   })
 );
 
+// Await a shared Mongo connection before any API handler queries the database.
+// This is deliberately before the webhook route so it applies to Stripe too.
+app.use('/api', async (req, res, next) => {
+  // Health probes must run even while MongoDB is unavailable. The readiness
+  // handler owns its database check and returns a structured 503 response.
+  if (['/', '/health', '/ready'].includes(req.path)) return next();
+
+  try {
+    await connectDb();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Stripe webhook needs the raw request body for signature verification.
 // It must be mounted before the global JSON body parsers below, since those
 // parsers would otherwise consume the body first and leave nothing for
@@ -139,33 +149,16 @@ app.use(bodyParser.json());
 app.use(mongoSanitize());
 
 // Health check endpoints
-app.get('/health', (req, res) => {
-  const dbStatus = getConnectionStatus();
+app.use(['/health', '/api/health'], healthRoutes);
+app.get(['/ready', '/api/ready'], getReadiness);
 
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: dbStatus,
-    environment: process.env.NODE_ENV,
-  });
-});
-
-app.get('/ready', (req, res) => {
-  const dbStatus = getConnectionStatus();
-
-  if (dbStatus.status === 'connected') {
-    res.status(200).json({
-      status: 'READY',
-      message: 'Application is ready to accept requests',
-    });
-  } else {
-    res.status(503).json({
-      status: 'NOT_READY',
-      message: 'Database connection not ready',
-      database: dbStatus,
-    });
-  }
+app.get('/api', (req, res) => {
+  res.json(
+    ApiResponse.success(
+      { name: 'Pizza Palette API', status: 'available', health: '/health', readiness: '/ready' },
+      'API service is available'
+    )
+  );
 });
 
 // Basic route for the root URL
@@ -204,11 +197,13 @@ app.use(errorHandler);
 // Configure Port
 const PORT = process.env.PORT || 5000;
 
-// Start the server
-app.listen(
-  PORT,
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold)
-);
+// Vercel imports this module as a handler; bind a port only for direct runs.
+if (require.main === module) {
+  connectDb().catch((error) => console.error('Initial MongoDB connection failed:', error.message));
+  app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold);
+  });
+}
 
 // Exported so Vercel's Node.js Functions runtime (server/api/index.js) can
 // use this same Express app as a request handler.

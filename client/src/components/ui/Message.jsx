@@ -125,7 +125,7 @@ const Message = ({ children, variant = 'auto', onClose }) => {
           <div>
             <strong className="font-bold">
               {getStatusLabel()}
-              {errorCode && errorCode !== 'UNKNOWN_ERROR' && ` (${errorCode})`}:
+              :
             </strong>
             <span className="block sm:inline sm:ml-2">{message}</span>
           </div>

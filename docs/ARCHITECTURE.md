@@ -20,7 +20,7 @@ Comprehensive overview of Pizza Palette's system architecture, design patterns, 
 ## Overview
 
 Pizza Palette is a full-stack MERN application following modern web development practices:
-- **Separation of Concerns**: Frontend and backend are independent deployments
+- **Separation of Concerns**: React/Vite UI and Express API build as independent services in one atomic Vercel deployment
 - **RESTful API**: Standard REST principles for API design
 - **Stateless Authentication**: JWT-based auth with no server-side sessions
 - **Standardized Error Handling**: Structured error responses with codes
@@ -63,6 +63,16 @@ Pizza Palette is a full-stack MERN application following modern web development 
 ### Deployment
 - **Vercel** - Frontend and backend (serverless functions)
 - **GitHub** - Version control and CI/CD
+
+### Unified Vercel service routing
+
+The repository-root `vercel.json` defines the frontend (`client/`) and backend (`server/`) services. Ordered public rewrites send `/api`, `/api/*`, `/health`, and `/ready` to Express; the last catch-all sends all other paths to the Vite SPA and its service-local `/index.html` fallback. Services ship together for a branch deployment. In production, Vercel Cron calls `/api/stocks/cron/check-alerts` once daily with `Authorization: Bearer $CRON_SECRET`; local long-running Node processes use `node-cron` instead.
+
+Express loads the repository's local environment configuration before importing routes/controllers so Stripe and Nodemailer receive configuration during module initialization. Vercel imports the exported Express app as a request handler; `app.listen()` runs only when `server/index.js` is launched directly. Every `/api` request awaits the shared Mongoose connection promise, coalescing concurrent cold starts. The Mongo pool is configurable with `MONGODB_MAX_POOL_SIZE` and defaults to five sockets per warm instance.
+
+### Stripe order lifecycle
+
+The API prices orders from database records, creates the pending order, deducts ingredients, and stores an ingredient-deduction snapshot with the order before creating a 30-minute Stripe Checkout Session. Stripe's signed `checkout.session.completed` event marks the order paid; the browser return page polls the authenticated order resource before showing a success state. `checkout.session.expired` restores reserved ingredients within a MongoDB transaction and marks the reservation restored, making duplicate webhook delivery safe. Webhook processing errors return failure so Stripe can retry; signature errors are rejected with HTTP 400.
 
 ---
 
@@ -250,7 +260,6 @@ client/
 │   ├── App.jsx
 │   ├── main.jsx              # Entry point
 │   └── index.css
-├── .env                       # Environment variables
 └── package.json
 ```
 
@@ -632,7 +641,7 @@ graph TB
 
 **Why Duplicated?**
 - No shared package complexity
-- Independent deployment
+- Independent module boundaries
 - Type safety per environment
 - Simpler build process
 
@@ -724,7 +733,7 @@ graph TB
 ### Database
 - Strategic indexing on frequently queried fields
 - Aggregation pipelines for analytics
-- Connection pooling (poolSize: 10)
+- Connection pooling (configurable per instance, default pool size: 5)
 - Efficient populate() queries
 
 ### Frontend
