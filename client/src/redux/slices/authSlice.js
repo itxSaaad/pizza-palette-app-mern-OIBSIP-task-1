@@ -30,6 +30,7 @@ const initialState = {
 
   setupStatus: null,
   setupStatusError: null,
+  setupStatusLoading: false,
 
   bootstrapError: null,
   bootstrapSuccess: false,
@@ -107,14 +108,17 @@ const authSlice = createSlice({
       })
       .addCase(getSetupStatus.pending, (state) => {
         state.loading = true;
+        state.setupStatusLoading = true;
         state.setupStatusError = null;
       })
       .addCase(getSetupStatus.fulfilled, (state, action) => {
         state.loading = false;
+        state.setupStatusLoading = false;
         state.setupStatus = action.payload;
       })
       .addCase(getSetupStatus.rejected, (state, action) => {
         state.loading = false;
+        state.setupStatusLoading = false;
         state.setupStatusError = action.payload;
       })
       .addCase(bootstrapFirstAdmin.pending, (state) => {

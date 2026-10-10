@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const { USER_ROLES } = require('../constants/userRoles');
 
 /**
- * TEST CREDENTIALS (Development Only)
+ * SAMPLE SEED CREDENTIALS (Local or Explicit Production Seed)
  * =====================================
  * 
  * ADMINS:
@@ -14,7 +14,8 @@ const { USER_ROLES } = require('../constants/userRoles');
  * - jane@example.com / User@123456 (Verified)
  * - test@example.com / User@123456 (Not Verified)
  * 
- * IMPORTANT: Change these credentials in production!
+ * IMPORTANT: These credentials are committed in source. Change them immediately
+ * after using a production seed, and do not expose the seeded accounts publicly.
  */
 
 const admins = [

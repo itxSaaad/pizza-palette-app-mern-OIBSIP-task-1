@@ -193,7 +193,7 @@ Authenticate either a customer or an approved administrator/manager. Email is no
 }
 ```
 
-For an administrator response, `type` is `admin` and the payload includes `role`, `permissions`, and `isApproved`. The API returns a 401 `INVALID_CREDENTIALS` when no matching account/password pair exists. Demo seed credentials are local-only; see [Health and Login Troubleshooting](./operations/HEALTH_AND_LOGIN.md) for deployed account setup.
+For an administrator response, `type` is `admin` and the payload includes `role`, `permissions`, and `isApproved`. The API returns a 401 `INVALID_CREDENTIALS` when no matching account/password pair exists. Production sample accounts are created only by an explicit seed command; see [Health and Login Troubleshooting](./operations/HEALTH_AND_LOGIN.md) for deployed account setup.
 
 ---
 ### Get User Profile
@@ -339,7 +339,7 @@ Reset password with reset token.
 
 **Auth Required:** No
 
-Returns `{ "needsSetup": true }` only while this database has no administrator.
+Returns `needsSetup`, `setupEnabled`, and `requiresSetupKey`. Production reports setup disabled if the database is empty and `INITIAL_ADMIN_SETUP_KEY` is not configured.
 
 ### Create the First Administrator
 
@@ -347,9 +347,9 @@ Returns `{ "needsSetup": true }` only while this database has no administrator.
 
 **Auth Required:** No; the operation is one-time and fails once an administrator exists.
 
-**Request Body:** `{ "name": "...", "email": "...", "password": "..." }`
+**Request Body:** `{ "name": "...", "email": "...", "password": "...", "confirmPassword": "...", "setupKey": "..." }`. `setupKey` is required when `INITIAL_ADMIN_SETUP_KEY` is configured.
 
-The endpoint hashes the password, creates an approved admin, and returns a JWT. Use `/setup` in the application instead of calling this endpoint manually where possible. Do not use demo seed passwords in a deployed environment.
+The endpoint hashes the password, creates an approved admin, and returns a JWT. It is rate-limited, requires the private setup key in production, and uses a unique partial index to prevent concurrent bootstrap accounts. Passwords must be at least 12 characters and no more than 72 UTF-8 bytes. Use `/setup` in the application instead of calling this endpoint manually where possible.
 
 ### Invite Admins and Managers
 

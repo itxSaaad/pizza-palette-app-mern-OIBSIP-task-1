@@ -9,90 +9,105 @@ const { USER_ROLES } = require('./constants/userRoles');
 const Admin = require('./schemas/adminUserSchema');
 const User = require('./schemas/userSchema');
 const Pizza = require('./schemas/pizzaSchema');
-const Order = require('./schemas/orderSchema');
 const { Base, Sauce, Cheese, Veggie } = require('./schemas/inventorySchema');
 
 const { users, admins } = require('./data/users');
 const pizzas = require('./data/pizzas');
 const { base, sauce, cheese, veggie } = require('./data/inventory');
 
-// Resolved relative to this file, not process.cwd() — see index.js for why.
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
-const assertSeedIsNotProduction = () => {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'Sample seed data is disabled in production. Create the first administrator through /setup instead.'
+const args = new Set(process.argv.slice(2));
+const isProduction = args.has('--production');
+const isDestroy = args.has('--destroy') || args.has('-d') || args.has('--sync');
+
+const assertTargetIsExplicit = () => {
+  if (process.env.NODE_ENV === 'production' && !isProduction) {
+    throw new Error('NODE_ENV is production. Use the explicit --production flag to seed the configured database.');
+  }
+
+  if (isProduction && !process.env.MONGO_URI) {
+    throw new Error('MONGO_URI must point to the intended production database before using --production.');
+  }
+
+  if (isDestroy && isProduction && !args.has('--confirm-production-destroy')) {
+    throw new Error('Production cleanup requires --confirm-production-destroy.');
+  }
+};
+
+const insertSeededDocuments = (Model, documents) => Model.insertMany(documents);
+
+const syncSeededAccounts = async (Model, accounts) => {
+  for (const account of accounts) {
+    await Model.findOneAndUpdate(
+      { email: account.email },
+      { $set: account },
+      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
     );
   }
 };
 
+const getOrCreateInventory = async (Model, items) => {
+  const results = [];
+  for (const item of items) {
+    const existing = await Model.findOne({ item: item.item });
+    results.push(existing || (await Model.create(item)));
+  }
+  return results;
+};
+
 const importData = async () => {
   try {
-    assertSeedIsNotProduction();
+    assertTargetIsExplicit();
     await connectDb();
 
-    // Insert users and admins first
-    const createdUsers = await User.insertMany(users);
-    const createdAdmins = await Admin.insertMany(admins);
+    // Seed emails are fixture identities: update only these accounts, never all users.
+    await syncSeededAccounts(User, users);
+    await syncSeededAccounts(Admin, admins);
 
-    // Insert inventory items
-    const createdBases = await Base.insertMany(base);
-    const createdSauces = await Sauce.insertMany(sauce);
-    const createdCheeses = await Cheese.insertMany(cheese);
-    const createdVeggies = await Veggie.insertMany(veggie);
+    const createdBases = await getOrCreateInventory(Base, base);
+    const createdSauces = await getOrCreateInventory(Sauce, sauce);
+    const createdCheeses = await getOrCreateInventory(Cheese, cheese);
+    const createdVeggies = await getOrCreateInventory(Veggie, veggie);
 
-    // Create lookup maps for inventory items by name
-    const baseMap = {};
-    createdBases.forEach((b) => {
-      baseMap[b.item] = b._id;
-    });
+    const baseMap = Object.fromEntries(createdBases.map((item) => [item.item, item._id]));
+    const sauceMap = Object.fromEntries(createdSauces.map((item) => [item.item, item._id]));
+    const cheeseMap = Object.fromEntries(createdCheeses.map((item) => [item.item, item._id]));
+    const veggieMap = Object.fromEntries(createdVeggies.map((item) => [item.item, item._id]));
 
-    const sauceMap = {};
-    createdSauces.forEach((s) => {
-      sauceMap[s.item] = s._id;
-    });
-
-    const cheeseMap = {};
-    createdCheeses.forEach((c) => {
-      cheeseMap[c.item] = c._id;
-    });
-
-    const veggieMap = {};
-    createdVeggies.forEach((v) => {
-      veggieMap[v.item] = v._id;
-    });
-
-    // Transform pizzas to use ObjectIds
     const pizzasWithIds = pizzas.map((pizza) => ({
       name: pizza.name,
       description: pizza.description,
-      bases: pizza.base ? [baseMap[pizza.base] || createdBases[0]._id] : [],
-      sauces: pizza.sauces.map((s) => sauceMap[s]).filter((id) => id),
-      cheeses: pizza.cheeses.map((c) => cheeseMap[c]).filter((id) => id),
-      veggies: pizza.veggies.map((v) => veggieMap[v]).filter((id) => id),
+      bases: pizza.base ? [baseMap[pizza.base]].filter(Boolean) : [],
+      sauces: pizza.sauces.map((item) => sauceMap[item]).filter(Boolean),
+      cheeses: pizza.cheeses.map((item) => cheeseMap[item]).filter(Boolean),
+      veggies: pizza.veggies.map((item) => veggieMap[item]).filter(Boolean),
       price: pizza.price,
       imageUrl: pizza.imageUrl,
       createdBy: USER_ROLES.ADMIN,
     }));
 
-    await Pizza.insertMany(pizzasWithIds);
+    let insertedPizzas = 0;
+    for (const pizza of pizzasWithIds) {
+      const existing = await Pizza.findOne({
+        name: pizza.name,
+        description: pizza.description,
+        price: pizza.price,
+        imageUrl: pizza.imageUrl,
+        createdBy: pizza.createdBy,
+      });
+      if (existing) continue;
+      await Pizza.create(pizza);
+      insertedPizzas += 1;
+    }
 
-    console.log('\n✅ Database seeded successfully!\n'.green.inverse);
-    console.log('═'.repeat(60).cyan);
-    console.log('TEST CREDENTIALS'.yellow.bold);
-    console.log('═'.repeat(60).cyan);
-    console.log('\nADMINS:'.yellow.bold);
-    console.log('  • admin1@pizzapalette.com / Admin@123456'.green + ' (Super Admin)'.gray);
-    console.log('  • admin2@pizzapalette.com / Manager@123456'.green + ' (Manager)'.gray);
-    console.log('\nUSERS:'.yellow.bold);
-    console.log('  • john@example.com / User@123456'.green + ' (Verified)'.gray);
-    console.log('  • jane@example.com / User@123456'.green + ' (Verified)'.gray);
-    console.log('  • test@example.com / User@123456'.green + ' (Not Verified)'.gray);
-    console.log('\n' + '═'.repeat(60).cyan);
-    console.log('IMPORTANT:'.red.bold + ' These accounts are for local development only.\n'.gray);
+    console.log('\nSample data imported successfully.'.green);
+    console.log(`Inserted ${insertedPizzas} new sample pizza(s); matching catalog items were preserved.`.cyan);
+    console.log(isProduction
+      ? 'Production sample accounts use the credentials defined in server/data/users.js. Change their passwords immediately.'.yellow
+      : 'Local demo accounts are ready.'.cyan);
   } catch (error) {
-    console.error(`${error}`.red.inverse);
+    console.error(`${error}`.red);
     process.exitCode = 1;
   } finally {
     if (mongoose.connection.readyState !== 0) {
@@ -103,21 +118,41 @@ const importData = async () => {
 
 const destroyData = async () => {
   try {
-    assertSeedIsNotProduction();
+    assertTargetIsExplicit();
     await connectDb();
 
-    await Admin.deleteMany();
-    await Order.deleteMany();
-    await Pizza.deleteMany();
-    await User.deleteMany();
-    await Base.deleteMany();
-    await Sauce.deleteMany();
-    await Cheese.deleteMany();
-    await Veggie.deleteMany();
+    const seededUsers = users.map(({ email }) => email);
+    const seededAdmins = admins.map(({ email }) => email);
+    const seededPizzas = pizzas.map((pizza) => ({
+      name: pizza.name,
+      description: pizza.description,
+      price: pizza.price,
+      imageUrl: pizza.imageUrl,
+      createdBy: USER_ROLES.ADMIN,
+    }));
 
-    console.log('Data Destroyed!'.red.inverse);
+    const userResult = await User.deleteMany({ email: { $in: seededUsers } });
+    const adminResult = await Admin.deleteMany({ email: { $in: seededAdmins } });
+    const pizzaResult = await Pizza.deleteMany({ $or: seededPizzas });
+    console.log(`Removed ${userResult.deletedCount} seed-email user(s).`);
+    console.log(`Removed ${adminResult.deletedCount} seed-email admin(s).`);
+    console.log(`Removed ${pizzaResult.deletedCount} exact-match sample pizza(s).`);
+
+    for (const [Model, items] of [
+      [Base, base],
+      [Sauce, sauce],
+      [Cheese, cheese],
+      [Veggie, veggie],
+    ]) {
+      const result = await Model.deleteMany({
+        $or: items.map(({ item, price, threshold }) => ({ item, price, threshold })),
+      });
+      console.log(`Removed ${result.deletedCount} matching ${Model.modelName} seed item(s).`);
+    }
+
+    console.log('Seed identities removed; orders and non-matching application data were left intact.'.green);
   } catch (error) {
-    console.error(`${error}`.red.inverse);
+    console.error(`${error}`.red);
     process.exitCode = 1;
   } finally {
     if (mongoose.connection.readyState !== 0) {
@@ -126,7 +161,13 @@ const destroyData = async () => {
   }
 };
 
-if (process.argv[2] === '-d') {
+if (args.has('--sync')) {
+  (async () => {
+    await destroyData();
+    if (process.exitCode === 1) return;
+    await importData();
+  })();
+} else if (isDestroy) {
   destroyData();
 } else {
   importData();
