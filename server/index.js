@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 // Import Configs and Middlewares
 const connectDb = require('./config/db');
@@ -24,7 +25,10 @@ dotenv.config();
 const app = express();
 
 // Connect to Database
-connectDb();
+connectDb().catch(() => {
+  // Requests wait for the shared connection promise and return a useful 503
+  // if MongoDB is unavailable; do not terminate a Vercel function here.
+});
 
 // Configure Middlewares
 if (process.env.NODE_ENV === 'development') {
@@ -34,6 +38,41 @@ if (process.env.NODE_ENV === 'development') {
 
 // Enable Cross-Origin Resource Sharing
 app.use(cors());
+
+// Provide a visible backend response on the unified project domain.
+app.get('/api', (req, res) => {
+  res.status(200).json({
+    service: 'pizza-palette-api',
+    status: 'ok',
+    health: '/api/health',
+  });
+});
+
+const healthHandler = (req, res) => {
+  const databaseReady = mongoose.connection.readyState === 1;
+  res.status(databaseReady ? 200 : 503).json({
+    service: 'pizza-palette-api',
+    status: databaseReady ? 'ok' : 'degraded',
+    database: databaseReady ? 'connected' : 'not-ready',
+  });
+};
+
+app.get(['/api/health', '/health'], healthHandler);
+
+// Reuse one MongoDB connection per warm function instance and wait before any
+// data route runs. A failed connection is retried by connectDb on the next call.
+app.use(async (req, res, next) => {
+  try {
+    await connectDb();
+    next();
+  } catch (_error) {
+    res.status(503).json({
+      service: 'pizza-palette-api',
+      status: 'unavailable',
+      database: 'not-ready',
+    });
+  }
+});
 
 // Parse incoming JSON data
 app.use(express.json());
@@ -82,3 +121,6 @@ app.listen(
     `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
   )
 );
+
+// Vercel's Express adapter can use the exported application as a handler.
+module.exports = app;

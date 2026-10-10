@@ -2,12 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
     "frontend": {
-      "rewrites": [
-        {
-          "source": "/(.*)",
-          "destination": "/index.html"
-        }
-      ],
       "root": "client",
       "framework": "vite"
     },
@@ -19,13 +13,25 @@
   },
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/health",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/api/health",
       "destination": {
         "service": "backend"
       }
     },
     {
       "source": "/api",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/api/(.*)",
       "destination": {
         "service": "backend"
       }

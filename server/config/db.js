@@ -1,20 +1,28 @@
 const mongoose = require('mongoose');
 
+let connectionPromise;
+
 // Establish connection to the MongoDB database
 const connectDb = async () => {
-  try {
-    const conn = await mongoose.connect(`${process.env.MONGO_URI}`, {
-      useNewUrlParser: true, // Use new URL parser
-      useUnifiedTopology: true, // Use new server discovery and monitoring engine
-    });
+  if (mongoose.connection.readyState === 1) return mongoose.connection;
 
-    // Connection successful; log the host information
-    console.log(`MongoDB Connected: ${conn.connection.host}`.cyan.underline);
-  } catch (error) {
-    // Connection failed; log the error and exit
-    console.error(`Error: ${error.message}`.red.underline.bold);
-    process.exit(1);
+  if (!connectionPromise) {
+    connectionPromise = mongoose
+      .connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 10000 })
+      .then((conn) => {
+        console.log(`MongoDB Connected: ${conn.connection.host}`.cyan.underline);
+        return conn.connection;
+      })
+      .catch((error) => {
+        connectionPromise = undefined;
+        // Serverless functions should return a controlled unavailable response
+        // and allow later invocations to retry instead of terminating the process.
+        console.error(`MongoDB connection failed: ${error.message}`.red.underline.bold);
+        throw error;
+      });
   }
+
+  return connectionPromise;
 };
 
 module.exports = connectDb;
