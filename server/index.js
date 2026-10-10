@@ -25,7 +25,10 @@ dotenv.config();
 const app = express();
 
 // Connect to Database
-connectDb();
+connectDb().catch(() => {
+  // Requests wait for the shared connection promise and return a useful 503
+  // if MongoDB is unavailable; do not terminate a Vercel function here.
+});
 
 // Configure Middlewares
 if (process.env.NODE_ENV === 'development') {
@@ -55,6 +58,21 @@ const healthHandler = (req, res) => {
 };
 
 app.get(['/api/health', '/health'], healthHandler);
+
+// Reuse one MongoDB connection per warm function instance and wait before any
+// data route runs. A failed connection is retried by connectDb on the next call.
+app.use(async (req, res, next) => {
+  try {
+    await connectDb();
+    next();
+  } catch (_error) {
+    res.status(503).json({
+      service: 'pizza-palette-api',
+      status: 'unavailable',
+      database: 'not-ready',
+    });
+  }
+});
 
 // Parse incoming JSON data
 app.use(express.json());
