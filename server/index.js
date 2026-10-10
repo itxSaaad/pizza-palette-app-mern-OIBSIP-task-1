@@ -48,13 +48,21 @@ app.get('/api', (req, res) => {
   });
 });
 
-const healthHandler = (req, res) => {
-  const databaseReady = mongoose.connection.readyState === 1;
-  res.status(databaseReady ? 200 : 503).json({
-    service: 'pizza-palette-api',
-    status: databaseReady ? 'ok' : 'degraded',
-    database: databaseReady ? 'connected' : 'not-ready',
-  });
+const healthHandler = async (req, res) => {
+  try {
+    await connectDb();
+    res.status(200).json({
+      service: 'pizza-palette-api',
+      status: 'ok',
+      database: 'connected',
+    });
+  } catch (_error) {
+    res.status(503).json({
+      service: 'pizza-palette-api',
+      status: 'degraded',
+      database: 'not-ready',
+    });
+  }
 };
 
 app.get(['/api/health', '/health'], healthHandler);
