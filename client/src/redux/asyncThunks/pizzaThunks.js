@@ -57,6 +57,24 @@ export const listPizzas = createAsyncThunk('pizza/listPizzas', async (_, { rejec
   }
 });
 
+// Fetch only the public menu catalog. Filtering happens on the API before
+// pagination so user-created custom pizzas cannot push menu items onto a page
+// the public screens never request.
+export const listMenuPizzas = createAsyncThunk(
+  'pizza/listMenuPizzas',
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas`, {
+        params: { createdBy: 'admin', limit: 50 },
+      });
+
+      return data.data || data;
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
+  }
+);
+
 // Fetch Single Pizza
 export const getPizzaById = createAsyncThunk(
   'pizza/getPizzaById',

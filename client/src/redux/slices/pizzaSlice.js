@@ -4,6 +4,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import {
   deletePizzaById,
   getPizzaById,
+  listMenuPizzas,
   listPizzas,
   createPizza,
   updatePizzaById,
@@ -13,6 +14,10 @@ import {
 const initialState = {
   pizzaInfo: null,
   pizzaList: [],
+  menuPizzaList: [],
+  menuPizzaListError: null,
+  menuPizzaListLoading: false,
+  menuPizzaListLoaded: false,
   pizzaListError: null,
   pizzaCreateError: null,
   pizzaGetByIdError: null,
@@ -33,6 +38,10 @@ const pizzaSlice = createSlice({
   reducers: {
     clearPizzaData: (state) => {
       state.pizzaList = [];
+      state.menuPizzaList = [];
+      state.menuPizzaListError = null;
+      state.menuPizzaListLoading = false;
+      state.menuPizzaListLoaded = false;
       state.pizzaInfo = null;
       state.pizzaListError = null;
       state.pizzaCreateError = null;
@@ -76,6 +85,20 @@ const pizzaSlice = createSlice({
       .addCase(listPizzas.rejected, (state, action) => {
         state.loading = false;
         state.pizzaListError = action.payload;
+      })
+      .addCase(listMenuPizzas.pending, (state) => {
+        state.menuPizzaListLoading = true;
+        state.menuPizzaListError = null;
+      })
+      .addCase(listMenuPizzas.fulfilled, (state, action) => {
+        state.menuPizzaListLoading = false;
+        state.menuPizzaListLoaded = true;
+        state.menuPizzaList = action.payload;
+      })
+      .addCase(listMenuPizzas.rejected, (state, action) => {
+        state.menuPizzaListLoading = false;
+        state.menuPizzaListLoaded = true;
+        state.menuPizzaListError = action.payload;
       })
       .addCase(getPizzaById.pending, (state) => {
         state.loading = true;

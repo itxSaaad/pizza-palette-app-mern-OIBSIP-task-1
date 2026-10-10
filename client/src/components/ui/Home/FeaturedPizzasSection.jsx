@@ -1,27 +1,25 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { USER_ROLES } from '../../../constants';
-import { listPizzas } from '../../../redux/asyncThunks/pizzaThunks';
+import { listMenuPizzas } from '../../../redux/asyncThunks/pizzaThunks';
 import Card from '../Card';
 import Loader from '../Loader';
+import Message from '../Message';
 import PizzaImage from '../PizzaImage';
 
 function FeaturedPizzasSection() {
   const dispatch = useDispatch();
 
   const pizza = useSelector((state) => state.pizza);
-  const { loading, pizzaList } = pizza;
+  const { menuPizzaList, menuPizzaListError, menuPizzaListLoading, menuPizzaListLoaded } = pizza;
 
   useEffect(() => {
-    if (!pizzaList || pizzaList.length < 1) {
-      dispatch(listPizzas({}));
+    if (!menuPizzaListLoaded && !menuPizzaListLoading) {
+      dispatch(listMenuPizzas());
     }
-  }, [dispatch, pizzaList]);
+  }, [dispatch, menuPizzaListLoaded, menuPizzaListLoading]);
 
-  const featuredPizzas = (pizzaList || [])
-    .filter((p) => p.createdBy === USER_ROLES.ADMIN)
-    .slice(0, 3);
+  const featuredPizzas = menuPizzaList.slice(0, 3);
 
   return (
     <section
@@ -29,8 +27,10 @@ function FeaturedPizzasSection() {
       className="flex flex-col justify-center items-center py-16 sm:py-20 px-10 sm:px-16"
     >
       <h2 className="font-display text-h2 text-center mb-8 text-neutral-900">Featured Pizzas</h2>
-      {loading ? (
+      {menuPizzaListLoading ? (
         <Loader />
+      ) : menuPizzaListError ? (
+        <Message>{menuPizzaListError}</Message>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {featuredPizzas.map((pizza) => (

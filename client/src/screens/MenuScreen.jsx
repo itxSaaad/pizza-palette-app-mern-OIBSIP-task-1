@@ -3,10 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
 // Import Constants
-import { USER_ROLES } from '../constants';
-
 // Import Thunks
-import { listPizzas } from '../redux/asyncThunks/pizzaThunks';
+import { listMenuPizzas } from '../redux/asyncThunks/pizzaThunks';
 import { getUserDetails } from '../redux/asyncThunks/userThunks';
 
 // Import Components
@@ -24,7 +22,12 @@ function MenuScreen() {
   const { userDetails } = user;
 
   const pizza = useSelector((state) => state.pizza);
-  const { loading, pizzaList, pizzaListError } = pizza;
+  const {
+    menuPizzaList,
+    menuPizzaListError,
+    menuPizzaListLoading,
+    menuPizzaListLoaded,
+  } = pizza;
 
   const cart = useSelector((state) => state.cart);
   const { cartAddItemError } = cart;
@@ -33,10 +36,10 @@ function MenuScreen() {
     if (!userDetails) {
       dispatch(getUserDetails({}));
     }
-    if (!pizzaList || pizzaList.length < 1) {
-      dispatch(listPizzas({}));
+    if (!menuPizzaListLoaded && !menuPizzaListLoading) {
+      dispatch(listMenuPizzas());
     }
-  }, [dispatch, userDetails, pizzaList]);
+  }, [dispatch, userDetails, menuPizzaListLoaded, menuPizzaListLoading]);
 
   useEffect(() => {
     if (userDetails && !userDetails.isVerified) {
@@ -47,11 +50,11 @@ function MenuScreen() {
   return (
     <>
       <section className="min-h-screen flex flex-col justify-center items-center px-10 sm:px-16 bg-neutral-50">
-        {loading ? (
+        {menuPizzaListLoading ? (
           <Loader />
-        ) : pizzaListError || cartAddItemError ? (
-          <Message>{pizzaListError || cartAddItemError}</Message>
-        ) : pizzaList.length > 0 ? (
+        ) : menuPizzaListError || cartAddItemError ? (
+          <Message>{menuPizzaListError || cartAddItemError}</Message>
+        ) : menuPizzaList.length > 0 ? (
           <>
             <div className="w-full flex flex-row items-center justify-between my-4">
               <h1 className="font-display text-h1 text-primary-600">
@@ -65,11 +68,7 @@ function MenuScreen() {
                 </Link>
               )}
             </div>
-            <PizzaList
-              pizzaList={pizzaList.filter(
-                (pizza) => pizza.createdBy === USER_ROLES.ADMIN
-              )}
-            />
+            <PizzaList pizzaList={menuPizzaList} />
           </>
         ) : (
           <div className="font-display text-h2 text-primary-600 text-center max-w-md">
