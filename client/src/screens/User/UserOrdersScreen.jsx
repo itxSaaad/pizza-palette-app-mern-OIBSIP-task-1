@@ -14,6 +14,7 @@ import VerificationModal from '../../components/ui/Auth/VerificationModal';
 
 function UserOrdersScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [page, setPage] = useState(1);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -25,7 +26,12 @@ function UserOrdersScreen() {
   const { adminUserInfo } = admin;
 
   const order = useSelector((state) => state.order);
-  const { loading: orderLoading, orderListByUserId, orderListByUserIdError } = order;
+  const {
+    loading: orderLoading,
+    orderListByUserId,
+    orderListByUserIdPagination,
+    orderListByUserIdError,
+  } = order;
 
   useEffect(() => {
     if (!userInfo) {
@@ -34,9 +40,9 @@ function UserOrdersScreen() {
       navigate('/admin/dashboard');
     } else {
       dispatch(getUserDetails({}));
-      dispatch(listOrdersByUserId(userInfo._id));
+      dispatch(listOrdersByUserId({ page }));
     }
-  }, [dispatch, navigate, userInfo, adminUserInfo]);
+  }, [dispatch, navigate, userInfo, adminUserInfo, page]);
 
   useEffect(() => {
     if (userDetails && !userDetails.isVerified) {
@@ -56,7 +62,11 @@ function UserOrdersScreen() {
             {orderListByUserId.length > 0 ? (
               <>
                 <h1 className="font-display text-h1 text-primary-600 mb-8">My Orders</h1>
-                <UserOrdersTable orders={orderListByUserId} />
+                <UserOrdersTable
+                  orders={orderListByUserId}
+                  pagination={orderListByUserIdPagination}
+                  onPageChange={setPage}
+                />
               </>
             ) : (
               <div className="font-display text-h2 text-primary-600 text-center">

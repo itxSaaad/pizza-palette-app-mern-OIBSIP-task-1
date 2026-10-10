@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
@@ -16,11 +16,13 @@ function InventoryList() {
   const inventoryColumns = ['_id', 'item', 'price', 'threshold', 'quantity'];
 
   const dispatch = useDispatch();
+  const [page, setPage] = useState(1);
 
   const inventory = useSelector((state) => state.inventory);
   const {
     loading,
     inventoryList,
+    inventoryListPagination,
     inventoryListError,
     inventoryDeleteByIdError,
     inventoryDeleteByIdSuccess,
@@ -28,7 +30,7 @@ function InventoryList() {
 
   const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
     deleteThunk: deleteStockById,
-    refreshThunk: () => listInventory({}),
+    refreshThunk: () => listInventory({ page }),
     entityName: 'stock item',
   });
 
@@ -56,10 +58,8 @@ function InventoryList() {
     : [];
 
   useEffect(() => {
-    if (!inventoryLoaded) {
-      dispatch(listInventory({}));
-    }
-  }, [dispatch, inventoryLoaded]);
+    dispatch(listInventory({ page }));
+  }, [dispatch, page]);
 
   return (
     <>
@@ -76,6 +76,8 @@ function InventoryList() {
           columns={inventoryColumns}
           handleDelete={handleDeleteRequest}
           handleChange={handleChange}
+          pagination={inventoryListPagination}
+          onPageChange={setPage}
         />
       </AdminListLayout>
       <ConfirmDialog {...confirmDialogProps} />

@@ -35,7 +35,7 @@ export const sendAdminInvite = createAsyncThunk(
 // List pending invites
 export const listAdminInvites = createAsyncThunk(
   'invite/list',
-  async (_, { rejectWithValue, getState }) => {
+  async ({ page = 1, limit = 10 } = {}, { rejectWithValue, getState }) => {
     try {
       const {
         admin: { adminUserInfo },
@@ -45,9 +45,11 @@ export const listAdminInvites = createAsyncThunk(
         headers: { Authorization: `Bearer ${adminUserInfo.token}` },
       };
 
-      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin/invites`, config);
-
-      return data.data || data;
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin/invites`, {
+        ...config,
+        params: { page, limit },
+      });
+      return { items: data.data || [], pagination: data.pagination };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }

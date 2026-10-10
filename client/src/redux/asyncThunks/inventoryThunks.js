@@ -42,7 +42,7 @@ export const createStock = createAsyncThunk(
 // Get All Inventory
 export const listInventory = createAsyncThunk(
   'inventory/listStocks',
-  async (_, { rejectWithValue, getState }) => {
+  async ({ page = 1, limit = 100, search, type } = {}, { rejectWithValue, getState }) => {
     try {
       const {
         user: { userInfo },
@@ -67,9 +67,19 @@ export const listInventory = createAsyncThunk(
         };
       }
 
-      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/stocks`, config);
-
-      return data.data || data;
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/stocks`, {
+        ...config,
+        params: { page, limit, search, type },
+      });
+      const items = data.data || [];
+      return {
+        items,
+        pagination: data.pagination,
+        bases: items.filter((item) => item.type === 'Base'),
+        sauces: items.filter((item) => item.type === 'Sauce'),
+        cheeses: items.filter((item) => item.type === 'Cheese'),
+        veggies: items.filter((item) => item.type === 'Veggie'),
+      };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }

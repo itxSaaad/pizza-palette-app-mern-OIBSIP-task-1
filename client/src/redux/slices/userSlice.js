@@ -20,6 +20,7 @@ const initialState = {
     ? JSON.parse(localStorage.getItem('userDetails'))
     : null,
   userList: [],
+  userListPagination: null,
   userRegisterError: null,
   userDetailsError: null,
   userUpdateProfileError: null,
@@ -50,6 +51,7 @@ const userSlice = createSlice({
       state.userInfo = null;
       state.userDetails = null;
       state.userList = [];
+      state.userListPagination = null;
       state.userRegisterError = null;
       state.userDetailsError = null;
       state.userUpdateProfileError = null;
@@ -129,7 +131,8 @@ const userSlice = createSlice({
       })
       .addCase(listUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.userList = action.payload;
+        state.userList = action.payload.items;
+        state.userListPagination = action.payload.pagination;
         state.userListSuccess = true;
       })
 

@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import { FaTrash } from 'react-icons/fa';
 
 // Import Hooks
-import { usePagination } from '../../../../hooks/usePagination';
 
 // Import Components
 import Button from '../../Button';
@@ -39,9 +38,16 @@ function renderCellValue(column, row, handleChange, columnRenderers) {
   return value ?? '—';
 }
 
-function Table({ data, columns, handleDelete, handleChange, columnRenderers }) {
-  const { currentPage, totalPages, pageData, goToPrevPage, goToNextPage } = usePagination(data, 10);
-
+function Table({
+  data,
+  columns,
+  handleDelete,
+  handleChange,
+  columnRenderers,
+  pagination,
+  onPageChange,
+  showPagination = true,
+}) {
   return (
     <>
       {/* Desktop/tablet: real table, md and up */}
@@ -56,7 +62,7 @@ function Table({ data, columns, handleDelete, handleChange, columnRenderers }) {
             </tr>
           </thead>
           <tbody className="bg-primary-100 text-primary-800">
-            {pageData.map((row) => (
+            {data.map((row) => (
               <tr key={row._id}>
                 {columns.map((column) => (
                   <td key={column} className="border border-primary-300 px-4 py-2 sm:px-2 sm:py-1">
@@ -81,7 +87,7 @@ function Table({ data, columns, handleDelete, handleChange, columnRenderers }) {
 
       {/* Mobile: stacked cards, below md */}
       <div className="md:hidden space-y-4">
-        {pageData.map((row) => (
+        {data.map((row) => (
           <div
             key={row._id}
             className="bg-primary-50 border-2 border-primary-200 rounded-card p-4 space-y-2"
@@ -108,13 +114,15 @@ function Table({ data, columns, handleDelete, handleChange, columnRenderers }) {
         ))}
       </div>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPrev={goToPrevPage}
-        onNext={goToNextPage}
-        variant="secondary"
-      />
+      {showPagination && pagination && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPrev={() => onPageChange?.(pagination.page - 1)}
+          onNext={() => onPageChange?.(pagination.page + 1)}
+          variant="secondary"
+        />
+      )}
     </>
   );
 }
@@ -125,6 +133,9 @@ Table.propTypes = {
   handleDelete: PropTypes.func.isRequired,
   handleChange: PropTypes.func,
   columnRenderers: PropTypes.objectOf(PropTypes.func),
+  pagination: PropTypes.shape({ page: PropTypes.number, totalPages: PropTypes.number }),
+  onPageChange: PropTypes.func,
+  showPagination: PropTypes.bool,
 };
 
 export default Table;

@@ -44,7 +44,7 @@ export const createOrder = createAsyncThunk(
 // Order List By User Id
 export const listOrdersByUserId = createAsyncThunk(
   'order/listOrdersByUserId',
-  async (_, { getState, rejectWithValue }) => {
+  async ({ page = 1, limit = 10, status } = {}, { getState, rejectWithValue }) => {
     try {
       const {
         user: { userInfo },
@@ -56,9 +56,11 @@ export const listOrdersByUserId = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/orders/user`, config);
-
-      return data.data || data;
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/orders/user`, {
+        ...config,
+        params: { page, limit, status },
+      });
+      return { items: data.data || [], pagination: data.pagination };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
@@ -68,7 +70,7 @@ export const listOrdersByUserId = createAsyncThunk(
 // Order List (Admin)
 export const listOrders = createAsyncThunk(
   'order/listOrders',
-  async (_, { getState, rejectWithValue }) => {
+  async ({ page = 1, limit = 10, status, userId } = {}, { getState, rejectWithValue }) => {
     try {
       const {
         admin: { adminUserInfo },
@@ -80,9 +82,11 @@ export const listOrders = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/orders`, config);
-
-      return data.data || data;
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/orders`, {
+        ...config,
+        params: { page, limit, status, userId },
+      });
+      return { items: data.data || [], pagination: data.pagination };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
@@ -97,14 +101,14 @@ export const getOrderById = createAsyncThunk(
       const state = getState();
       const userToken = state.user?.userInfo?.token;
       const adminToken = state.admin?.adminUserInfo?.token;
-      
+
       // Use admin token if available, otherwise use user token
       const token = adminToken || userToken;
-      
+
       if (!token) {
         return rejectWithValue({
           message: 'Authentication required. Please log in.',
-          code: 'UNAUTHORIZED'
+          code: 'UNAUTHORIZED',
         });
       }
 

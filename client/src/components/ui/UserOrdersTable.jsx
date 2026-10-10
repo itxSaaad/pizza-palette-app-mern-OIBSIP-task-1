@@ -6,16 +6,11 @@ import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { ORDER_STATUS_VALUES } from '../../constants';
 
 // Import Hooks
-import { usePagination } from '../../hooks/usePagination';
 
 import Badge from './Badge';
 import Pagination from './Pagination';
 
-function UserOrdersTable({ orders }) {
-  const { currentPage, totalPages, pageData, goToPrevPage, goToNextPage } = usePagination(
-    orders,
-    10
-  );
+function UserOrdersTable({ orders, pagination, onPageChange }) {
   const navigate = useNavigate();
 
   return (
@@ -32,7 +27,7 @@ function UserOrdersTable({ orders }) {
             </tr>
           </thead>
           <tbody className="bg-primary-50 text-primary-700">
-            {pageData.map((order) => (
+            {orders.map((order) => (
               <tr
                 key={order._id}
                 onClick={() => navigate(`/my-orders/${order._id}`)}
@@ -66,13 +61,15 @@ function UserOrdersTable({ orders }) {
         </table>
       </div>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPrev={goToPrevPage}
-        onNext={goToNextPage}
-        variant="outline"
-      />
+      {pagination && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPrev={() => onPageChange?.(pagination.page - 1)}
+          onNext={() => onPageChange?.(pagination.page + 1)}
+          variant="outline"
+        />
+      )}
 
       <div className="flex flex-col sm:flex-row items-center justify-center my-4 gap-2">
         {ORDER_STATUS_VALUES.map((status, index) => (
@@ -93,6 +90,8 @@ function UserOrdersTable({ orders }) {
 
 UserOrdersTable.propTypes = {
   orders: PropTypes.array.isRequired,
+  pagination: PropTypes.shape({ page: PropTypes.number, totalPages: PropTypes.number }),
+  onPageChange: PropTypes.func,
 };
 
 export default UserOrdersTable;

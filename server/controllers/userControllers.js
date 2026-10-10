@@ -1,12 +1,11 @@
-const emailValidator = require('email-validator');
 const asyncHandler = require('express-async-handler');
 
 // Import Utils
 const generateToken = require('../utils/generateToken');
 const {
+  aggregatePaginated,
   parsePaginationParams,
   parseSortParams,
-  buildPaginationResponse,
 } = require('../utils/paginationUtils');
 const { hashPassword } = require('../utils/passwordUtils');
 const ApiError = require('../utils/ApiError');
@@ -201,31 +200,55 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 
 const getAllUsers = asyncHandler(async (req, res) => {
-  const { page, limit, skip } = parsePaginationParams(req.query);
-  const sort = parseSortParams(req.query, '-createdAt');
+  const { page, limit } = parsePaginationParams(req.query);
+  const sort = parseSortParams(req.query, '-createdAt', [
+    'createdAt',
+    'name',
+    'email',
+    'isVerified',
+  ]);
 
   // Build filter
   const filter = {};
   if (req.query.isVerified !== undefined) {
+    if (!['true', 'false'].includes(req.query.isVerified)) {
+      throw ApiError.validation('Invalid user filter.', [
+        { field: 'isVerified', message: 'Must be true or false.' },
+      ]);
+    }
     filter.isVerified = req.query.isVerified === 'true';
   }
   if (req.query.search) {
+    if (typeof req.query.search !== 'string') {
+      throw ApiError.validation('Invalid user filter.', [
+        { field: 'search', message: 'Must be a string.' },
+      ]);
+    }
+    const search = req.query.search.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     filter.$or = [
-      { name: { $regex: req.query.search, $options: 'i' } },
-      { email: { $regex: req.query.search, $options: 'i' } },
+      { name: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
     ];
   }
 
-  const [users, total] = await Promise.all([
-    User.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .select('-password -verificationCode -resetPasswordToken -__v'),
-    User.countDocuments(filter),
-  ]);
+  const result = await aggregatePaginated(User, [{ $match: filter }], {
+    page,
+    limit,
+    sort,
+    dataStages: [
+      {
+        $project: {
+          password: 0,
+          verificationCode: 0,
+          resetPasswordToken: 0,
+          resetPasswordExpire: 0,
+          __v: 0,
+        },
+      },
+    ],
+  });
 
-  res.status(200).json(buildPaginationResponse(users, total, page, limit));
+  res.status(200).json(result);
 });
 
 // @desc    Get User by ID

@@ -1037,27 +1037,48 @@ X-RateLimit-Reset: 1614556800
 
 ---
 
-## Pagination
+## Pagination and list filtering
 
-List endpoints support pagination:
+Collection list routes page and count records in MongoDB aggregation pipelines. Filters are applied before the `$facet`; the `data` facet sorts, skips, and limits records while the `pagination` facet counts matches. This keeps response work bounded and prevents client-side pagination from hiding records beyond the loaded page.
 
-**Query Parameters:**
-- `page`: Page number (default: 1)
-- `limit`: Results per page (default: 10, max: 100)
+**Query parameters:**
 
-**Response Format:**
+- `page`: positive integer, defaults to `1`.
+- `limit`: integer from `1` to `100`, defaults to `10` (inventory clients request up to `100` because the same inventory endpoint feeds pizza builders).
+- `sortBy` / `sortOrder`: supported only on routes that document sorting; each route allow-lists fields.
+
+**Paginated response:**
+
 ```json
 {
-  "success": true,
-  "data": {
-    "items": [...],
+  "data": [{ "_id": "..." }],
+  "pagination": {
+    "total": 27,
     "page": 1,
-    "pages": 10,
-    "total": 100,
-    "limit": 10
+    "limit": 10,
+    "totalPages": 3,
+    "hasNextPage": true,
+    "hasPrevPage": false
   }
 }
 ```
+
+For an empty result, `data` is an empty array and the pagination metadata reports `total: 0` and `totalPages: 0`.
+
+### List filters
+
+| Route | Aggregation filters | Sort fields |
+|---|---|---|
+| `GET /pizzas` | `createdBy` (`admin` by default for the public menu, `user`, or `all`), `minPrice`, `maxPrice` | `createdAt`, `name`, `price`; `sortOrder=asc\|desc` |
+| `GET /users` | `search` (escaped, case-insensitive name/email match), `isVerified=true\|false` | `createdAt`, `name`, `email`, `isVerified` |
+| `GET /admin` | none | `createdAt`, `name`, `email`, `role` |
+| `GET /orders` | `status`, `userId` | `createdAt`, `totalPrice`, `status` |
+| `GET /orders/user` | authenticated user scope, optional `status` | `createdAt`, `totalPrice`, `status` |
+| `GET /stocks` | `type=Base\|Sauce\|Cheese\|Veggie`, `search` | `createdAt`, `item`, `quantity`, `price` |
+| `GET /stocks/low-stock` | quantity at or below configured threshold | `createdAt`, `item`, `quantity`, `threshold` |
+| `GET /admin/invites` | authenticated admin scope | newest first |
+
+Order and invite reference data is joined with MongoDB `$lookup` after the page slice. Inventory’s four collections are combined with `$unionWith` before applying type/search filters and pagination. The public `GET /pizzas` default is the admin-authored menu; admin management requests `createdBy=all` so custom pizzas remain visible there.
 
 ---
 

@@ -1,7 +1,12 @@
 const asyncHandler = require('express-async-handler');
 const { runInventoryCheck } = require('../utils/inventoryAlertUtils');
-const { getLowStockAlert } = require('../utils/analyticsUtils');
 const ApiError = require('../utils/ApiError');
+const { Base, Sauce, Cheese, Veggie } = require('../schemas/inventorySchema');
+const {
+  aggregatePaginated,
+  parsePaginationParams,
+  parseSortParams,
+} = require('../utils/paginationUtils');
 
 // @desc    Check low inventory and send alerts
 // @route   POST /api/inventory/check-alerts
@@ -41,8 +46,29 @@ const runScheduledCheck = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 
 const getLowInventoryItems = asyncHandler(async (req, res) => {
-  const lowStockData = await getLowStockAlert();
-  res.status(200).json(lowStockData);
+  const { page, limit } = parsePaginationParams(req.query);
+  const sort = parseSortParams(req.query, 'quantity', [
+    'createdAt',
+    'item',
+    'quantity',
+    'threshold',
+  ]);
+  const unionStage = (Model, type) => ({
+    $unionWith: { coll: Model.collection.name, pipeline: [{ $set: { type } }] },
+  });
+  const result = await aggregatePaginated(
+    Base,
+    [
+      { $set: { type: 'Base' } },
+      unionStage(Sauce, 'Sauce'),
+      unionStage(Cheese, 'Cheese'),
+      unionStage(Veggie, 'Veggie'),
+      { $match: { $expr: { $lte: ['$quantity', '$threshold'] } } },
+      { $set: { deficit: { $subtract: ['$threshold', '$quantity'] } } },
+    ],
+    { page, limit, sort, dataStages: [{ $project: { __v: 0 } }] }
+  );
+  res.status(200).json(result);
 });
 
 module.exports = {

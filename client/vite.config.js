@@ -1,6 +1,9 @@
 import { defineConfig, loadEnv } from 'vite';
+import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+
+const clientRoot = fileURLToPath(new URL('.', import.meta.url));
 
 const normalizeApiBase = (value) => {
   const configured = value?.trim();
@@ -10,7 +13,7 @@ const normalizeApiBase = (value) => {
 };
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), 'VITE_');
+  const env = loadEnv(mode, clientRoot, 'VITE_');
   const apiBase = normalizeApiBase(env.VITE_SERVER_URL);
 
   return {
@@ -20,7 +23,9 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       VitePWA({
-        registerType: 'prompt',
+        // Do not leave installed/mobile clients on a cached bundle indefinitely.
+        // Prompt mode needs app UI to call updateSW(); this app has no such UI.
+        registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
         manifest: {
           name: 'Pizza Palette | MERN',

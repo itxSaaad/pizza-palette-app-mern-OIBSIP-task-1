@@ -128,7 +128,7 @@ export const getUserDetails = createAsyncThunk(
 // User List (Admin)
 export const listUsers = createAsyncThunk(
   'user/userList',
-  async (_, { getState, rejectWithValue }) => {
+  async ({ page = 1, limit = 10, search, isVerified } = {}, { getState, rejectWithValue }) => {
     try {
       const {
         admin: { adminUserInfo },
@@ -140,9 +140,11 @@ export const listUsers = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/users`, config);
-
-      return data.data || data;
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/users`, {
+        ...config,
+        params: { page, limit, search, isVerified },
+      });
+      return { items: data.data || [], pagination: data.pagination };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Constants
@@ -19,14 +19,21 @@ function PizzasList() {
   const pizzaColumns = ['_id', 'name', 'price'];
 
   const dispatch = useDispatch();
+  const [page, setPage] = useState(1);
 
   const pizza = useSelector((state) => state.pizza);
-  const { loading, pizzaList, pizzaListError, pizzaDeleteByIdError, pizzaDeleteByIdSuccess } =
-    pizza;
+  const {
+    loading,
+    pizzaList,
+    pizzaListPagination,
+    pizzaListError,
+    pizzaDeleteByIdError,
+    pizzaDeleteByIdSuccess,
+  } = pizza;
 
   const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
     deleteThunk: deletePizzaById,
-    refreshThunk: () => listPizzas({}),
+    refreshThunk: () => listPizzas({ page }),
     entityName: 'pizza',
   });
 
@@ -49,10 +56,8 @@ function PizzasList() {
   ];
 
   useEffect(() => {
-    if (!pizzaList) {
-      dispatch(listPizzas({}));
-    }
-  }, [dispatch, pizzaList]);
+    dispatch(listPizzas({ page }));
+  }, [dispatch, page]);
 
   return (
     <>
@@ -68,6 +73,8 @@ function PizzasList() {
           groups={groups}
           columns={pizzaColumns}
           handleDelete={handleDeleteRequest}
+          pagination={pizzaListPagination}
+          onPageChange={setPage}
         />
       </AdminListLayout>
       <ConfirmDialog {...confirmDialogProps} />
