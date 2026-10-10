@@ -1,39 +1,36 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { extractErrorMessage } from '../../utils/errorUtils';
 
 // Create Thunks
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
-  async ({ id, qty }, { rejectWithValue }) => {
+  async ({ id, qty, size, calculatedPrice }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/pizzas/${id}`
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas/${id}`);
+
+      // Extract pizza data from response
+      const pizza = data.data || data;
 
       return {
-        _id: data._id,
-        name: data.name,
-        imageUrl: data.imageUrl,
-        price: data.price,
-        size: data.size,
+        _id: pizza._id,
+        name: pizza.name,
+        imageUrl: pizza.imageUrl,
+        basePrice: pizza.price,
+        size: size,
+        price: calculatedPrice,
         qty,
       };
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
-// Create RazorPay Order
-export const createRazorPayOrder = createAsyncThunk(
-  'cart/createRazorPayOrder',
-  async ({ amount, currency }, { rejectWithValue, getState }) => {
+// Create Stripe Checkout Session
+export const createStripeCheckoutSession = createAsyncThunk(
+  'cart/createStripeCheckoutSession',
+  async (orderData, { rejectWithValue, getState }) => {
     try {
       const {
         user: { userInfo },
@@ -41,54 +38,63 @@ export const createRazorPayOrder = createAsyncThunk(
 
       const config = {
         headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${userInfo.token}`,
         },
       };
 
       const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/orders/checkout`,
-        { amount, currency },
+        `${import.meta.env.VITE_SERVER_URL}/orders/create-checkout-session`,
+        orderData,
         config
       );
 
-      return data;
+      return data.data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
-// Initial State
+// Initial State with defensive data validation
 const initialState = {
-  cartItems: localStorage.getItem('cartItems')
-    ? JSON.parse(localStorage.getItem('cartItems'))
-    : [],
+  cartItems: (() => {
+    try {
+      const items = localStorage.getItem('cartItems');
+      if (!items) return [];
+
+      const parsed = JSON.parse(items);
+
+      // Validate and clean up cart items
+      return Array.isArray(parsed)
+        ? parsed.filter(
+            (item) => item._id && item.size && item.price > 0 && item.qty > 0 && item.qty <= 10
+          )
+        : [];
+    } catch (error) {
+      console.error('Failed to parse cart items:', error);
+      localStorage.removeItem('cartItems');
+      return [];
+    }
+  })(),
   shippingAddress: localStorage.getItem('shippingAddress')
     ? JSON.parse(localStorage.getItem('shippingAddress'))
     : {},
   paymentMethod: localStorage.getItem('paymentMethod')
     ? JSON.parse(localStorage.getItem('paymentMethod'))
     : {},
-  orderRazorPayPaymentDetails: {},
-  orderGetRazorPayOrderDetails: {},
+  stripeSessionId: null,
+  stripeCheckoutUrl: null,
+  stripeOrderId: null,
+  stripeCheckoutError: null,
   cartAddItemError: null,
   cartRemoveItemError: null,
   cartSaveShippingAddressError: null,
   cartSavePaymentMethodError: null,
-  orderGetRazorPayOrderIdError: null,
-  orderRazorPayPaymentError: null,
   cartAddItemSuccess: false,
   cartRemoveItemSuccess: false,
   cartSaveShippingAddressSuccess: false,
   cartSavePaymentMethodSuccess: false,
-  orderGetRazorPayOrderIdSuccess: false,
-  orderRazorPayPaymentSuccess: false,
   loading: false,
 };
 
@@ -97,28 +103,34 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
+    updateCartItemQuantity(state, action) {
+      const { id, size, qty } = action.payload;
+
+      // Validate quantity bounds
+      if (qty < 1 || qty > 10) {
+        return;
+      }
+
+      // Find the specific cart item
+      const item = state.cartItems.find((item) => item._id === id && item.size === size);
+
+      if (item) {
+        item.qty = qty; // SET quantity (don't add)
+        localStorage.setItem('cartItems', JSON.stringify(state.cartItems));
+      }
+    },
     removeFromCart(state, action) {
-      state.cartItems = state.cartItems.filter(
-        (item) => item._id !== action.payload
-      );
+      const { id, size } = action.payload;
+      state.cartItems = state.cartItems.filter((item) => !(item._id === id && item.size === size));
       localStorage.setItem('cartItems', JSON.stringify(state.cartItems));
     },
     saveShippingAddress(state, action) {
       state.shippingAddress = action.payload;
-      localStorage.setItem(
-        'shippingAddress',
-        JSON.stringify(state.shippingAddress)
-      );
+      localStorage.setItem('shippingAddress', JSON.stringify(state.shippingAddress));
     },
     savePaymentMethod(state, action) {
       state.paymentMethod = action.payload;
-      localStorage.setItem(
-        'paymentMethod',
-        JSON.stringify(state.paymentMethod)
-      );
-    },
-    setRazorPayPaymentDetails(state, action) {
-      state.orderRazorPayPaymentDetails = action.payload;
+      localStorage.setItem('paymentMethod', JSON.stringify(state.paymentMethod));
     },
     clearCartData(state) {
       state.cartItems = [];
@@ -127,14 +139,14 @@ const cartSlice = createSlice({
       localStorage.removeItem('cartItems');
       localStorage.removeItem('shippingAddress');
       localStorage.removeItem('paymentMethod');
-      state.orderRazorPayPaymentDetails = {};
-      state.orderGetRazorPayOrderDetails = {};
+      state.stripeSessionId = null;
+      state.stripeCheckoutUrl = null;
+      state.stripeOrderId = null;
+      state.stripeCheckoutError = null;
       state.cartAddItemError = null;
       state.cartRemoveItemError = null;
       state.cartSaveShippingAddressError = null;
       state.cartSavePaymentMethodError = null;
-      state.orderGetRazorPayOrderIdError = null;
-      state.orderRazorPayPaymentError = null;
       state.cartAddItemSuccess = false;
       state.cartRemoveItemSuccess = false;
       state.cartSaveShippingAddressSuccess = false;
@@ -155,33 +167,37 @@ const cartSlice = createSlice({
         state.loading = false;
         state.cartAddItemSuccess = true;
         const item = action.payload;
-        const existItem = state.cartItems.find((x) => x._id === item._id);
+
+        // Check if same pizza with same size exists
+        const existItem = state.cartItems.find((x) => x._id === item._id && x.size === item.size);
+
         if (existItem) {
-          state.cartItems = state.cartItems.map((x) =>
-            x._id === existItem._id ? item : x
-          );
+          // Update quantity for existing item
+          existItem.qty += item.qty;
         } else {
-          state.cartItems = [...state.cartItems, item];
+          // Add new item
+          state.cartItems.push(item);
         }
+
         localStorage.setItem('cartItems', JSON.stringify(state.cartItems));
       })
       .addCase(addToCart.rejected, (state, action) => {
         state.loading = false;
-        state.cartAddItemError = action.payload.message;
+        state.cartAddItemError = action.payload;
       })
-      .addCase(createRazorPayOrder.pending, (state) => {
+      .addCase(createStripeCheckoutSession.pending, (state) => {
         state.loading = true;
-        state.orderGetRazorPayOrderIdSuccess = false;
-        state.orderGetRazorPayOrderIdError = null;
+        state.stripeCheckoutError = null;
       })
-      .addCase(createRazorPayOrder.fulfilled, (state, action) => {
+      .addCase(createStripeCheckoutSession.fulfilled, (state, action) => {
         state.loading = false;
-        state.orderGetRazorPayOrderIdSuccess = true;
-        state.orderGetRazorPayOrderDetails = action.payload;
+        state.stripeSessionId = action.payload.sessionId;
+        state.stripeCheckoutUrl = action.payload.url;
+        state.stripeOrderId = action.payload.orderId;
       })
-      .addCase(createRazorPayOrder.rejected, (state, action) => {
+      .addCase(createStripeCheckoutSession.rejected, (state, action) => {
         state.loading = false;
-        state.orderGetRazorPayOrderIdError = action.payload;
+        state.stripeCheckoutError = action.payload;
       });
   },
 });
@@ -189,10 +205,10 @@ const cartSlice = createSlice({
 // Export Actions
 export const {
   clearCartData,
-  setRazorPayPaymentDetails,
   removeFromCart,
   saveShippingAddress,
   savePaymentMethod,
+  updateCartItemQuantity,
 } = cartSlice.actions;
 
 // Export Reducer

@@ -3,15 +3,17 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
+// Import Constants
+import { PAYMENT_STATUS } from '../../../constants';
+
 // Import Thunks
 import { createOrder } from '../../../redux/asyncThunks/orderThunks';
-import { clearCartData } from '../../../redux/slices/cartSlice';
+import { clearCartData, createStripeCheckoutSession } from '../../../redux/slices/cartSlice';
 
 // Import Components
 import Button from '../Button';
 import Loader from '../Loader';
 import Message from '../Message';
-import RazorPayPaymentButton from './RazorPayPaymentButton';
 
 function PlaceOrderStep({ setCurrentStep }) {
   const dispatch = useDispatch();
@@ -22,8 +24,8 @@ function PlaceOrderStep({ setCurrentStep }) {
     shippingAddress,
     paymentMethod,
     cartItems,
-    orderGetRazorPayOrderDetails,
-    orderRazorPayPaymentDetails,
+    stripeCheckoutUrl,
+    stripeCheckoutError,
   } = cart;
 
   const order = useSelector((state) => state.order);
@@ -78,29 +80,48 @@ function PlaceOrderStep({ setCurrentStep }) {
   ];
 
   const handlePlaceOrder = () => {
-    dispatch(
-      createOrder({
-        orderItems: cartItems,
-        deliveryAddress: shippingAddress,
-        salesTax: orderSummary[2].value,
-        deliveryCharges: orderSummary[1].value,
-        totalPrice: orderSummary[3].value,
-        payment: {
-          method: paymentMethod.toLowerCase().replace(' ', ''),
-          razorpayOrderId: orderRazorPayPaymentDetails.razorPayPaymentId,
-          status: orderRazorPayPaymentDetails ? 'success' : 'pending',
-        },
-      })
-    );
+    if (paymentMethod === 'cod') {
+      // For COD, create order directly
+      dispatch(
+        createOrder({
+          orderItems: cartItems,
+          deliveryAddress: shippingAddress,
+          salesTax: orderSummary[2].value,
+          deliveryCharges: orderSummary[1].value,
+          totalPrice: orderSummary[3].value,
+          payment: {
+            method: 'cod',
+            status: PAYMENT_STATUS.PENDING,
+          },
+        })
+      );
+    } else if (paymentMethod === 'stripe') {
+      // For Stripe, create checkout session and redirect
+      dispatch(
+        createStripeCheckoutSession({
+          orderItems: cartItems,
+          deliveryAddress: shippingAddress,
+          salesTax: orderSummary[2].value,
+          deliveryCharges: orderSummary[1].value,
+          totalPrice: orderSummary[3].value,
+        })
+      );
+    }
   };
 
   useEffect(() => {
-    if (orderCreateSuccess && orderInfo) {
+    if (orderCreateSuccess && orderInfo && orderInfo._id) {
       dispatch(clearCartData());
-      navigate('/my-orders');
+      navigate(`/my-orders/${orderInfo._id}`);
       setCurrentStep('Shipping');
     }
   }, [dispatch, navigate, orderCreateSuccess, orderInfo, setCurrentStep]);
+
+  useEffect(() => {
+    if (stripeCheckoutUrl) {
+      window.location.href = stripeCheckoutUrl;
+    }
+  }, [stripeCheckoutUrl]);
 
   return (
     <div className="flex flex-col justify-between items-center mb-4">
@@ -200,22 +221,15 @@ function PlaceOrderStep({ setCurrentStep }) {
                   </div>
                 ))}
               </div>
-              {!orderRazorPayPaymentDetails.razorPayPaymentId && (
-                <RazorPayPaymentButton
-                  amount={orderSummary[3].value}
-                  orderId={orderGetRazorPayOrderDetails.id}
-                />
-              )}
+              {stripeCheckoutError && <Message>{stripeCheckoutError}</Message>}
               <Button
-                variant="primary"
-                disabled={
-                  !orderRazorPayPaymentDetails.razorPayPaymentId ||
-                  orderRazorPayPaymentDetails.status === 'pending'
-                }
+                variant="outline"
+                type="button"
+                className="w-full rounded-full mt-2"
                 onClick={handlePlaceOrder}
-                className="w-full rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || !paymentMethod}
               >
-                Place Order
+                {paymentMethod === 'stripe' ? 'Proceed to Payment' : 'Place Order'}
               </Button>
             </div>
           </div>
