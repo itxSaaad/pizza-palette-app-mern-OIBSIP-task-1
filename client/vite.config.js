@@ -1,37 +1,36 @@
 import { defineConfig, loadEnv } from 'vite';
+import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// https://vitejs.dev/config/
+const clientRoot = fileURLToPath(new URL('.', import.meta.url));
+
+const normalizeApiBase = (value) => {
+  const configured = value?.trim();
+  const valid = configured && configured !== 'undefined' && configured !== 'null';
+  const base = valid ? configured.replace(/\/+$/, '') : '/api';
+  return base === '/api' || base.endsWith('/api') ? base : `${base}/api`;
+};
+
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), 'VITE_');
-  const configuredServerUrl = env.VITE_SERVER_URL?.trim();
-  const validServerUrl =
-    configuredServerUrl &&
-    configuredServerUrl !== 'undefined' &&
-    configuredServerUrl !== 'null';
-  const apiBase = validServerUrl
-    ? configuredServerUrl.replace(/\/+$/, '')
-    : '/api';
-  const normalizedApiBase =
-    apiBase === '/api' || apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+  const env = loadEnv(mode, clientRoot, 'VITE_');
+  const apiBase = normalizeApiBase(env.VITE_SERVER_URL);
 
   return {
-    // The frontend and API share a Vercel Services domain. Default to its
-    // same-origin API path when Vercel or a local build omits this variable.
     define: {
-      'import.meta.env.VITE_SERVER_URL': JSON.stringify(normalizedApiBase),
+      'import.meta.env.VITE_SERVER_URL': JSON.stringify(apiBase),
     },
     plugins: [
       react(),
       VitePWA({
-        registerType: 'prompt',
+        // Do not leave installed/mobile clients on a cached bundle indefinitely.
+        // Prompt mode needs app UI to call updateSW(); this app has no such UI.
+        registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
         manifest: {
           name: 'Pizza Palette | MERN',
           short_name: 'Pizza Palette',
-          description:
-            'Order your favorite pizza Now! We deliver the best pizza in town.',
+          description: 'Order your favorite pizza Now! We deliver the best pizza in town.',
           icons: [
             {
               src: '/android-chrome-512x512.png',
@@ -86,5 +85,10 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: ['./src/test/setup.js'],
+    },
   };
 });

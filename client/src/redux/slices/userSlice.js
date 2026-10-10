@@ -3,48 +3,37 @@ import { createSlice } from '@reduxjs/toolkit';
 // Import Async Thunks
 import {
   deleteUserById,
-  forgotPassword,
   getUserDetails,
   getUserDetailsById,
   listUsers,
-  loginUser,
   registerUser,
-  resetPassword,
   updateUserProfile,
   updateUserProfileById,
   verifyEmail,
 } from '../asyncThunks/userThunks.js';
+import { login } from '../asyncThunks/authThunks.js';
 
 // Initial State
 const initialState = {
-  userInfo: localStorage.getItem('userInfo')
-    ? JSON.parse(localStorage.getItem('userInfo'))
-    : null,
+  userInfo: localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')) : null,
   userDetails: localStorage.getItem('userDetails')
     ? JSON.parse(localStorage.getItem('userDetails'))
     : null,
   userList: [],
-  userLoginError: null,
+  userListPagination: null,
   userRegisterError: null,
   userDetailsError: null,
   userUpdateProfileError: null,
   userListError: null,
   userVerifyEmailError: null,
-  userForgotPasswordError: null,
-  userPasswordResetEmail: null,
-  userPasswordResetOTP: null,
-  userResetPasswordError: null,
   userDetailsByIdError: null,
   userUpdateProfileByIdError: null,
   userDeleteByIdError: null,
-  userLoginSuccess: false,
   userRegisterSuccess: false,
   userDetailsSuccess: false,
   userUpdateProfileSuccess: false,
   userListSuccess: false,
   userVerifyEmailSuccess: false,
-  userForgotPasswordSuccess: false,
-  userResetPasswordSuccess: false,
   userDetailsByIdSuccess: false,
   userUpdateProfileByIdSuccess: false,
   userDeleteByIdSuccess: false,
@@ -56,38 +45,26 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setPasswordResetEmail: (state, action) => {
-      state.userPasswordResetEmail = action.payload;
-    },
-    setPasswordResetOTP: (state, action) => {
-      state.userPasswordResetOTP = action.payload;
-    },
     clearUserData: (state) => {
       localStorage.removeItem('userInfo');
       localStorage.removeItem('userDetails');
       state.userInfo = null;
       state.userDetails = null;
       state.userList = [];
-      state.userPasswordResetEmail = null;
-      state.userLoginError = null;
+      state.userListPagination = null;
       state.userRegisterError = null;
       state.userDetailsError = null;
       state.userUpdateProfileError = null;
       state.userListError = null;
       state.userVerifyEmailError = null;
-      state.userForgotPasswordError = null;
-      state.userResetPasswordError = null;
       state.userDetailsByIdError = null;
       state.userUpdateProfileByIdError = null;
       state.userDeleteByIdError = null;
-      state.userLoginSuccess = false;
       state.userRegisterSuccess = false;
       state.userDetailsSuccess = false;
       state.userUpdateProfileSuccess = false;
       state.userListSuccess = false;
       state.userVerifyEmailSuccess = false;
-      state.userForgotPasswordSuccess = false;
-      state.userResetPasswordSuccess = false;
       state.userDetailsByIdSuccess = false;
       state.userUpdateProfileByIdSuccess = false;
       state.userDeleteByIdSuccess = false;
@@ -96,20 +73,10 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.userLoginError = null;
-        state.userLoginSuccess = false;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
+      .addCase(login.fulfilled, (state, action) => {
+        if (action.payload.type !== 'user') return;
         state.userInfo = action.payload;
         localStorage.setItem('userInfo', JSON.stringify(action.payload));
-        state.userLoginSuccess = true;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.userLoginError = action.payload;
       })
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
@@ -164,7 +131,8 @@ const userSlice = createSlice({
       })
       .addCase(listUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.userList = action.payload;
+        state.userList = action.payload.items;
+        state.userListPagination = action.payload.pagination;
         state.userListSuccess = true;
       })
 
@@ -184,32 +152,6 @@ const userSlice = createSlice({
       .addCase(verifyEmail.rejected, (state, action) => {
         state.loading = false;
         state.userVerifyEmailError = action.payload;
-      })
-      .addCase(forgotPassword.pending, (state) => {
-        state.loading = true;
-        state.userForgotPasswordError = null;
-        state.userForgotPasswordSuccess = false;
-      })
-      .addCase(forgotPassword.fulfilled, (state) => {
-        state.loading = false;
-        state.userForgotPasswordSuccess = true;
-      })
-      .addCase(forgotPassword.rejected, (state, action) => {
-        state.loading = false;
-        state.userForgotPasswordError = action.payload;
-      })
-      .addCase(resetPassword.pending, (state) => {
-        state.loading = true;
-        state.userResetPasswordError = null;
-        state.userResetPasswordSuccess = false;
-      })
-      .addCase(resetPassword.fulfilled, (state) => {
-        state.loading = false;
-        state.userResetPasswordSuccess = true;
-      })
-      .addCase(resetPassword.rejected, (state, action) => {
-        state.loading = false;
-        state.userResetPasswordError = action.payload;
       })
       .addCase(getUserDetailsById.pending, (state) => {
         state.loading = true;
@@ -256,8 +198,7 @@ const userSlice = createSlice({
 });
 
 // Export Actions
-export const { clearUserData, setPasswordResetEmail, setPasswordResetOTP } =
-  userSlice.actions;
+export const { clearUserData } = userSlice.actions;
 
 // Export Reducer
 export default userSlice.reducer;

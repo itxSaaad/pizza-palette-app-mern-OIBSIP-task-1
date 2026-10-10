@@ -1,6 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { extractErrorMessage } from '../../utils/errorUtils';
+
 // Create Thunks
 
 // Create Inventory
@@ -30,15 +32,9 @@ export const createStock = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -46,7 +42,7 @@ export const createStock = createAsyncThunk(
 // Get All Inventory
 export const listInventory = createAsyncThunk(
   'inventory/listStocks',
-  async (_, { rejectWithValue, getState }) => {
+  async ({ page = 1, limit = 100, search, type } = {}, { rejectWithValue, getState }) => {
     try {
       const {
         user: { userInfo },
@@ -71,20 +67,21 @@ export const listInventory = createAsyncThunk(
         };
       }
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/stocks`,
-        config
-      );
-
-      return data;
-    } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/stocks`, {
+        ...config,
+        params: { page, limit, search, type },
       });
+      const items = data.data || [];
+      return {
+        items,
+        pagination: data.pagination,
+        bases: items.filter((item) => item.type === 'Base'),
+        sauces: items.filter((item) => item.type === 'Sauce'),
+        cheeses: items.filter((item) => item.type === 'Cheese'),
+        veggies: items.filter((item) => item.type === 'Veggie'),
+      };
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -117,20 +114,11 @@ export const getStockById = createAsyncThunk(
         };
       }
 
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/stocks/${id}`,
-        config
-      );
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/stocks/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -150,20 +138,11 @@ export const updateStockById = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.put(
-        `${import.meta.env.VITE_SERVER_URL}/stocks/${id}`,
-        config
-      );
+      const { data } = await axios.put(`${import.meta.env.VITE_SERVER_URL}/stocks/${id}`, config);
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -188,15 +167,9 @@ export const deleteStockById = createAsyncThunk(
         config
       );
 
-      return data;
+      return data.data || data;
     } catch (error) {
-      return rejectWithValue({
-        status: error.response && error.response.status,
-        message:
-          error.response && error.response.data.message
-            ? error.response.data.message
-            : error.message,
-      });
+      return rejectWithValue(extractErrorMessage(error));
     }
   }
 );

@@ -4,14 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
-import { resetPassword } from '../../../../redux/asyncThunks/userThunks';
-import {
-  setPasswordResetOTP,
-  setPasswordResetEmail,
-} from '../../../../redux/slices/userSlice';
+import { resetPassword } from '../../../../redux/asyncThunks/authThunks';
+import { setPasswordResetOTP, setPasswordResetEmail } from '../../../../redux/slices/authSlice';
 
 // Import Components
 import Button from '../../Button';
+import Input from '../../Input';
 import Loader from '../../Loader';
 import Message from '../../Message';
 
@@ -22,21 +20,20 @@ function PasswordForm({ setCurrentStep }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const user = useSelector((state) => state.user);
   const {
     loading,
-    userPasswordResetOTP,
-    userPasswordResetEmail,
-    userResetPasswordError,
-    userResetPasswordSuccess,
-  } = user;
+    passwordResetOTP,
+    passwordResetEmail,
+    resetPasswordError,
+    resetPasswordSuccess,
+  } = useSelector((state) => state.auth);
 
   const submitHandler = (e) => {
     e.preventDefault();
     dispatch(
       resetPassword({
-        email: userPasswordResetEmail,
-        resetToken: userPasswordResetOTP,
+        email: passwordResetEmail,
+        resetToken: passwordResetOTP,
         newPassword: password,
         confirmNewPassword: confirmPassword,
       })
@@ -47,81 +44,63 @@ function PasswordForm({ setCurrentStep }) {
   };
 
   useEffect(() => {
-    if (userResetPasswordError) {
-      setInterval(() => {
+    if (resetPasswordError) {
+      const timer = setTimeout(() => {
         setCurrentStep('EmailForm');
       }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [userResetPasswordError, setCurrentStep]);
+    return undefined;
+  }, [resetPasswordError, setCurrentStep]);
 
   useEffect(() => {
-    if (userResetPasswordSuccess) {
+    if (resetPasswordSuccess) {
       navigate('/login');
-      setInterval(() => {
+      const timer = setTimeout(() => {
         setCurrentStep('EmailForm');
       }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [userResetPasswordSuccess, setCurrentStep, navigate]);
+    return undefined;
+  }, [resetPasswordSuccess, setCurrentStep, navigate]);
 
   return (
     <>
       {loading ? (
-        <div className="w-full flex justify-center items-center">
-          <Loader />
-        </div>
+        <Loader fullWidth />
       ) : (
         <form className="w-full" onSubmit={submitHandler}>
-          <p className="text-center text-black text-xl leading-relaxed">
+          <p className="text-center text-neutral-900 text-xl leading-relaxed">
             Reset Password
             <br />
-            <span className="text-sm text-orange-500">Enter New Password</span>
+            <span className="text-sm text-primary-600">Enter New Password</span>
           </p>
 
-          {userResetPasswordError && (
-            <Message>{userResetPasswordError}</Message>
-          )}
+          {resetPasswordError && <Message>{resetPasswordError}</Message>}
 
           <div className="w-full my-4">
-            <label htmlFor="password" className="sr-only">
-              New Password
-            </label>
-
-            <div className="flex justify-center items-center w-full">
-              <input
-                type="password"
-                id="password"
-                value={password}
-                placeholder="Enter New Password"
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-                required
-                className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-              />
-            </div>
+            <Input
+              name="password"
+              type="password"
+              value={password}
+              placeholder="Enter New Password"
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
           <div className="w-full my-4">
-            <label htmlFor="confirmPassword" className="sr-only">
-              Confirm New Password
-            </label>
-
-            <div className="flex justify-center items-center w-full">
-              <input
-                type="password"
-                id="confirmPassword"
-                value={confirmPassword}
-                placeholder="Confirm New Password"
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                }}
-                required
-                className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-              />
-            </div>
+            <Input
+              name="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              placeholder="Confirm New Password"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
           </div>
 
-          <Button type="submit" variant="primary" className="w-full rounded-md">
-            Verify OTP & Reset Password
+          <Button type="submit" variant="primary" fullWidth className="rounded-control">
+            Verify OTP &amp; Reset Password
           </Button>
         </form>
       )}

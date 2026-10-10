@@ -7,12 +7,7 @@ import { Link } from 'react-router-dom';
 
 import { getUserDetails } from '../../../redux/asyncThunks/userThunks';
 
-function ProfileBtnAndDropOnNav({
-  dropIsOpen,
-  setDropIsOpen,
-  dropdownRef,
-  logoutHandler,
-}) {
+function ProfileBtnAndDropOnNav({ dropIsOpen, setDropIsOpen, dropdownRef, logoutHandler }) {
   const dispatch = useDispatch();
 
   const user = useSelector((state) => state.user);
@@ -26,20 +21,21 @@ function ProfileBtnAndDropOnNav({
       <button
         type="button"
         onClick={() => setDropIsOpen(!dropIsOpen)}
-        className="text-black hover:text-orange-500 border-2 border-orange-500 rounded-full inline-flex items-center p-2 focus:outline-none"
+        className="text-neutral-900 hover:text-primary-600 border-2 border-primary-500 rounded-full inline-flex items-center justify-center p-2 min-h-[44px] min-w-[44px] focus:outline-none"
+        aria-label="Account menu"
       >
         <FaUserAlt />
-        <BiSolidDownArrow className="h-3 text-orange-300" />
+        <BiSolidDownArrow className="h-3 text-primary-300 ml-1" />
       </button>
       {dropIsOpen && (
-        <div className="absolute right-0 w-48  bg-white border border-gray-300 rounded shadow-lg mt-4">
+        <div className="absolute right-0 w-48 bg-neutral-50 border border-neutral-200 rounded-card shadow-card-lg mt-4 overflow-hidden">
           {adminUserInfo && (
             <Link
               to="/admin/dashboard"
               onClick={() => {
                 setDropIsOpen(!dropIsOpen);
               }}
-              className="inline-flex items-center w-full px-4 py-2 text-sm text-left text-orange-500 hover:bg-orange-100"
+              className="flex items-center w-full px-4 py-3 min-h-[44px] text-sm text-left text-primary-600 hover:bg-primary-100"
             >
               <BiSolidUserDetail className="mr-1" />
               Dashboard
@@ -47,12 +43,12 @@ function ProfileBtnAndDropOnNav({
           )}
           {userInfo && (
             <Link
-              to="/profile" // Replace with the actual profile route
+              to="/profile"
               onClick={() => {
                 dispatch(getUserDetails({}));
                 setDropIsOpen(!dropIsOpen);
               }}
-              className="inline-flex items-center w-full px-4 py-2 text-sm text-left text-orange-500 hover:bg-orange-100"
+              className="flex items-center w-full px-4 py-3 min-h-[44px] text-sm text-left text-primary-600 hover:bg-primary-100"
             >
               <BiSolidUserDetail className="mr-1" />
               Profile
@@ -61,7 +57,7 @@ function ProfileBtnAndDropOnNav({
           <button
             type="button"
             onClick={logoutHandler}
-            className="inline-flex items-center w-full px-4 py-2 text-sm text-left text-orange-500 hover:bg-orange-100"
+            className="flex items-center w-full px-4 py-3 min-h-[44px] text-sm text-left text-primary-600 hover:bg-primary-100"
           >
             <CgLogOut className="mr-1" />
             Logout

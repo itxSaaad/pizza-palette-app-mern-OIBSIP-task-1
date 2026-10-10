@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { FaPlus } from 'react-icons/fa';
 
 // Import Thunks
 import { createPizza } from '../../redux/asyncThunks/pizzaThunks';
@@ -9,71 +10,100 @@ import { addToCart } from '../../redux/slices/cartSlice';
 
 // Import Components
 import Button from '../../components/ui/Button';
+import IngredientCard from '../../components/ui/PizzaMenu/IngredientCard';
 import Message from '../../components/ui/Message';
 import Loader from '../../components/ui/Loader';
-import { FaPlus } from 'react-icons/fa';
+
+// Import Constants
+import { PIZZA_SIZE_OPTIONS, getPizzaSizeMultiplier } from '../../constants';
+
+// Custom pizzas don't have a name/description/image input in this builder —
+// every custom pizza gets the same placeholder identity. These aren't
+// component state since nothing in the UI ever changes them.
+const CUSTOM_PIZZA_NAME = 'Custom Pizza';
+const CUSTOM_PIZZA_DESCRIPTION = 'My Custom Pizza';
+const CUSTOM_PIZZA_IMAGE_URL = '/images/pizza.png';
 
 function UserCreateCustomPizzaScreen() {
-  const [name, setName] = useState('Custom Pizza');
-  const [description, setDescription] = useState('Custom Pizza');
-  const [imageUrl, setImageUrl] = useState(
-    'https://www.cicis.com/media/gvedawsa/pepperoni-pizza.png'
-  );
-  const [size, setSize] = useState('');
-  const [price, setPrice] = useState(
-    size === 'small'
-      ? 10
-      : size === 'medium'
-      ? 12
-      : size === 'large'
-      ? 14
-      : size === 'extra-large'
-      ? 16
-      : 0
-  );
-
-  const [bases, setBases] = useState([]);
-  const [sauces, setSauces] = useState([]);
-  const [cheeses, setCheeses] = useState([]);
-  const [veggies, setVeggies] = useState([]);
-  const [qty, setQty] = useState('');
-
-  const PizzaSizes = ['small', 'medium', 'large', 'extra-large'];
+  const [size, setSize] = useState('medium');
+  const [selectedBases, setSelectedBases] = useState([]);
+  const [selectedSauces, setSelectedSauces] = useState([]);
+  const [selectedCheeses, setSelectedCheeses] = useState([]);
+  const [selectedVeggies, setSelectedVeggies] = useState([]);
+  const [qty, setQty] = useState(1);
+  const [validationError, setValidationError] = useState('');
+  const addedToCartRef = useRef(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const pizza = useSelector((state) => state.pizza);
-  const {
-    loading: pizzaLoading,
-    pizzaInfo,
-    pizzaCreateError,
-    pizzaCreateSuccess,
-  } = pizza;
+  const { loading: pizzaLoading, pizzaInfo, pizzaCreateError, pizzaCreateSuccess } = pizza;
 
   const inventory = useSelector((state) => state.inventory);
-  const {
-    loading: inventoryLoading,
-    inventoryList,
-    inventoryListError,
-  } = inventory;
+  const { loading: inventoryLoading, inventoryList, inventoryListError } = inventory;
 
   const cart = useSelector((state) => state.cart);
   const { loading: cartLoading, cartAddItemError, cartAddItemSuccess } = cart;
 
+  const calculateBasePrice = () => {
+    const basePrice =
+      selectedBases.reduce((sum, item) => sum + (item.price || 0), 0) +
+      selectedSauces.reduce((sum, item) => sum + (item.price || 0), 0) +
+      selectedCheeses.reduce((sum, item) => sum + (item.price || 0), 0) +
+      selectedVeggies.reduce((sum, item) => sum + (item.price || 0), 0);
+
+    return basePrice;
+  };
+
+  const calculateTotalPrice = () => {
+    const multiplier = getPizzaSizeMultiplier(size);
+    return (calculateBasePrice() * multiplier).toFixed(2);
+  };
+
+  const handleIngredientToggle = (item, selectedItems, setSelectedItems) => {
+    const isSelected = selectedItems.some((i) => i._id === item._id);
+    if (isSelected) {
+      setSelectedItems(selectedItems.filter((i) => i._id !== item._id));
+    } else {
+      setSelectedItems([...selectedItems, item]);
+    }
+  };
+
   const handleCreateCustomPizza = (e) => {
     e.preventDefault();
 
+    if (selectedBases.length === 0) {
+      setValidationError('Please select at least one base');
+      return;
+    }
+
+    if (selectedSauces.length === 0) {
+      setValidationError('Please select at least one sauce');
+      return;
+    }
+
+    if (selectedCheeses.length === 0) {
+      setValidationError('Please select at least one cheese');
+      return;
+    }
+
+    if (!size) {
+      setValidationError('Please select a pizza size');
+      return;
+    }
+
+    setValidationError('');
+
     const pizzaData = {
-      name,
-      description,
-      bases,
-      sauces,
-      cheeses,
-      veggies,
-      price,
-      size,
-      imageUrl,
+      name: CUSTOM_PIZZA_NAME,
+      description: CUSTOM_PIZZA_DESCRIPTION,
+      bases: selectedBases.map((item) => item._id),
+      sauces: selectedSauces.map((item) => item._id),
+      cheeses: selectedCheeses.map((item) => item._id),
+      veggies: selectedVeggies.map((item) => item._id),
+      price: parseFloat(calculateTotalPrice()),
+      imageUrl: CUSTOM_PIZZA_IMAGE_URL,
     };
 
     dispatch(createPizza(pizzaData));
@@ -84,365 +114,301 @@ function UserCreateCustomPizzaScreen() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (pizzaCreateSuccess) {
-      dispatch(addToCart({ id: pizzaInfo._id, qty }));
+    if (pizzaCreateSuccess && pizzaInfo && !addedToCartRef.current) {
+      addedToCartRef.current = true;
+      const multiplier = getPizzaSizeMultiplier(size);
+      const calculatedPrice = parseFloat((calculateBasePrice() * multiplier).toFixed(2));
+
+      dispatch(
+        addToCart({
+          id: pizzaInfo._id,
+          qty,
+          size,
+          calculatedPrice,
+        })
+      );
     }
-  }, [dispatch, pizzaCreateSuccess, pizzaInfo, qty]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, pizzaCreateSuccess, pizzaInfo, qty, size]);
 
   useEffect(() => {
     if (cartAddItemSuccess) {
-      navigate('/');
+      navigate('/menu');
     }
   }, [cartAddItemSuccess, navigate]);
 
   return (
-    <section className="min-h-screen flex flex-col justify-center items-center pt-16 pb-6 px-10 sm:px-16">
-      <h1 className="text-4xl font-bold text-orange-600 mt-6">
-        Create Custom Pizza
-      </h1>
-      {cartLoading || pizzaLoading || inventoryLoading ? (
-        <Loader />
-      ) : (
-        <div className="w-full mt-6 p-6 rounded-2xl shadow-lg bg-orange-300">
-          {(pizzaCreateError || inventoryListError || cartAddItemError) && (
-            <Message>
-              {pizzaCreateError
-                ? pizzaCreateError
-                : inventoryListError
-                ? inventoryListError
-                : cartAddItemError}
-            </Message>
-          )}
+    <section className="min-h-screen flex flex-col justify-center items-center pb-6 px-4 sm:px-8 bg-neutral-50">
+      <div className="w-full max-w-7xl">
+        <h1 className="font-display text-h1 text-primary-600 text-center">
+          Create Your Custom Pizza
+        </h1>
+        <p className="text-neutral-600 mt-2 text-center">
+          Build your perfect pizza by selecting ingredients
+        </p>
 
-          {(pizzaCreateSuccess || cartAddItemSuccess) && (
-            <Message>{pizzaCreateSuccess || cartAddItemSuccess}</Message>
-          )}
+        {cartLoading || pizzaLoading || inventoryLoading ? (
+          <Loader />
+        ) : (
+          <div className="mt-6">
+            {(pizzaCreateError || inventoryListError || cartAddItemError) && (
+              <Message>{pizzaCreateError || inventoryListError || cartAddItemError}</Message>
+            )}
 
-          <form
-            onSubmit={handleCreateCustomPizza}
-            className="w-full flex flex-col items-center justify-center gap-3"
-          >
-            <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
-              <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="w-full">
-                  <label htmlFor="name" className="sr-only">
-                    Pizza Name
-                  </label>
+            {validationError && <Message variant="warning">{validationError}</Message>}
 
-                  <input
-                    type="text"
-                    id="name"
-                    value={name}
-                    placeholder="Enter Pizza Name"
-                    onChange={(e) => setName(e.target.value)}
-                    disabled={true}
-                    required
-                    className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-                <div className="w-full">
-                  <label htmlFor="description" className="sr-only">
-                    Pizza Description
-                  </label>
-                  <input
-                    type="text"
-                    id="description"
-                    value={description}
-                    placeholder="Enter Pizza Description"
-                    onChange={(e) => setDescription(e.target.value)}
-                    disabled={true}
-                    required
-                    className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-                <div className="w-full">
-                  <label htmlFor="imageUrl" className="sr-only">
-                    Image URL
-                  </label>
-
-                  <input
-                    type="text"
-                    id="imageUrl"
-                    value={imageUrl}
-                    placeholder="Enter Image URL"
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    disabled={true}
-                    required
-                    className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-                <div className="w-full">
-                  <label htmlFor="price" className="sr-only">
-                    Pizza Price
-                  </label>
-                  <input
-                    type="number"
-                    id="price"
-                    value={price}
-                    placeholder="Enter Pizza Price"
-                    onChange={(e) => setPrice(e.target.value)}
-                    disabled={true}
-                    required
-                    className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-                <div className="w-full">
-                  <label htmlFor="size" className="sr-only">
-                    Pizza Size
-                  </label>
-                  <select
-                    id="size"
-                    value={size}
-                    onChange={(e) => {
-                      setSize(e.target.value);
-                      setPrice(
-                        e.target.value === 'small'
-                          ? 10
-                          : e.target.value === 'medium'
-                          ? 12
-                          : e.target.value === 'large'
-                          ? 14
-                          : e.target.value === 'extra-large'
-                          ? 16
-                          : 0
-                      );
-                    }}
-                    required
-                    className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Select Pizza Size</option>
-                    {PizzaSizes.map((size) => (
-                      <option key={size} value={size}>
-                        {size.charAt(0).toUpperCase() + size.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="w-full">
-                  <label htmlFor="qty" className="sr-only">
-                    Pizza Quantity
-                  </label>
-                  <input
-                    type="number"
-                    id="qty"
-                    value={qty}
-                    placeholder="Enter Pizza Quantity"
-                    onChange={(e) => setQty(e.target.value)}
-                    required
-                    className="w-full text-orange-600 bg-orange-100 placeholder-orange-300 rounded-md p-4 pr-12 text-sm shadow-sm"
-                  />
-                </div>
-              </div>
-              <div className="w-full grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="w-full">
-                  {Object.entries(inventoryList).map(([category, items]) => {
-                    switch (category) {
-                      case 'bases':
-                        return (
-                          <div
-                            key={category}
-                            className="w-full flex flex-col items-center justify-center bg-orange-100 rounded-md p-4"
-                          >
-                            <h1 className="text-xl font-bold text-orange-600">
-                              {category.charAt(0).toUpperCase() +
-                                category.slice(1)}
-                            </h1>
-                            <div className="w-full">
-                              {items.map((item) => (
-                                <label
-                                  key={item._id}
-                                  htmlFor={item._id}
-                                  className="flex items-center justify-start w-full"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    className="mr-2"
-                                    value={item._id}
-                                    name={item._id}
-                                    id={item._id}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setBases([...bases, item._id]);
-                                      } else {
-                                        setBases(
-                                          bases.filter(
-                                            (base) => base !== item._id
-                                          )
-                                        );
-                                      }
-                                    }}
-                                  />
-                                  <span className="text-orange-600 text-sm">
-                                    {item.item}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                    }
-                  })}
-                </div>
-                <div className="w-full">
-                  {Object.entries(inventoryList).map(([category, items]) => {
-                    switch (category) {
-                      case 'sauces':
-                        return (
-                          <div
-                            key={category}
-                            className="w-full flex flex-col items-center justify-center bg-orange-100 rounded-md p-4"
-                          >
-                            <h1 className="text-xl font-bold text-orange-600">
-                              {category.charAt(0).toUpperCase() +
-                                category.slice(1)}
-                            </h1>
-                            <div className="w-full">
-                              {items.map((item) => (
-                                <label
-                                  key={item._id}
-                                  htmlFor={item._id}
-                                  className="flex items-center justify-start w-full"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    className="mr-2"
-                                    value={item._id}
-                                    name={item._id}
-                                    id={item._id}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setSauces([...sauces, item._id]);
-                                      } else {
-                                        setSauces(
-                                          sauces.filter(
-                                            (sauce) => sauce !== item._id
-                                          )
-                                        );
-                                      }
-                                    }}
-                                  />
-                                  <span className="text-orange-600 text-sm">
-                                    {item.item}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                    }
-                  })}
-                </div>
-                <div className="w-full">
-                  {Object.entries(inventoryList).map(([category, items]) => {
-                    switch (category) {
-                      case 'cheeses':
-                        return (
-                          <div
-                            key={category}
-                            className="w-full flex flex-col items-center justify-center bg-orange-100 rounded-md p-4"
-                          >
-                            <h1 className="text-xl font-bold text-orange-600">
-                              {category.charAt(0).toUpperCase() +
-                                category.slice(1)}
-                            </h1>
-                            <div className="w-full">
-                              {items.map((item) => (
-                                <label
-                                  key={item._id}
-                                  htmlFor={item._id}
-                                  className="flex items-center justify-start w-full"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    className="mr-2"
-                                    value={item._id}
-                                    name={item._id}
-                                    id={item._id}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setCheeses([...cheeses, item._id]);
-                                      } else {
-                                        setCheeses(
-                                          cheeses.filter(
-                                            (cheese) => cheese !== item._id
-                                          )
-                                        );
-                                      }
-                                    }}
-                                  />
-                                  <span className="text-orange-600 text-sm">
-                                    {item.item}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                    }
-                  })}
-                </div>
-                <div className="w-full">
-                  {Object.entries(inventoryList).map(([category, items]) => {
-                    switch (category) {
-                      case 'veggies':
-                        return (
-                          <div
-                            key={category}
-                            className="w-full flex flex-col items-center justify-center bg-orange-100 rounded-md p-4"
-                          >
-                            <h1 className="text-xl font-bold text-orange-600">
-                              {category.charAt(0).toUpperCase() +
-                                category.slice(1)}
-                            </h1>
-                            <div className="w-full">
-                              {items.map((item) => (
-                                <label
-                                  key={item._id}
-                                  htmlFor={item._id}
-                                  className="flex items-center justify-start w-full"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    className="mr-2"
-                                    value={item._id}
-                                    name={item._id}
-                                    id={item._id}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setVeggies([...veggies, item._id]);
-                                      } else {
-                                        setVeggies(
-                                          veggies.filter(
-                                            (veggie) => veggie !== item._id
-                                          )
-                                        );
-                                      }
-                                    }}
-                                  />
-                                  <span className="text-orange-600 text-sm">
-                                    {item.item}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                    }
-                  })}
-                </div>
-              </div>
-            </div>
-            <Button
-              variant="secondary"
-              type="submit"
-              className="w-full rounded-full mt-4 inline-flex items-center justify-center"
+            <form
+              onSubmit={handleCreateCustomPizza}
+              className="w-full flex flex-col lg:flex-row items-start gap-6"
             >
-              <FaPlus className="mr-1" /> Create Pizza
-            </Button>
-          </form>
-        </div>
-      )}
+              <div className="w-full lg:w-2/3 space-y-4">
+                <div className="bg-primary-50 rounded-card p-6 border-2 border-primary-200">
+                  <h2 className="font-display text-h3 text-primary-600 mb-4 flex items-center">
+                    <span className="bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">
+                      1
+                    </span>
+                    Choose Your Base (Required)
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {inventoryList?.bases?.map((item) => (
+                      <IngredientCard
+                        key={item._id}
+                        item={item}
+                        selected={selectedBases.some((b) => b._id === item._id)}
+                        onToggle={() =>
+                          handleIngredientToggle(item, selectedBases, setSelectedBases)
+                        }
+                        disabled={item.quantity === 0}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-primary-50 rounded-card p-6 border-2 border-primary-200">
+                  <h2 className="font-display text-h3 text-primary-600 mb-4 flex items-center">
+                    <span className="bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">
+                      2
+                    </span>
+                    Choose Your Sauce (Required)
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {inventoryList?.sauces?.map((item) => (
+                      <IngredientCard
+                        key={item._id}
+                        item={item}
+                        selected={selectedSauces.some((s) => s._id === item._id)}
+                        onToggle={() =>
+                          handleIngredientToggle(item, selectedSauces, setSelectedSauces)
+                        }
+                        disabled={item.quantity === 0}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-primary-50 rounded-card p-6 border-2 border-primary-200">
+                  <h2 className="font-display text-h3 text-primary-600 mb-4 flex items-center">
+                    <span className="bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">
+                      3
+                    </span>
+                    Choose Your Cheese (Required)
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {inventoryList?.cheeses?.map((item) => (
+                      <IngredientCard
+                        key={item._id}
+                        item={item}
+                        selected={selectedCheeses.some((c) => c._id === item._id)}
+                        onToggle={() =>
+                          handleIngredientToggle(item, selectedCheeses, setSelectedCheeses)
+                        }
+                        disabled={item.quantity === 0}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-primary-50 rounded-card p-6 border-2 border-primary-200">
+                  <h2 className="font-display text-h3 text-primary-600 mb-4 flex items-center">
+                    <span className="bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">
+                      4
+                    </span>
+                    Choose Your Veggies (Optional)
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {inventoryList?.veggies?.map((item) => (
+                      <IngredientCard
+                        key={item._id}
+                        item={item}
+                        selected={selectedVeggies.some((v) => v._id === item._id)}
+                        onToggle={() =>
+                          handleIngredientToggle(item, selectedVeggies, setSelectedVeggies)
+                        }
+                        disabled={item.quantity === 0}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-primary-50 rounded-card p-6 border-2 border-primary-200">
+                    <h2 className="text-xl font-bold text-primary-600 mb-3">5. Choose Size</h2>
+                    <select
+                      id="size"
+                      value={size}
+                      onChange={(e) => setSize(e.target.value)}
+                      required
+                      className="w-full min-h-[44px] text-primary-600 bg-neutral-50 border-2 border-primary-200 rounded-control p-4 text-sm shadow-card-sm focus:ring-2 focus:ring-primary-400"
+                    >
+                      <option value="">Select Pizza Size</option>
+                      {PIZZA_SIZE_OPTIONS.map((sizeOption) => (
+                        <option key={sizeOption.value} value={sizeOption.value}>
+                          {sizeOption.label} - {sizeOption.multiplier}x price
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="bg-primary-50 rounded-card p-6 border-2 border-primary-200">
+                    <h2 className="text-xl font-bold text-primary-600 mb-3">6. Quantity</h2>
+                    <input
+                      type="number"
+                      id="qty"
+                      min="1"
+                      value={qty}
+                      placeholder="Enter Quantity"
+                      onChange={(e) => setQty(parseInt(e.target.value) || 1)}
+                      required
+                      className="w-full min-h-[44px] text-primary-600 bg-neutral-50 border-2 border-primary-200 rounded-control p-4 text-sm shadow-card-sm focus:ring-2 focus:ring-primary-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full lg:w-1/3 lg:sticky lg:top-24">
+                <div className="bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-card p-6 shadow-card-lg">
+                  <h2 className="font-display text-h3 mb-4 border-b border-primary-400 pb-2">
+                    Order Summary
+                  </h2>
+
+                  <div className="space-y-4 mb-6">
+                    {selectedBases.length > 0 && (
+                      <div>
+                        <p className="font-bold text-primary-100 mb-1">Bases:</p>
+                        <ul className="space-y-1">
+                          {selectedBases.map((item) => (
+                            <li key={item._id} className="flex justify-between text-sm">
+                              <span>{item.item}</span>
+                              <span>${item.price}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {selectedSauces.length > 0 && (
+                      <div>
+                        <p className="font-bold text-primary-100 mb-1">Sauces:</p>
+                        <ul className="space-y-1">
+                          {selectedSauces.map((item) => (
+                            <li key={item._id} className="flex justify-between text-sm">
+                              <span>{item.item}</span>
+                              <span>${item.price}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {selectedCheeses.length > 0 && (
+                      <div>
+                        <p className="font-bold text-primary-100 mb-1">Cheeses:</p>
+                        <ul className="space-y-1">
+                          {selectedCheeses.map((item) => (
+                            <li key={item._id} className="flex justify-between text-sm">
+                              <span>{item.item}</span>
+                              <span>${item.price}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {selectedVeggies.length > 0 && (
+                      <div>
+                        <p className="font-bold text-primary-100 mb-1">Veggies:</p>
+                        <ul className="space-y-1">
+                          {selectedVeggies.map((item) => (
+                            <li key={item._id} className="flex justify-between text-sm">
+                              <span>{item.item}</span>
+                              <span>${item.price}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="border-t border-primary-400 pt-3 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Base Price:</span>
+                        <span className="font-bold">${calculateBasePrice().toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Size:</span>
+                        <span className="font-bold">
+                          {size ? size.charAt(0).toUpperCase() + size.slice(1) : 'Not selected'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Size Multiplier:</span>
+                        <span className="font-bold">{getPizzaSizeMultiplier(size)}x</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Quantity:</span>
+                        <span className="font-bold">{qty}</span>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-primary-400 pt-3 mt-3">
+                      <div className="flex justify-between items-center text-2xl font-bold">
+                        <span>Total Price:</span>
+                        <span>${calculateTotalPrice()}</span>
+                      </div>
+                      {qty > 1 && (
+                        <p className="text-sm text-primary-100 mt-1">
+                          ${calculateTotalPrice()} per pizza
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={
+                      selectedBases.length === 0 ||
+                      selectedSauces.length === 0 ||
+                      selectedCheeses.length === 0 ||
+                      !size
+                    }
+                    className="w-full rounded-pill inline-flex items-center justify-center py-3 font-bold shadow-card-lg"
+                  >
+                    <FaPlus className="mr-2" /> Add to Cart
+                  </Button>
+
+                  {(selectedBases.length === 0 ||
+                    selectedSauces.length === 0 ||
+                    selectedCheeses.length === 0) && (
+                    <p className="text-primary-100 text-sm mt-2 text-center">
+                      Please select required ingredients
+                    </p>
+                  )}
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

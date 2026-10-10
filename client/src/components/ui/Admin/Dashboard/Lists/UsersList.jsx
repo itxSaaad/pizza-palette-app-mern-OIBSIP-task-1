@@ -1,73 +1,74 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
-import {
-  deleteUserById,
-  listUsers,
-} from '../../../../../redux/asyncThunks/userThunks';
+import { deleteUserById, listUsers } from '../../../../../redux/asyncThunks/userThunks';
+
+// Import Hooks
+import { useEntityListActions } from '../../../../../hooks/useEntityListActions';
 
 // Import Components
-import Loader from '../../../Loader';
-import Message from '../../../Message';
+import ConfirmDialog from '../../../ConfirmDialog';
+import AdminListLayout from '../AdminListLayout';
 import Table from '../Table';
 
 function UsersList() {
   const userColumns = ['_id', 'name', 'email', 'numberOfOrders', 'isVerified'];
 
   const dispatch = useDispatch();
+  const [page, setPage] = useState(1);
 
   const user = useSelector((state) => state.user);
   const {
     loading,
     userList,
+    userListPagination,
     userListError,
     userDeleteByIdError,
     userDeleteByIdSuccess,
   } = user;
 
-  const handleDelete = (id) => {
-    dispatch(deleteUserById(id)).then(() => dispatch(listUsers({})));
-  };
+  const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
+    deleteThunk: deleteUserById,
+    refreshThunk: () => listUsers({ page }),
+    entityName: 'user',
+  });
 
   const successMessageDelete = userDeleteByIdSuccess && {
     status: '200',
     message: 'User Deleted Successfully!',
   };
 
+  const columnRenderers = {
+    numberOfOrders: (row) => row.orders.length,
+    isVerified: (row) => (row.isVerified ? 'Verified' : 'Not Verified'),
+  };
+
   useEffect(() => {
-    if (!userList) {
-      dispatch(listUsers({}));
-    }
-  }, [dispatch, userList]);
+    dispatch(listUsers({ page }));
+  }, [dispatch, page]);
 
   return (
-    <div className="w-full p-4">
-      <h2 className="text-2xl font-bold my-2">All Users</h2>
-      {loading ? (
-        <Loader />
-      ) : (
-        <>
-          {(userListError || userDeleteByIdError) && (
-            <Message>{userListError || userDeleteByIdError}</Message>
-          )}
-          {successMessageDelete && <Message>{successMessageDelete}</Message>}
-          <div className="mt-4">
-            {userList.length > 0 ? (
-              <Table
-                data={userList}
-                columns={userColumns}
-                handleDelete={handleDelete}
-              />
-            ) : (
-              <h2 className="text-white text-xl text-center rounded-md border-2 border-orange-400 font-semibold mb-2 p-4">
-                No Users Found..
-              </h2>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+    <>
+      <AdminListLayout
+        title="All Users"
+        loading={loading}
+        error={userListError || userDeleteByIdError}
+        successMessage={successMessageDelete}
+        isEmpty={userList.length === 0}
+        emptyLabel="No Users Found.."
+      >
+        <Table
+          data={userList}
+          columns={userColumns}
+          handleDelete={handleDeleteRequest}
+          columnRenderers={columnRenderers}
+          pagination={userListPagination}
+          onPageChange={setPage}
+        />
+      </AdminListLayout>
+      <ConfirmDialog {...confirmDialogProps} />
+    </>
   );
 }
 

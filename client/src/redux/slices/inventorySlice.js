@@ -12,6 +12,7 @@ import {
 // Initial State
 const initialState = {
   inventoryList: [],
+  inventoryListPagination: null,
   stockDetails: {},
   inventoryListError: null,
   inventoryCreateStockError: null,
@@ -33,6 +34,7 @@ const inventorySlice = createSlice({
   reducers: {
     clearInventoryData(state) {
       state.inventoryList = [];
+      state.inventoryListPagination = null;
       state.stockDetails = {};
       state.inventoryListError = null;
       state.inventoryCreateStockError = null;
@@ -72,7 +74,13 @@ const inventorySlice = createSlice({
       })
       .addCase(listInventory.fulfilled, (state, action) => {
         state.loading = false;
-        state.inventoryList = action.payload;
+        state.inventoryList = {
+          bases: action.payload.bases,
+          sauces: action.payload.sauces,
+          cheeses: action.payload.cheeses,
+          veggies: action.payload.veggies,
+        };
+        state.inventoryListPagination = action.payload.pagination;
         state.inventoryListSuccess = true;
         state.inventoryListError = null;
       })

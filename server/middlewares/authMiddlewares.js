@@ -3,54 +3,52 @@ const asyncHandler = require('express-async-handler');
 
 const User = require('../schemas/userSchema');
 const Admin = require('../schemas/adminUserSchema');
+const ApiError = require('../utils/ApiError');
+const { isAdminRole } = require('../constants/userRoles');
 
 // Middleware to protect routes - checks for a valid JWT token in the request header
 const protect = asyncHandler(async (req, res, next) => {
-  let token;
+  const authHeader = req.headers.authorization;
 
-  // Check if Authorization header with 'Bearer' token is present
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      // Extract token from the header
-      token = req.headers.authorization.split(' ')[1];
-
-      // Verify the token using JWT
-      const decoded = jwt.verify(token, `${process.env.JWT_SECRET}`);
-
-      // Find the user in the database using the decoded token
-      req.user =
-        (await User.findById(decoded.id).select('-password')) ||
-        (await Admin.findById(decoded.id).select('-password'));
-
-      // Continue to the next middleware
-      next();
-    } catch (error) {
-      console.error(error);
-      res.status(401);
-      throw new Error('Not Authorized, Token Failed!');
-    }
+  if (!authHeader || !authHeader.startsWith('Bearer')) {
+    throw ApiError.unauthorized('You need to be logged in to do that.');
   }
 
-  // If no token is present
-  if (!token) {
-    res.status(401);
-    throw new Error('Not Authorized, No Token!');
+  const token = authHeader.split(' ')[1];
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, `${process.env.JWT_SECRET}`);
+  } catch (error) {
+    throw ApiError.unauthorized('Your session has expired. Please log in again.');
   }
+
+  // Find the user in the database using the decoded token
+  req.user =
+    (await User.findById(decoded.id).select('-password')) ||
+    (await Admin.findById(decoded.id).select('-password'));
+
+  if (!req.user) {
+    throw ApiError.unauthorized('Your account could not be found. Please log in again.');
+  }
+
+  return next();
 });
 
-// Middleware to check if the user is an admin
+// Middleware to check if the user is an admin (or manager)
 const admin = asyncHandler(async (req, res, next) => {
-  // Check if the user is authenticated and has admin privileges
-  if (req.user && req.user.role === 'admin') {
-    // User is an admin, continue to the next middleware
-    next();
-  } else {
-    res.status(401);
-    throw new Error('Not Authorized As An Admin!');
+  if (req.user && isAdminRole(req.user.role)) {
+    // Re-check isApproved on every request, not just at login — an admin
+    // whose approval is revoked should lose access immediately, not just
+    // once their existing JWT happens to expire.
+    if (req.user.isApproved === false) {
+      throw ApiError.accountNotApproved();
+    }
+
+    return next();
   }
+
+  throw ApiError.forbidden("You don't have permission to access this resource.");
 });
 
 module.exports = { protect, admin };

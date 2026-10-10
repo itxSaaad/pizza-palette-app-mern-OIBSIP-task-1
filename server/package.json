@@ -1,12 +1,16 @@
 {
-  "name": "pizza-delivery-system-app-server",
+  "name": "server",
   "version": "1.0.0",
   "description": "Backend for Pizza Delivery System.",
   "main": "index.js",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint . --ext js --report-unused-disable-directives --max-warnings 0",
+    "test": "jest --runInBand"
   },
   "repository": {
     "type": "git",
@@ -19,7 +23,6 @@
   },
   "homepage": "https://github.com/itxSaaad/pizza-delivery-system-app-mern-OIBSIP#readme",
   "dependencies": {
-    "@getbrevo/brevo": "^1.0.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "colors": "^1.4.0",
@@ -28,10 +31,23 @@
     "email-validator": "^2.0.4",
     "express": "^4.18.2",
     "express-async-handler": "^1.2.0",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.1",
     "mongoose": "^7.4.3",
     "morgan": "^1.10.0",
+    "node-cron": "^4.6.0",
     "nodemailer": "^6.9.4",
-    "razorpay": "^2.9.2"
+    "stripe": "^20.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^30.4.2",
+    "mongodb-memory-server": "^11.0.1",
+    "nodemon": "^3.0.1",
+    "supertest": "^7.2.2"
   }
 }

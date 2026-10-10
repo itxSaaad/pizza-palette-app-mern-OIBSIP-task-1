@@ -12,6 +12,9 @@ const baseSchema = new mongoose.Schema(
   }
 );
 
+baseSchema.index({ item: 1 });
+baseSchema.index({ quantity: 1 });
+
 const sauceSchema = new mongoose.Schema(
   {
     item: { type: String, required: true },
@@ -23,6 +26,9 @@ const sauceSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+sauceSchema.index({ item: 1 });
+sauceSchema.index({ quantity: 1 });
 
 const cheeseSchema = new mongoose.Schema(
   {
@@ -36,6 +42,9 @@ const cheeseSchema = new mongoose.Schema(
   }
 );
 
+cheeseSchema.index({ item: 1 });
+cheeseSchema.index({ quantity: 1 });
+
 const veggieSchema = new mongoose.Schema(
   {
     item: { type: String, required: true },
@@ -47,6 +56,9 @@ const veggieSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+veggieSchema.index({ item: 1 });
+veggieSchema.index({ quantity: 1 });
 
 module.exports = {
   Base: mongoose.model('Base', baseSchema),

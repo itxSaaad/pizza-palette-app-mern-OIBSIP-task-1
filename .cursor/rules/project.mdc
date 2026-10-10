@@ -1,0 +1,32 @@
+---
+description: Pizza Palette repo conventions — pnpm/turbo workspace, deployment gotchas, coding conventions
+alwaysApply: true
+---
+
+This is a **pnpm workspace** (`client`, `server`) orchestrated by **Turborepo** — never run
+`npm install` here, always `pnpm install` from the repo root.
+
+Common commands (run from repo root):
+
+- `pnpm run dev` — client + server dev servers in parallel
+- `pnpm --filter client dev` / `pnpm --filter server dev` — one package only
+- `pnpm run build` / `pnpm run lint` — all packages, via turbo
+- `pnpm run format` / `pnpm run format:check` — Prettier across the repo
+- `pnpm run data:import` / `pnpm run data:destroy` — seed / wipe the database
+
+Deployment: `server/vercel.json`, `server/api/index.js`, and `server/public/` are
+load-bearing together — do not delete them. `turbo.json`'s presence makes Vercel treat
+this repo as a Turborepo monorepo, which changes backend build detection away from
+zero-config Express. See `docs/DEPLOYMENT.md` before touching backend deploy config.
+
+Coding conventions:
+
+- Backend (`server/`) is CommonJS, not ESM.
+- `dotenv.config()` must resolve `.env` relative to `__dirname`, not `process.cwd()`.
+- Frontend (`client/`) composes UI from design-system primitives under
+  `client/src/components/ui/` (`Card`, `Input`, `Modal`, `Badge`, `Table`, ...) rather
+  than ad-hoc markup/styles.
+- Never call `navigate()` during render — wrap it in `useEffect`.
+- Run `pnpm run lint` and `pnpm run format:check` before considering a change done.
+
+Full details: see `/CLAUDE.md`, `docs/SETUP.md`, `docs/DEPLOYMENT.md`.

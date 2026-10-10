@@ -10,10 +10,11 @@ import { getUserDetails } from '../../redux/asyncThunks/userThunks';
 import Loader from '../../components/ui/Loader';
 import UserOrdersTable from '../../components/ui/UserOrdersTable';
 import Message from '../../components/ui/Message';
-import VerficationModal from '../../components/ui/Auth/VerficationModal';
+import VerificationModal from '../../components/ui/Auth/VerificationModal';
 
 function UserOrdersScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [page, setPage] = useState(1);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ function UserOrdersScreen() {
   const {
     loading: orderLoading,
     orderListByUserId,
+    orderListByUserIdPagination,
     orderListByUserIdError,
   } = order;
 
@@ -38,9 +40,9 @@ function UserOrdersScreen() {
       navigate('/admin/dashboard');
     } else {
       dispatch(getUserDetails({}));
-      dispatch(listOrdersByUserId(userInfo._id));
+      dispatch(listOrdersByUserId({ page }));
     }
-  }, [dispatch, navigate, userInfo, adminUserInfo]);
+  }, [dispatch, navigate, userInfo, adminUserInfo, page]);
 
   useEffect(() => {
     if (userDetails && !userDetails.isVerified) {
@@ -50,7 +52,7 @@ function UserOrdersScreen() {
 
   return (
     <>
-      <section className="min-h-screen flex flex-col justify-center items-center pt-14 px-10 sm:px-16">
+      <section className="min-h-screen flex flex-col justify-center items-center px-10 sm:px-16 bg-neutral-50">
         {loading || orderLoading ? (
           <Loader />
         ) : orderListByUserIdError ? (
@@ -59,22 +61,22 @@ function UserOrdersScreen() {
           <>
             {orderListByUserId.length > 0 ? (
               <>
-                <h1 className="text-4xl font-bold text-orange-600 mb-8">
-                  My Orders
-                </h1>
-                <UserOrdersTable orders={orderListByUserId} />
+                <h1 className="font-display text-h1 text-primary-600 mb-8">My Orders</h1>
+                <UserOrdersTable
+                  orders={orderListByUserId}
+                  pagination={orderListByUserIdPagination}
+                  onPageChange={setPage}
+                />
               </>
             ) : (
-              <div className="text-4xl font-bold text-orange-600">
+              <div className="font-display text-h2 text-primary-600 text-center">
                 No Orders Found!
               </div>
             )}
           </>
         )}
       </section>
-      {modalVisible && (
-        <VerficationModal onClose={() => setModalVisible(false)} />
-      )}
+      {modalVisible && <VerificationModal onClose={() => setModalVisible(false)} />}
     </>
   );
 }
