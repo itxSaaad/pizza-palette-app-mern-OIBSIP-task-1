@@ -1,5 +1,22 @@
 # Pizza Delivery System App - MERN
 
+## Architecture
+
+```mermaid
+flowchart LR
+  Customer[Customer] -->|browse menu, customize order, checkout| Client[React ordering interface\nVercel Services: frontend]
+  Admin[Administrator] -->|manage menu and orders| Client
+  Client -->|HTTP requests| API[Express and Node.js API\nVercel Services: frontend-backend]
+  API --> Routes[Order, product, and user routes]
+  Routes --> DB[(MongoDB)]
+  DB --> Routes
+  Routes --> API
+  API --> Client
+  API -. payment processing .-> Payments[Payment provider]
+  Client -->|order status and menu| Customer
+  Client -->|order updates| Admin
+```
+
 > Pizza Delivery System App (MERN - MongoDB, Express, React, Node.js) is a comprehensive web application that enables users to customize and order pizzas online. This project showcases a full-stack development approach with a focus on user experience, functionality, and security. The app includes a user-friendly frontend interface for ordering pizzas, an admin dashboard for managing orders and inventory, and a secure backend server for processing orders and payments.
 
 <br />
@@ -189,3 +206,8 @@ Give ⭐️ if you like this project!
 [issues-url]: https://github.com/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1/issues
 [license-shield]: https://img.shields.io/github/license/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1.svg?style=for-the-badge
 [license-url]: https://github.com/itxsaaad/pizza-palette-app-mern-OIBSIP-task-1/blob/main/LICENSE.md
+
+## Vercel Deployment
+Vite client client/ + Express API server/index.js. Set Vercel framework to Services and VITE_SERVER_URL to this origin plus /api. Configure database/payment environment values in Vercel.
+See the repository-root [vercel.json](./vercel.json) for build roots and routing. Configure private values in Vercel Project Settings; never commit secrets.
+
