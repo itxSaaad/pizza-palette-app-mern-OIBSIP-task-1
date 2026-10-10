@@ -43,6 +43,8 @@ const aggregatePaginated = async (Model, beforeFacet, { page, limit, sort, dataS
   };
   const [result] = await Model.aggregate([
     ...beforeFacet,
+    // Internal bootstrap concurrency metadata must never leak from aggregates.
+    { $unset: 'bootstrapKey' },
     {
       $facet: {
         data: [{ $sort: sort }, { $skip: (page - 1) * limit }, { $limit: limit }, ...dataStages],

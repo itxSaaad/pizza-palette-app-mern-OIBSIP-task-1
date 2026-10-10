@@ -1,4 +1,5 @@
 const asyncHandler = require('express-async-handler');
+const crypto = require('crypto');
 
 // Import Utils
 const generateToken = require('../utils/generateToken');
@@ -23,8 +24,11 @@ const User = require('../schemas/userSchema');
 
 const getSetupStatus = asyncHandler(async (req, res) => {
   const adminCount = await Admin.countDocuments();
+  const needsSetup = adminCount === 0;
+  const requiresSetupKey = Boolean(process.env.INITIAL_ADMIN_SETUP_KEY);
+  const setupEnabled = needsSetup && (process.env.NODE_ENV !== 'production' || requiresSetupKey);
 
-  res.status(200).json({ needsSetup: adminCount === 0 });
+  res.status(200).json({ needsSetup, setupEnabled, requiresSetupKey });
 });
 
 // @desc    Create the very first admin account (one-time bootstrap only)
@@ -34,6 +38,35 @@ const getSetupStatus = asyncHandler(async (req, res) => {
 //          invite flow (see inviteControllers.js).
 
 const bootstrapFirstAdmin = asyncHandler(async (req, res) => {
+  const configuredSetupKey = process.env.INITIAL_ADMIN_SETUP_KEY;
+  if (process.env.NODE_ENV === 'production' && !configuredSetupKey) {
+    throw ApiError.serviceUnavailable(
+      'First-admin setup is disabled. Configure INITIAL_ADMIN_SETUP_KEY for this deployment.'
+    );
+  }
+
+  if (configuredSetupKey) {
+    const submittedDigest = crypto
+      .createHash('sha256')
+      .update(typeof req.body.setupKey === 'string' ? req.body.setupKey : '')
+      .digest();
+    const configuredDigest = crypto.createHash('sha256').update(configuredSetupKey).digest();
+    if (!crypto.timingSafeEqual(submittedDigest, configuredDigest)) {
+      throw ApiError.forbidden('The setup key is invalid, or initial setup is no longer available.');
+    }
+  }
+
+  // Ensure the concurrency guard exists even when production disables Mongoose
+  // auto-indexing. Existing admin documents without this field are unaffected.
+  await Admin.collection.createIndex(
+    { bootstrapKey: 1 },
+    {
+      name: 'unique_initial_admin_bootstrap',
+      unique: true,
+      partialFilterExpression: { bootstrapKey: 'first-admin' },
+    }
+  );
+
   const adminCount = await Admin.countDocuments();
 
   if (adminCount > 0) {
@@ -53,14 +86,28 @@ const bootstrapFirstAdmin = asyncHandler(async (req, res) => {
 
   const hashedPassword = await hashPassword(password);
 
-  const admin = await Admin.create({
-    name,
-    email,
-    password: hashedPassword,
-    role: USER_ROLES.ADMIN,
-    permissions: [USER_ROLES.ADMIN],
-    isApproved: true,
-  });
+  let admin;
+  try {
+    admin = await Admin.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: USER_ROLES.ADMIN,
+      permissions: [USER_ROLES.ADMIN],
+      isApproved: true,
+      bootstrapKey: 'first-admin',
+    });
+  } catch (error) {
+    if (error.code === 11000 && error.keyPattern?.bootstrapKey) {
+      throw ApiError.forbidden(
+        'Initial setup was just completed. Refresh this page and sign in with the new admin account.'
+      );
+    }
+    if (error.code === 11000 && error.keyPattern?.email) {
+      throw ApiError.emailExists('An account with this email already exists. Try logging in instead.');
+    }
+    throw error;
+  }
 
   res.status(201).json({
     _id: admin._id,
@@ -147,6 +194,7 @@ const getAllAdmins = asyncHandler(async (req, res) => {
           verificationCode: 0,
           resetPasswordToken: 0,
           resetPasswordExpire: 0,
+          bootstrapKey: 0,
           __v: 0,
         },
       },

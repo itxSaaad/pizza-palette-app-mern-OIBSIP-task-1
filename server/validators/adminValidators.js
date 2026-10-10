@@ -19,15 +19,27 @@ const setupAdminValidation = [
     .withMessage('Invalid email address')
     .normalizeEmail(),
   body('password')
+    .isString()
+    .withMessage('Password must be text')
+    .bail()
     .notEmpty()
     .withMessage('Password is required')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long'),
+    .isLength({ min: 12 })
+    .withMessage('Use a unique password with at least 12 characters')
+    .custom((value) => Buffer.byteLength(value, 'utf8') <= 72)
+    .withMessage('Password must be no more than 72 UTF-8 bytes'),
   body('confirmPassword')
     .notEmpty()
     .withMessage('Confirm password is required')
     .custom((value, { req }) => value === req.body.password)
     .withMessage('Passwords do not match'),
+  body('setupKey')
+    .optional({ checkFalsy: true })
+    .isString()
+    .withMessage('Setup key must be text')
+    .bail()
+    .isLength({ max: 512 })
+    .withMessage('Setup key is too long'),
 ];
 
 const updateAdminProfileValidation = [
