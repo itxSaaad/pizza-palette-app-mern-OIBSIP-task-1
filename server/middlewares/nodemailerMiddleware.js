@@ -4,14 +4,22 @@ const emailBaseTemplate = require('../utils/emailBaseTemplate');
 
 dotenv.config();
 
+const SMTP_HOST = process.env.NODEMAILER_SMTP_HOST || process.env.SMTP_HOST || 'smtp.zoho.com';
+const SMTP_PORT = Number(process.env.NODEMAILER_SMTP_PORT || process.env.SMTP_PORT || 465);
+const SMTP_SECURE_VALUE = process.env.NODEMAILER_SMTP_SECURE || process.env.SMTP_SECURE;
+const SMTP_SECURE = SMTP_SECURE_VALUE
+  ? SMTP_SECURE_VALUE === 'true'
+  : SMTP_PORT === 465;
+const SMTP_EMAIL = process.env.NODEMAILER_SMTP_EMAIL || process.env.SENDER_EMAIL;
+const SMTP_PASSWORD = process.env.NODEMAILER_SMTP_PASSWORD || process.env.SENDER_PASSWORD;
+
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  host: SMTP_HOST,
+  port: SMTP_PORT,
+  secure: SMTP_SECURE,
   auth: {
-    user: `${process.env.SENDER_EMAIL}`,
-    pass: `${process.env.SENDER_PASSWORD}`,
+    user: SMTP_EMAIL,
+    pass: SMTP_PASSWORD,
   },
 });
 
@@ -24,7 +32,7 @@ const sendEmail = async ({ to, subject, templateOptions = {}, from, text }) => {
   try {
     const html = emailBaseTemplate(templateOptions);
     const mailOptions = {
-      from: from || process.env.SENDER_EMAIL,
+      from: from || SMTP_EMAIL,
       to,
       subject,
       html,

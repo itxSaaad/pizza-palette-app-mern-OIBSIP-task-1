@@ -35,6 +35,19 @@ if (process.env.NODE_ENV === 'development') {
 // Enable Cross-Origin Resource Sharing
 app.use(cors());
 
+// Provide a visible backend response on the unified project domain.
+app.get('/api', (req, res) => {
+  res.status(200).json({
+    service: 'pizza-palette-api',
+    status: 'ok',
+    health: '/api/health',
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ service: 'pizza-palette-api', status: 'ok' });
+});
+
 // Parse incoming JSON data
 app.use(express.json());
 
@@ -82,3 +95,6 @@ app.listen(
     `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
   )
 );
+
+// Vercel's Express adapter can use the exported application as a handler.
+module.exports = app;
