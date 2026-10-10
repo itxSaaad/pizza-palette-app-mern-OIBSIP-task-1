@@ -3,8 +3,16 @@ const mongoose = require('mongoose');
 
 // Import Utils
 const { updateInventoryQuantity } = require('../utils/inventoryUtils');
-const { parsePaginationParams, parseSortParams, buildPaginationResponse } = require('../utils/paginationUtils');
-const { executeInventoryDeductions, checkInventoryAvailability, rollbackInventoryDeductions } = require('../utils/inventoryDeductionUtils');
+const {
+  parsePaginationParams,
+  parseSortParams,
+  buildPaginationResponse,
+} = require('../utils/paginationUtils');
+const {
+  executeInventoryDeductions,
+  checkInventoryAvailability,
+  rollbackInventoryDeductions,
+} = require('../utils/inventoryDeductionUtils');
 const { calculateOrderPricing } = require('../utils/pricingUtils');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
@@ -48,9 +56,8 @@ const createOrder = asyncHandler(async (req, res) => {
   }
 
   // Recompute trusted pricing server-side; never trust client-supplied prices/totals
-  const { pricedItems, salesTax, deliveryCharges, totalPrice } = await calculateOrderPricing(
-    transformedOrderItems
-  );
+  const { pricedItems, salesTax, deliveryCharges, totalPrice } =
+    await calculateOrderPricing(transformedOrderItems);
 
   // Create the order
   const order = new Order({
@@ -69,7 +76,9 @@ const createOrder = asyncHandler(async (req, res) => {
       method: payment.method,
       status: payment.method === 'cod' ? PAYMENT_STATUS.PENDING : payment.status,
       ...(payment.stripeSessionId && { stripeSessionId: payment.stripeSessionId }),
-      ...(payment.stripePaymentIntentId && { stripePaymentIntentId: payment.stripePaymentIntentId })
+      ...(payment.stripePaymentIntentId && {
+        stripePaymentIntentId: payment.stripePaymentIntentId,
+      }),
     },
   });
 
@@ -79,7 +88,7 @@ const createOrder = asyncHandler(async (req, res) => {
   let inventoryDeducted = false;
   try {
     const deductionResult = await executeInventoryDeductions(transformedOrderItems);
-    
+
     if (!deductionResult.success) {
       // Rollback order creation
       await Order.findByIdAndDelete(createdOrder._id);
@@ -102,18 +111,16 @@ const createOrder = asyncHandler(async (req, res) => {
       Your order has been successfully created.<br><br>
       <b>Order Details:</b><br>
       <ul>
-        ${orderItems
-          .map((item) => `<li>${item.qty} x ${item.name}</li>`)
-          .join('')}
+        ${orderItems.map((item) => `<li>${item.qty} x ${item.name}</li>`).join('')}
       </ul>
       <b>Total Price:</b> $${totalPrice}<br>
       <b>Delivery Address:</b> ${deliveryAddress.address}, ${deliveryAddress.city}, ${
-      deliveryAddress.postalCode
-    }, ${deliveryAddress.country}<br><br>
+        deliveryAddress.postalCode
+      }, ${deliveryAddress.country}<br><br>
       We will notify you once your order is out for delivery.<br><br>
       Thank you for choosing Pizza Palette!
     `;
-    
+
     const orderUrl = `${process.env.FRONTEND_URL}/my-orders/${createdOrder._id}`;
 
     await sendEmail({
@@ -124,20 +131,14 @@ const createOrder = asyncHandler(async (req, res) => {
         greeting: `Hi ${user.name || ''},`,
         message: emailBody,
         actionUrl: orderUrl,
-        actionText: 'View Order Details'
+        actionText: 'View Order Details',
       },
-    }).catch(err => {
+    }).catch((err) => {
       console.error('Email sending failed:', err);
     });
   }
 
-  res.status(201).json(
-    ApiResponse.success(
-      createdOrder,
-      'Order Created Successfully!',
-      201
-    )
-  );
+  res.status(201).json(ApiResponse.success(createdOrder, 'Order Created Successfully!', 201));
 });
 
 // @desc    Get Orders by User Id
@@ -147,7 +148,7 @@ const createOrder = asyncHandler(async (req, res) => {
 const getOrdersByUserId = asyncHandler(async (req, res) => {
   const { page, limit, skip } = parsePaginationParams(req.query);
   const sort = parseSortParams(req.query, '-createdAt');
-  
+
   const filter = { user: req.user._id };
   if (req.query.status) {
     filter.status = req.query.status;
@@ -160,7 +161,7 @@ const getOrdersByUserId = asyncHandler(async (req, res) => {
       .skip(skip)
       .limit(limit)
       .select('-__v'),
-    Order.countDocuments(filter)
+    Order.countDocuments(filter),
   ]);
 
   res.status(200).json(buildPaginationResponse(orders, total, page, limit));
@@ -173,7 +174,7 @@ const getOrdersByUserId = asyncHandler(async (req, res) => {
 const getAllOrders = asyncHandler(async (req, res) => {
   const { page, limit, skip } = parsePaginationParams(req.query);
   const sort = parseSortParams(req.query, '-createdAt');
-  
+
   // Build filter
   const filter = {};
   if (req.query.status) {
@@ -191,7 +192,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
       .skip(skip)
       .limit(limit)
       .select('-__v'),
-    Order.countDocuments(filter)
+    Order.countDocuments(filter),
   ]);
 
   res.status(200).json(buildPaginationResponse(orders, total, page, limit));
@@ -232,7 +233,7 @@ const updateOrderById = asyncHandler(async (req, res) => {
 
   const oldStatus = order.status;
   const newStatus = req.body.status || order.status;
-  
+
   order.status = newStatus;
 
   if (newStatus === ORDER_STATUS.DELIVERED) {
@@ -249,38 +250,38 @@ const updateOrderById = asyncHandler(async (req, res) => {
       [ORDER_STATUS.RECEIVED]: {
         subject: 'Order Received',
         title: 'Order Received',
-        message: `Your order #${order._id} has been received and is being reviewed.`
+        message: `Your order #${order._id} has been received and is being reviewed.`,
       },
       [ORDER_STATUS.IN_KITCHEN]: {
         subject: 'Order Being Prepared',
         title: 'Order in Kitchen',
-        message: `Good news! Your order #${order._id} is now being prepared in our kitchen.`
+        message: `Good news! Your order #${order._id} is now being prepared in our kitchen.`,
       },
       [ORDER_STATUS.OUT_FOR_DELIVERY]: {
         subject: 'Order On The Way',
         title: 'Out for Delivery',
-        message: `Your order #${order._id} is on its way! Our delivery person will reach you soon.`
+        message: `Your order #${order._id} is on its way! Our delivery person will reach you soon.`,
       },
       [ORDER_STATUS.DELIVERED]: {
         subject: 'Order Delivered',
         title: 'Bon Appétit!',
-        message: `Your order #${order._id} has been delivered. We hope you enjoy your meal!`
+        message: `Your order #${order._id} has been delivered. We hope you enjoy your meal!`,
       },
       [ORDER_STATUS.CANCELLED]: {
         subject: 'Order Cancelled',
         title: 'Order Cancelled',
-        message: `Your order #${order._id} has been cancelled. If you have any questions, please contact our support.`
-      }
+        message: `Your order #${order._id} has been cancelled. If you have any questions, please contact our support.`,
+      },
     };
 
     const statusInfo = statusMessages[newStatus] || {
       subject: 'Order Status Updated',
       title: 'Order Update',
-      message: `Your order #${order._id} status has been updated to: ${newStatus}`
+      message: `Your order #${order._id} status has been updated to: ${newStatus}`,
     };
 
     const orderTrackingUrl = `${process.env.FRONTEND_URL}/my-orders/${order._id}`;
-    
+
     try {
       await sendEmail({
         to: order.user.email,
@@ -303,8 +304,8 @@ const updateOrderById = asyncHandler(async (req, res) => {
             </p>
           `,
           actionUrl: orderTrackingUrl,
-          actionText: 'Track Your Order'
-        }
+          actionText: 'Track Your Order',
+        },
       });
       console.log(`Status update email sent for order ${order._id} (${oldStatus} → ${newStatus})`);
     } catch (emailError) {
@@ -315,7 +316,7 @@ const updateOrderById = asyncHandler(async (req, res) => {
   res.status(200).json({
     updatedOrder,
     message: 'Order Updated Successfully!',
-    emailSent: oldStatus !== newStatus
+    emailSent: oldStatus !== newStatus,
   });
 });
 
@@ -361,9 +362,8 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
   }
 
   // Recompute trusted pricing server-side; never trust client-supplied prices/totals
-  const { pricedItems, salesTax, deliveryCharges, totalPrice } = await calculateOrderPricing(
-    transformedOrderItems
-  );
+  const { pricedItems, salesTax, deliveryCharges, totalPrice } =
+    await calculateOrderPricing(transformedOrderItems);
 
   // Create the order first with pending payment status
   const order = new Order({
@@ -387,15 +387,17 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
   const createdOrder = await order.save();
 
   // Deduct inventory for the order
+  let deductedInventory = [];
   try {
     const deductionResult = await executeInventoryDeductions(transformedOrderItems);
-    
+
     if (!deductionResult.success) {
       // Rollback order creation
       await Order.findByIdAndDelete(createdOrder._id);
       throw ApiError.insufficientInventory(deductionResult.message);
     }
-    
+
+    deductedInventory = deductionResult.deductions;
     console.log(`Inventory deducted for order ${createdOrder._id}`);
   } catch (error) {
     // Rollback order if inventory deduction fails
@@ -405,13 +407,13 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
 
   try {
     // Create line items for Stripe using server-recomputed prices only
-    const lineItems = pricedItems.map(item => ({
+    const lineItems = pricedItems.map((item) => ({
       price_data: {
         currency: 'usd',
         product_data: {
           name: item.name,
           description: `${item.size} pizza`,
-          images: item.imageUrl ? [item.imageUrl] : []
+          images: item.imageUrl ? [item.imageUrl] : [],
         },
         unit_amount: Math.round(item.price * 100), // Convert to cents
       },
@@ -457,21 +459,37 @@ const createStripeCheckoutSession = asyncHandler(async (req, res) => {
       metadata: {
         userId: req.user._id.toString(),
         orderId: createdOrder._id.toString(), // Only pass order ID (much smaller)
-      }
+      },
+      // The payment_intent.payment_failed webhook event carries a PaymentIntent
+      // object, not the Checkout Session — its metadata is separate and must be
+      // set explicitly here, or failedSession.metadata.orderId is undefined.
+      payment_intent_data: {
+        metadata: {
+          userId: req.user._id.toString(),
+          orderId: createdOrder._id.toString(),
+        },
+      },
     });
 
-    return res.json(ApiResponse.success({
-      sessionId: session.id,
-      url: session.url,
-      orderId: createdOrder._id, // Return order ID to frontend
-    }, 'Stripe checkout session created successfully'));
+    return res.json(
+      ApiResponse.success(
+        {
+          sessionId: session.id,
+          url: session.url,
+          orderId: createdOrder._id, // Return order ID to frontend
+        },
+        'Stripe checkout session created successfully'
+      )
+    );
   } catch (error) {
     console.error('Stripe Checkout Session Error:', error);
     // If Stripe session creation fails, we should keep the order but mark it as failed
     // Or delete it - depending on business logic. For now, let's update its status
     await Order.findByIdAndUpdate(createdOrder._id, {
-      'payment.status': PAYMENT_STATUS.FAILED
+      'payment.status': PAYMENT_STATUS.FAILED,
     });
+    // Give back the inventory we deducted before Stripe session creation failed
+    await rollbackInventoryDeductions(deductedInventory);
     throw ApiError.paymentError('Failed to create checkout session. Please try again.');
   }
 });
@@ -484,11 +502,7 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send('Webhook signature verification failed');
@@ -498,23 +512,36 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
   switch (event.type) {
     case STRIPE_EVENTS.CHECKOUT_COMPLETED:
       const session = event.data.object;
-      
+
       try {
         // Find existing order by ID from metadata
         const order = await Order.findById(session.metadata.orderId);
-        
+
         if (!order) {
-          console.error(`Order not found for Stripe session: ${session.id}, orderId: ${session.metadata.orderId}`);
+          console.error(
+            `Order not found for Stripe session: ${session.id}, orderId: ${session.metadata.orderId}`
+          );
           break;
         }
-        
+
+        // Stripe may redeliver the same event (at-least-once delivery). If we've
+        // already recorded this session as paid, skip re-processing so we don't
+        // re-send the confirmation email or redundantly re-save the order.
+        if (
+          order.payment.status === PAYMENT_STATUS.SUCCESS &&
+          order.payment.stripeSessionId === session.id
+        ) {
+          console.log(`Duplicate webhook delivery ignored for order: ${order._id}`);
+          break;
+        }
+
         // Update payment details
         order.payment.stripeSessionId = session.id;
         order.payment.stripePaymentIntentId = session.payment_intent;
         order.payment.status = PAYMENT_STATUS.SUCCESS;
-        
+
         await order.save();
-        
+
         // Send confirmation email
         const user = await User.findById(order.user);
         if (user && user.email) {
@@ -527,7 +554,7 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
             We will notify you once your order is out for delivery.<br><br>
             Thank you for choosing Pizza Palette!
           `;
-          
+
           const orderUrl = `${process.env.FRONTEND_URL}/my-orders/${order._id}`;
           await sendEmail({
             to: user.email,
@@ -537,13 +564,13 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
               greeting: `Hi ${user.name || ''},`,
               message: emailBody,
               actionUrl: orderUrl,
-              actionText: 'View Order Details'
+              actionText: 'View Order Details',
             },
-          }).catch(err => {
+          }).catch((err) => {
             console.error('Email sending failed:', err);
           });
         }
-        
+
         console.log(`Payment confirmed for order: ${order._id}`);
       } catch (error) {
         console.error('Error processing Stripe webhook:', error);
@@ -556,7 +583,7 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
         // Update order status to failed if we have the order ID
         if (failedSession.metadata.orderId) {
           await Order.findByIdAndUpdate(failedSession.metadata.orderId, {
-            'payment.status': PAYMENT_STATUS.FAILED
+            'payment.status': PAYMENT_STATUS.FAILED,
           });
           console.log(`Payment failed for order: ${failedSession.metadata.orderId}`);
         }
@@ -577,7 +604,7 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
 // @access Private/Admin
 const updateOrderPaymentStatus = asyncHandler(async (req, res) => {
   const { paymentStatus } = req.body;
-  
+
   if (!paymentStatus) {
     throw ApiError.validation('Payment status is required');
   }
@@ -626,5 +653,5 @@ module.exports = {
   getAllOrders,
   getOrderById,
   updateOrderById,
-  deleteOrderById
+  deleteOrderById,
 };
