@@ -39,4 +39,3 @@ Check a deployment safely:
 - Confirm the deployment targets the intended database. A successful connection can still point to an empty or different database.
 - Verify that the exact account exists in that database and that a password reset completed there.
 - Inspect runtime logs for the same deployment and request time. An API 401 indicates the account lookup/password check failed; 5xx or 503 points to runtime or database readiness instead.
-

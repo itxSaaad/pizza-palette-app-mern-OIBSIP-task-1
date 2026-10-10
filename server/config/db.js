@@ -48,7 +48,7 @@ const connectDb = async () => {
     console.error(`Error: ${error.message}`.red.underline.bold);
     cachedConnection = null;
     connectionPromise = null;
-    
+
     throw error;
   }
 };
@@ -61,7 +61,7 @@ const getConnectionStatus = () => {
     2: 'connecting',
     3: 'disconnecting'
   };
-  
+
   return {
     status: states[mongoose.connection.readyState] || 'unknown',
     readyState: mongoose.connection.readyState
