@@ -4,6 +4,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import {
   deletePizzaById,
   getPizzaById,
+  listMenuPizzas,
   listPizzas,
   createPizza,
   updatePizzaById,
@@ -13,6 +14,14 @@ import {
 const initialState = {
   pizzaInfo: null,
   pizzaList: [],
+  menuPizzaList: [],
+  menuPizzaPagination: null,
+  menuPizzaQuery: null,
+  featuredPizzaList: [],
+  featuredPizzaListLoaded: false,
+  menuPizzaListError: null,
+  menuPizzaListLoading: false,
+  menuPizzaListLoaded: false,
   pizzaListError: null,
   pizzaCreateError: null,
   pizzaGetByIdError: null,
@@ -33,6 +42,14 @@ const pizzaSlice = createSlice({
   reducers: {
     clearPizzaData: (state) => {
       state.pizzaList = [];
+      state.menuPizzaList = [];
+      state.menuPizzaPagination = null;
+      state.menuPizzaQuery = null;
+      state.featuredPizzaList = [];
+      state.featuredPizzaListLoaded = false;
+      state.menuPizzaListError = null;
+      state.menuPizzaListLoading = false;
+      state.menuPizzaListLoaded = false;
       state.pizzaInfo = null;
       state.pizzaListError = null;
       state.pizzaCreateError = null;
@@ -76,6 +93,31 @@ const pizzaSlice = createSlice({
       .addCase(listPizzas.rejected, (state, action) => {
         state.loading = false;
         state.pizzaListError = action.payload;
+      })
+      .addCase(listMenuPizzas.pending, (state, action) => {
+        state.menuPizzaListLoading = true;
+        state.menuPizzaListError = null;
+        if (action.meta.arg?.limit === 3) state.featuredPizzaListLoaded = false;
+        state.menuPizzaQuery = action.meta.arg || { page: 1, limit: 12 };
+      })
+      .addCase(listMenuPizzas.fulfilled, (state, action) => {
+        state.menuPizzaListLoading = false;
+        state.menuPizzaListLoaded = true;
+        if (action.payload.query.limit === 3) {
+          state.featuredPizzaList = action.payload.items;
+          state.featuredPizzaListLoaded = true;
+          return;
+        }
+        state.menuPizzaList = action.payload.items;
+        state.menuPizzaPagination = action.payload.pagination;
+        state.menuPizzaQuery = action.payload.query;
+      })
+      .addCase(listMenuPizzas.rejected, (state, action) => {
+        state.menuPizzaListLoading = false;
+        state.menuPizzaListLoaded = true;
+        state.menuPizzaListError = action.payload;
+        if (action.meta.arg?.limit === 3) state.featuredPizzaListLoaded = true;
+        state.menuPizzaQuery = action.meta.arg || { page: 1, limit: 12 };
       })
       .addCase(getPizzaById.pending, (state) => {
         state.loading = true;

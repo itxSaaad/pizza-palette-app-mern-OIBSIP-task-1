@@ -1,16 +1,50 @@
 const asyncHandler = require('express-async-handler');
 
 // Import Utils
-const {
-  parsePaginationParams,
-  parseSortParams,
-  buildPaginationResponse,
-} = require('../utils/paginationUtils');
+const { buildPaginationResponse } = require('../utils/paginationUtils');
 const { USER_ROLES } = require('../constants');
 const ApiError = require('../utils/ApiError');
 
 // Import Schema
 const Pizza = require('../schemas/pizzaSchema');
+
+const parsePizzaListingQuery = (query) => {
+  const page = query.page === undefined ? 1 : Number(query.page);
+  const limit = query.limit === undefined ? 10 : Number(query.limit);
+  const issues = [];
+
+  if (!Number.isSafeInteger(page) || page < 1) issues.push({ field: 'page', message: 'Must be a positive integer.' });
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+    issues.push({ field: 'limit', message: 'Must be an integer between 1 and 100.' });
+  }
+  if (query.createdBy && ![USER_ROLES.ADMIN, USER_ROLES.USER].includes(query.createdBy)) {
+    issues.push({ field: 'createdBy', message: 'Must be a supported creator role.' });
+  }
+
+  const minPrice = query.minPrice === undefined ? undefined : Number(query.minPrice);
+  const maxPrice = query.maxPrice === undefined ? undefined : Number(query.maxPrice);
+  if (minPrice !== undefined && (!Number.isFinite(minPrice) || minPrice < 0)) {
+    issues.push({ field: 'minPrice', message: 'Must be a non-negative number.' });
+  }
+  if (maxPrice !== undefined && (!Number.isFinite(maxPrice) || maxPrice < 0)) {
+    issues.push({ field: 'maxPrice', message: 'Must be a non-negative number.' });
+  }
+  if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
+    issues.push({ field: 'maxPrice', message: 'Must be greater than or equal to minPrice.' });
+  }
+
+  const sortBy = query.sortBy || 'createdAt';
+  const sortOrder = query.sortOrder || 'desc';
+  if (!['createdAt', 'name', 'price'].includes(sortBy)) {
+    issues.push({ field: 'sortBy', message: 'Must be createdAt, name, or price.' });
+  }
+  if (!['asc', 'desc'].includes(sortOrder)) {
+    issues.push({ field: 'sortOrder', message: 'Must be asc or desc.' });
+  }
+  if (issues.length) throw ApiError.validation('Invalid pizza listing parameters.', issues);
+
+  return { page, limit, skip: (page - 1) * limit, minPrice, maxPrice, sortBy, sortOrder };
+};
 
 // Initialize Controllers
 
@@ -19,19 +53,18 @@ const Pizza = require('../schemas/pizzaSchema');
 // @access  Public
 
 const getAllPizzas = asyncHandler(async (req, res) => {
-  const { page, limit, skip } = parsePaginationParams(req.query);
-  const sort = parseSortParams(req.query, '-createdAt');
+  const { page, limit, skip, minPrice, maxPrice, sortBy, sortOrder } = parsePizzaListingQuery(req.query);
+  const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1, _id: 1 };
 
   // Build filter
   const filter = {};
   if (req.query.createdBy) {
     filter.createdBy = req.query.createdBy;
   }
-  if (req.query.minPrice) {
-    filter.price = { ...filter.price, $gte: parseFloat(req.query.minPrice) };
-  }
-  if (req.query.maxPrice) {
-    filter.price = { ...filter.price, $lte: parseFloat(req.query.maxPrice) };
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    filter.price = {};
+    if (minPrice !== undefined) filter.price.$gte = minPrice;
+    if (maxPrice !== undefined) filter.price.$lte = maxPrice;
   }
 
   const [pizzas, total] = await Promise.all([
