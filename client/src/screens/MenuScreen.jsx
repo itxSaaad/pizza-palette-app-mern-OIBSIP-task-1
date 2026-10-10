@@ -13,10 +13,14 @@ import Button from '../components/ui/Button';
 import Loader from '../components/ui/Loader';
 import Message from '../components/ui/Message';
 import PizzaList from '../components/ui/PizzaMenu/PizzaList';
+import Pagination from '../components/ui/Pagination';
+
+const PAGE_SIZE = 12;
 
 function MenuScreen() {
   const dispatch = useDispatch();
   const [modalVisible, setModalVisible] = useState(false);
+  const [page, setPage] = useState(1);
 
   const user = useSelector((state) => state.user);
   const { userDetails } = user;
@@ -26,7 +30,8 @@ function MenuScreen() {
     menuPizzaList,
     menuPizzaListError,
     menuPizzaListLoading,
-    menuPizzaListLoaded,
+    menuPizzaPagination,
+    menuPizzaQuery,
   } = pizza;
 
   const cart = useSelector((state) => state.cart);
@@ -36,10 +41,13 @@ function MenuScreen() {
     if (!userDetails) {
       dispatch(getUserDetails({}));
     }
-    if (!menuPizzaListLoaded && !menuPizzaListLoading) {
-      dispatch(listMenuPizzas());
+    if (
+      !menuPizzaListLoading &&
+      (menuPizzaQuery?.page !== page || menuPizzaQuery?.limit !== PAGE_SIZE)
+    ) {
+      dispatch(listMenuPizzas({ page, limit: PAGE_SIZE }));
     }
-  }, [dispatch, userDetails, menuPizzaListLoaded, menuPizzaListLoading]);
+  }, [dispatch, userDetails, page, menuPizzaListLoading, menuPizzaQuery]);
 
   useEffect(() => {
     if (userDetails && !userDetails.isVerified) {
@@ -69,6 +77,12 @@ function MenuScreen() {
               )}
             </div>
             <PizzaList pizzaList={menuPizzaList} />
+            <Pagination
+              currentPage={menuPizzaPagination?.page || page}
+              totalPages={menuPizzaPagination?.totalPages || 0}
+              onPrev={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+              onNext={() => setPage((currentPage) => Math.min(menuPizzaPagination?.totalPages || currentPage, currentPage + 1))}
+            />
           </>
         ) : (
           <div className="font-display text-h2 text-primary-600 text-center max-w-md">

@@ -11,15 +11,15 @@ function FeaturedPizzasSection() {
   const dispatch = useDispatch();
 
   const pizza = useSelector((state) => state.pizza);
-  const { menuPizzaList, menuPizzaListError, menuPizzaListLoading, menuPizzaListLoaded } = pizza;
+  const { featuredPizzaList, menuPizzaListError, menuPizzaListLoading, featuredPizzaListLoaded } = pizza;
 
   useEffect(() => {
-    if (!menuPizzaListLoaded && !menuPizzaListLoading) {
-      dispatch(listMenuPizzas());
+    if (!featuredPizzaListLoaded && !menuPizzaListLoading) {
+      dispatch(listMenuPizzas({ page: 1, limit: 3 }));
     }
-  }, [dispatch, menuPizzaListLoaded, menuPizzaListLoading]);
+  }, [dispatch, featuredPizzaListLoaded, menuPizzaListLoading]);
 
-  const featuredPizzas = menuPizzaList.slice(0, 3);
+  const featuredPizzas = featuredPizzaList;
 
   return (
     <section

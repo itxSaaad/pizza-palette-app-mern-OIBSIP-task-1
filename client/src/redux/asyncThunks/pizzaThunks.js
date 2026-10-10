@@ -62,13 +62,17 @@ export const listPizzas = createAsyncThunk('pizza/listPizzas', async (_, { rejec
 // the public screens never request.
 export const listMenuPizzas = createAsyncThunk(
   'pizza/listMenuPizzas',
-  async (_, { rejectWithValue }) => {
+  async ({ page = 1, limit = 12, minPrice, maxPrice, sortBy, sortOrder } = {}, { rejectWithValue }) => {
     try {
       const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas`, {
-        params: { createdBy: 'admin', limit: 50 },
+        params: { createdBy: 'admin', page, limit, minPrice, maxPrice, sortBy, sortOrder },
       });
 
-      return data.data || data;
+      return {
+        items: Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [],
+        pagination: data.pagination || { page, limit, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false },
+        query: { page, limit, minPrice, maxPrice, sortBy, sortOrder },
+      };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }
