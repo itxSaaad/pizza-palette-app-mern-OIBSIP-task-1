@@ -25,7 +25,7 @@ Pizza Palette uses a **duplicated constants architecture**:
 
 ✅ **Advantages:**
 - No shared package complexity
-- Independent deployment of frontend and backend
+- Clear frontend/backend module boundaries within the unified deployment
 - Type safety specific to each environment
 - Simpler build process
 - No monorepo setup required

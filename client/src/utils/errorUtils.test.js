@@ -53,7 +53,9 @@ describe('extractErrorMessage', () => {
   });
 
   it('falls back to the generic axios message when there is no response data', () => {
-    expect(extractErrorMessage({ message: 'Network Error' })).toBe('Network Error');
+    expect(extractErrorMessage({ message: 'Network Error' })).toBe(
+      "We couldn't reach the server. Check your connection and try again."
+    );
   });
 
   it('returns a fallback message for unrecognized shapes', () => {

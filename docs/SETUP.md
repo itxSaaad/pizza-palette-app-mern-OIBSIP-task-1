@@ -44,9 +44,8 @@ cd pizza-palette-app-mern-OIBSIP-task-1
 
 ### 2. Install Dependencies
 
-This repo is a [pnpm](https://pnpm.io) workspace ([Turborepo](https://turbo.build)
-for task running), not a plain npm project. Install pnpm first if you don't
-have it (`corepack enable` on Node 16.13+, or `npm install -g pnpm`), then
+This repo uses [pnpm](https://pnpm.io) (`pnpm@10.20.0`) and Node.js 24.x. Install pnpm first if you don't
+have it (`corepack enable` or `npm install -g pnpm`), then
 install everything — one command installs both `client` and `server`:
 
 ```bash
@@ -55,25 +54,13 @@ pnpm install
 
 ### 3. Set Up Environment Variables
 
-Create `.env` files for both backend and frontend:
-
-```bash
-# Create backend .env (copy from example)
-cp .env.example .env
-
-# Create frontend .env
-cd client
-cp .env.example .env
-cd ..
-```
+Configure backend and frontend variables locally using the names and descriptions in the tracked example templates. Keep actual credentials private and out of source control.
 
 ---
 
 ## Environment Configuration
 
-### Backend Environment Variables (.env)
-
-Create a `.env` file in the root directory:
+### Backend Environment Variables
 
 ```bash
 # Server Configuration
@@ -108,7 +95,7 @@ STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxx
 STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
 ```
 
-### Frontend Environment Variables (client/.env)
+### Frontend Environment Variables
 
 ```bash
 # Server API URL
@@ -133,7 +120,7 @@ For Vercel deployment, set these in the Vercel dashboard:
 - JWT_SECRET=(64+ character secret)
 - STRIPE_SECRET_KEY=sk_live_xxx (live mode)
 - STRIPE_WEBHOOK_SECRET=(the live webhook endpoint's signing secret)
-- All other variables from .env
+- All other variables listed in the backend environment configuration
 
 **Frontend:**
 - VITE_SERVER_URL=https://your-backend.vercel.app/api
@@ -167,7 +154,7 @@ For Vercel deployment, set these in the Vercel dashboard:
    # Should connect to MongoDB shell
    ```
 
-4. **Update .env**
+4. **Update the local environment configuration**
    ```bash
    MONGO_URI=mongodb://localhost:27017/pizza-delivery-app
    ```
@@ -203,7 +190,7 @@ For Vercel deployment, set these in the Vercel dashboard:
    - Replace `<password>` with your user password
    - Replace `<database>` with `pizza-delivery-app`
 
-6. **Update .env**
+6. **Update the local environment configuration**
    ```bash
    MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/pizza-delivery-app
    ```
@@ -214,9 +201,9 @@ For Vercel deployment, set these in the Vercel dashboard:
 
 Payments run through Stripe Checkout (hosted, redirect-based — no Stripe.js/Elements on the frontend). Full walkthrough — creating a Stripe account, getting test API keys, installing the Stripe CLI, forwarding webhooks locally, and testing an end-to-end payment — lives in the [Stripe Setup Guide](./STRIPE_SETUP.md). Quick summary:
 
-1. Get your test secret key from the [Stripe Dashboard](https://dashboard.stripe.com) (Developers → API keys) and set `STRIPE_SECRET_KEY` in the root `.env`.
+1. Get your test secret key from the [Stripe Dashboard](https://dashboard.stripe.com) (Developers → API keys) and set the server-side `STRIPE_SECRET_KEY` locally.
 2. Run `stripe listen --forward-to localhost:5000/api/orders/stripe-webhook` and copy the printed webhook signing secret into `STRIPE_WEBHOOK_SECRET`.
-3. No frontend (`client/.env`) configuration is needed.
+3. No frontend Stripe configuration is needed.
 
 See [docs/STRIPE_SETUP.md](./STRIPE_SETUP.md) for details, troubleshooting, and production webhook setup.
 
@@ -238,7 +225,7 @@ unset.
    - Generate a new app password for "Pizza Palette"
    - Copy the generated password
 
-2. **Update .env**
+2. **Update the local environment configuration**
    ```bash
    SENDER_EMAIL=your.email@yourdomain.com
    SENDER_PASSWORD=your_zoho_app_password
@@ -407,7 +394,7 @@ curl -X POST http://localhost:5000/api/users/login \
    systemctl status mongod
    ```
 
-2. Check MONGO_URI in `.env`
+2. Check the local `MONGO_URI` value
 3. For Atlas: Verify IP whitelist
 4. Check username/password in connection string
 
@@ -425,14 +412,14 @@ openssl rand -base64 64
 node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"
 ```
 
-Update `.env` with the generated secret.
+Set the generated secret in the local environment configuration.
 
 ### Email Not Sending
 
 **Problem:** Registration emails not arriving
 
 **Solutions:**
-1. Check email credentials in `.env`
+1. Check the local email credentials
 2. For Gmail: Verify App Password is correct
 3. Check spam folder
 4. Review server logs for email errors
@@ -457,7 +444,7 @@ Update `.env` with the generated secret.
    taskkill /PID <PID> /F
    ```
 
-2. Change port in `.env`:
+2. Change the configured application port locally:
    ```bash
    PORT=5001
    ```
@@ -478,7 +465,7 @@ Update `.env` with the generated secret.
 **Error:** `Access-Control-Allow-Origin` blocked
 
 **Solutions:**
-1. Verify FRONTEND_URL in backend `.env`
+1. Verify the backend `FRONTEND_URL` value
 2. Check ALLOWED_ORIGINS includes frontend URL
 3. Ensure frontend VITE_SERVER_URL is correct
 4. For production: Update CORS origins to production URLs
@@ -490,8 +477,7 @@ Update `.env` with the generated secret.
 **Solutions:**
 1. Reinstall dependencies:
    ```bash
-   # From root directory (installs both client and server)
-   rm -rf node_modules client/node_modules server/node_modules pnpm-lock.yaml
+   # From the repository root
    pnpm install
    ```
 
@@ -555,8 +541,8 @@ pnpm run data:import
 - [ ] MongoDB running (local or Atlas)
 - [ ] Git repository cloned
 - [ ] Dependencies installed (`pnpm install` from root)
-- [ ] Backend `.env` configured
-- [ ] Frontend `.env` configured
+- [ ] Backend environment configured
+- [ ] Frontend environment configured
 - [ ] Database seeded
 - [ ] Backend starts without errors (port 5000)
 - [ ] Frontend starts without errors (port 5173)

@@ -52,7 +52,7 @@ const errorHandler = (err, req, res, next) => {
     }
     // Handle Mongoose CastError (invalid ObjectId)
     else if (error.name === 'CastError') {
-      const message = `Invalid ${error.path}: ${error.value}`;
+      const message = 'The information provided is invalid. Please check your input.';
       error = new ApiError(400, ERROR_CODES.INVALID_INPUT, message);
     }
     // Handle MongoDB duplicate key error

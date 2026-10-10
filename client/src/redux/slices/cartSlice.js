@@ -151,8 +151,6 @@ const cartSlice = createSlice({
       state.cartRemoveItemSuccess = false;
       state.cartSaveShippingAddressSuccess = false;
       state.cartSavePaymentMethodSuccess = false;
-      state.orderGetRazorPayOrderIdSuccess = false;
-      state.orderRazorPayPaymentSuccess = false;
       state.loading = false;
     },
   },

@@ -68,7 +68,7 @@ Before contributing, ensure you have:
    ```
 
 5. **Set up environment**:
-   - Copy `.env.example` to `.env`
+   - Configure local variables using the tracked example templates
    - Configure environment variables
    - Seed database: `npm run seed`
 

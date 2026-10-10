@@ -131,7 +131,7 @@ flowchart LR
 - **CORS** - Cross-origin resource sharing
 
 ### Deployment
-- **Vercel** - Frontend and backend hosting
+- **Vercel Services** - One project deploys the Vite frontend and Express API together
 - **MongoDB Atlas** - Cloud database
 - **GitHub** - Version control and CI/CD
 
@@ -139,19 +139,53 @@ flowchart LR
 
 ## Architecture
 
-### High-Level Overview
+### Application and Service Map
 
+```mermaid
+flowchart LR
+    Customer[Customer browser<br/>React + Vite + Redux] -->|HTTPS pages and same-origin /api requests| Ingress[Vercel unified project<br/>ordered public routing]
+    Admin[Admin browser views<br/>same React application] -->|HTTPS pages and same-origin /api requests| Ingress
+    Ingress -->|static assets and SPA deep links| Frontend[Vite frontend service<br/>client/]
+    Ingress -->|/api/*, /health, /ready| Backend[Express API service<br/>server/]
+    Frontend -.->|VITE_SERVER_URL defaults to /api| Ingress
+    Backend -->|Mongoose models, indexes and queries| Mongo[(MongoDB Atlas<br/>users, menus, orders, stock)]
+    Backend -->|create Checkout Session| Stripe[Stripe Checkout]
+    Stripe -->|signed webhook events| Backend
+    Backend -->|SMTP over TLS| Mail[Zoho SMTP<br/>verification, reset and order email]
+    VercelCron[Vercel Cron<br/>daily low-stock check] -->|Bearer CRON_SECRET| Ingress
+    Backend -->|local long-running process only| LocalCron[node-cron scheduler]
+    GitHub[GitHub main / dev branches] -->|atomic deployment of all services| Ingress
 ```
-User Browser
-     ↓
-React Frontend (Vercel)
-     ↓
-Express Backend (Vercel Serverless)
-     ↓
-MongoDB Atlas
-     ↓
-Stripe Payment Gateway
+
+The public `/api` path is rewritten to Express before the frontend catch-all. Express keeps the `/api` prefix, so its mounted routes and browser URLs agree. The frontend and backend ship together in the unified Vercel project; preview deployments use the same routing shape as production. Local development runs Vite and Express separately, with the client API base configured as `http://localhost:5000/api` or same-origin `/api`.
+
+### Customer checkout and payment confirmation
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant UI as React checkout
+    participant API as Express API
+    participant DB as MongoDB Atlas
+    participant Stripe as Stripe Checkout
+    participant Mail as Zoho SMTP
+    Customer->>UI: Select pizza and submit delivery details
+    UI->>API: POST /api/orders/create-checkout-session
+    API->>DB: Verify inventory and server-side prices
+    API->>DB: Create pending order and reserve ingredients
+    API->>Stripe: Create 30-minute Checkout Session
+    Stripe-->>UI: Hosted Checkout URL
+    Customer->>Stripe: Enter payment details on Stripe-hosted page
+    Stripe->>API: Signed checkout.session.completed webhook
+    API->>DB: Mark order payment successful (idempotently)
+    API->>Mail: Send payment confirmation email
+    Stripe->>API: checkout.session.expired if not completed
+    API->>DB: Atomically restore reserved inventory once
+    UI->>API: Read order/payment status after redirect
+    API-->>UI: Current persisted order status
 ```
+
+Stripe secret keys stay on the server. The browser is redirected to Stripe-hosted Checkout; order payment success is based on verified webhook delivery, not only the browser return URL. Abandoned sessions expire after 30 minutes and their ingredient reservation is restored by the expiration webhook. In production the daily stock-alert job is invoked through Vercel Cron and a bearer secret; local long-running development uses `node-cron`.
 
 ### Key Design Patterns
 
@@ -162,7 +196,7 @@ Stripe Payment Gateway
 - **Constants Management** - Duplicated constants (frontend/backend)
 - **Middleware Pipeline** - Modular request processing
 
-See [Architecture Documentation](./docs/ARCHITECTURE.md) for detailed diagrams and explanations.
+See [Architecture Documentation](./docs/ARCHITECTURE.md) for data models, request middleware, authentication, service boundaries, deployment behavior, and operational details.
 
 ---
 
@@ -210,38 +244,26 @@ See [Error Handling Guide](./docs/ERROR_HANDLING.md) for complete reference.
 1. **Clone the repository**
 
    ```sh
-      git clone https://github.com/itxSaaad/pizza-palette-app-mern-OIBSIP-task-1.git
+      git clone git@github.com:itxSaaad/pizza-palette-app-mern-OIBSIP-task-1.git
       cd pizza-palette-app-mern-OIBSIP-task-1
    ```
 
 2. **Install dependencies**
 
    ```sh
-      # Install server dependencies
-      npm install
-
-      # Install client dependencies
-      cd client
-      npm install
-      cd ..
+      pnpm install
    ```
 
 3. **Configure environment variables**
 
-   ```sh
-   # Copy example files
-   cp .env.example .env
-   cd client && cp .env.example .env && cd ..
-   
-   # Edit .env files with your credentials
-   ```
+   Configure local environment variables using the names in the tracked example templates. Keep credentials private and out of commits.
 
    **Required variables:** See [Setup Guide](./docs/SETUP.md#environment-configuration) for complete list
 
 4. **Seed the database**
 
    ```sh
-   npm run seed
+   pnpm data:import
    ```
 
    **Test Credentials:** See [TEST_CREDENTIALS.md](./TEST_CREDENTIALS.md) for login details
@@ -250,13 +272,13 @@ See [Error Handling Guide](./docs/ERROR_HANDLING.md) for complete reference.
 
    ```sh
       # Run both server and client
-      npm run dev
+      pnpm dev
 
       # Run server only
-      npm run server
+      pnpm server
 
       # Run client only
-      npm run client
+      pnpm client
    ```
 
 6. **Access the application**
@@ -338,7 +360,7 @@ Card: 4000 0000 0000 0002
 ### Vercel Deployment (Recommended)
 
 1. **Fork this repository**
-2. **Import to Vercel** (separate projects for frontend and backend)
+2. **Import to Vercel** as one Services project for the frontend and backend
 3. **Configure environment variables** in Vercel dashboard
 4. **Deploy** with auto-deploy on push
 
@@ -347,11 +369,11 @@ Card: 4000 0000 0000 0002
 ### Environment Setup
 
 **Backend (Vercel):**
-- Set all environment variables from `.env`
-- Update `FRONTEND_URL` to your frontend URL
+- Set the server variables listed in [the deployment guide](./docs/DEPLOYMENT.md)
+- Match `FRONTEND_URL` to the deployment domain
 
 **Frontend (Vercel):**
-- Set `VITE_SERVER_URL` to your backend URL
+- Set `VITE_SERVER_URL=/api` and `VITE_CLIENT_URL` to the deployment domain
 - No Stripe configuration is needed on the frontend — checkout redirects to a Stripe-hosted page, the client never handles a publishable key or card details directly
 
 ---

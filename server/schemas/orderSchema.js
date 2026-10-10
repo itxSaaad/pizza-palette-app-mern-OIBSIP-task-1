@@ -77,6 +77,15 @@ const orderSchema = new mongoose.Schema(
         default: 'pending'
       },
     },
+    inventoryDeductions: [
+      {
+        ingredient: { type: mongoose.Schema.Types.ObjectId, required: true },
+        quantity: { type: Number, required: true },
+        type: { type: String, enum: ['base', 'sauce', 'cheese', 'veggie'], required: true },
+        item: { type: String, required: true },
+      },
+    ],
+    inventoryRestoredAt: { type: Date },
     status: {
       type: String,
       enum: ORDER_STATUS_VALUES,

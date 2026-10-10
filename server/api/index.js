@@ -1,5 +1,3 @@
-// Vercel's current Node.js Functions convention requires function entry
-// files to live under api/. This just re-exports the real Express app
-// from ../index.js so local dev (nodemon, pnpm dev) and the deployed
-// function share exactly one source of truth.
+// Compatibility entrypoint for the legacy standalone backend deployment.
+// The unified Vercel Services manifest uses server/index.js directly.
 module.exports = require('../index.js');
