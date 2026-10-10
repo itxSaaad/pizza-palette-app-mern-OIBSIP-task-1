@@ -12,10 +12,12 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 
 // Import Configs and Middlewares
-const { connectDb, getConnectionStatus } = require('./config/db');
+const { connectDb } = require('./config/db');
 const { notFound, errorHandler } = require('./middlewares/errorMiddlewares');
 const { validateEnv } = require('./utils/envValidator');
 const { startInventoryScheduler } = require('./utils/inventoryScheduler');
+const { getReadiness } = require('./controllers/healthControllers');
+const ApiResponse = require('./utils/ApiResponse');
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -26,6 +28,7 @@ const pizzaRoutes = require('./routes/pizzaRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const healthRoutes = require('./routes/healthRoutes');
 
 // Validate Environment Variables
 try {
@@ -40,10 +43,9 @@ try {
 const app = express();
 
 // node-cron needs a long-running process to keep its timer alive, which
-// Vercel's serverless functions don't provide — there, automatic low-stock
-// checks run via Vercel Cron hitting /api/stocks/cron/check-alerts instead
-// (see server/vercel.json). Skip starting a scheduler that would never
-// actually fire.
+// Vercel's serverless functions don't provide — there, Vercel Cron calls
+// /api/stocks/cron/check-alerts (configured in the root deployment file).
+// Skip starting a scheduler that would never actually fire.
 if (!process.env.VERCEL) {
   startInventoryScheduler();
 }
@@ -113,6 +115,10 @@ app.use(
 // Await a shared Mongo connection before any API handler queries the database.
 // This is deliberately before the webhook route so it applies to Stripe too.
 app.use('/api', async (req, res, next) => {
+  // Health probes must run even while MongoDB is unavailable. The readiness
+  // handler owns its database check and returns a structured 503 response.
+  if (['/', '/health', '/ready'].includes(req.path)) return next();
+
   try {
     await connectDb();
     next();
@@ -143,36 +149,16 @@ app.use(bodyParser.json());
 app.use(mongoSanitize());
 
 // Health check endpoints
-app.get('/health', (req, res) => {
-  const dbStatus = getConnectionStatus();
-
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: dbStatus,
-    environment: process.env.NODE_ENV,
-  });
-});
-
-app.get('/ready', async (req, res) => {
-  try {
-    await connectDb();
-    res.status(200).json({
-      status: 'READY',
-      message: 'Application is ready to accept requests',
-    });
-  } catch (error) {
-    res.status(503).json({
-      status: 'NOT_READY',
-      message: 'Database connection not ready',
-      database: getConnectionStatus(),
-    });
-  }
-});
+app.use(['/health', '/api/health'], healthRoutes);
+app.get(['/ready', '/api/ready'], getReadiness);
 
 app.get('/api', (req, res) => {
-  res.json({ name: 'Pizza Palette API', status: 'available', health: '/health', readiness: '/ready' });
+  res.json(
+    ApiResponse.success(
+      { name: 'Pizza Palette API', status: 'available', health: '/health', readiness: '/ready' },
+      'API service is available'
+    )
+  );
 });
 
 // Basic route for the root URL

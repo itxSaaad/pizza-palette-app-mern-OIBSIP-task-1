@@ -11,7 +11,7 @@ The repository root `vercel.json` is the deployment manifest:
 | `frontend` | `client/` | Vite static SPA | `/` and all non-API paths; deep links fall back to `/index.html` |
 | `backend` | `server/` | Express on Vercel Node.js | `/api`, `/api/*`, `/health`, `/ready` |
 
-Vercel evaluates the top-level rewrites in order, so API and health paths reach Express before the frontend catch-all. The backend receives the original `/api/...` path, matching its Express route mounts. `/api` returns a small JSON service description; `/health` reports process and connection state; `/ready` returns HTTP 503 until MongoDB is connected.
+Vercel evaluates the root rewrite table in order, so API and health paths reach Express before the frontend catch-all. The backend receives the original `/api/...` path, matching its Express route mounts. `/api` returns the standard API success envelope; `/health` is a database-independent liveness probe; `/ready` returns the standard error envelope with HTTP 503 until MongoDB is connected. See [Health Checks and Login Troubleshooting](./operations/HEALTH_AND_LOGIN.md) for response shapes and first-admin setup.
 
 The backend exports the Express app for Vercel and calls `listen()` only when run directly. It awaits a shared Mongoose connection promise before API routes access models. `MONGODB_MAX_POOL_SIZE` can tune the pool per warm instance; its default is five connections to limit connection pressure on hobby databases.
 
@@ -86,6 +86,7 @@ For each Production or Preview deployment, check:
 | `/api/...` renders the frontend | Confirm the root `vercel.json` is in the deployed commit, the project framework is Services, and the `/api` rewrites precede the frontend catch-all. |
 | Frontend calls `/undefined/...` | Confirm `VITE_SERVER_URL` is set for the deployment or let Vite use its `/api` default, then build a new deployment. |
 | API starts but database routes fail | Check `MONGO_URI` in the deployment's environment target, URL-encode special characters in the URI password, and inspect `/ready` plus runtime logs. |
+| Login says credentials are invalid | Deployed databases do not get the local demo seed automatically. Check `/api/admin/setup-status`; if no admin exists, use `/setup` to create the first administrator. Do not import demo accounts into production. |
 | Checkout session creation fails | Verify the server-only `STRIPE_SECRET_KEY` mode/account and inspect server logs; do not expose key values in browser variables. |
 | Stripe rejects the webhook | The endpoint's `STRIPE_WEBHOOK_SECRET` must match the webhook sender. Local `stripe listen` uses a different signing secret than a Dashboard-registered endpoint. |
 | Cron gets 401/500 | Confirm `CRON_SECRET` exists in Production and redeploy after changing it. Do not invoke the scheduled endpoint from a browser without its bearer token. |

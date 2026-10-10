@@ -15,14 +15,16 @@ const secureSetting = process.env.NODEMAILER_SMTP_SECURE || process.env.SMTP_SEC
 const SMTP_SECURE = secureSetting
   ? secureSetting === 'true'
   : SMTP_PORT === 465;
+const SMTP_EMAIL = process.env.NODEMAILER_SMTP_EMAIL || process.env.SENDER_EMAIL;
+const SMTP_PASSWORD = process.env.NODEMAILER_SMTP_PASSWORD || process.env.SENDER_PASSWORD;
 
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
   port: SMTP_PORT,
   secure: SMTP_SECURE,
   auth: {
-    user: process.env.NODEMAILER_SMTP_EMAIL || process.env.SENDER_EMAIL,
-    pass: process.env.NODEMAILER_SMTP_PASSWORD || process.env.SENDER_PASSWORD,
+    user: SMTP_EMAIL,
+    pass: SMTP_PASSWORD,
   },
 });
 
@@ -35,7 +37,7 @@ const sendEmail = async ({ to, subject, templateOptions = {}, from, text }) => {
   try {
     const html = emailBaseTemplate(templateOptions);
     const mailOptions = {
-      from: from || process.env.SENDER_EMAIL,
+      from: from || SMTP_EMAIL,
       to,
       subject,
       html,

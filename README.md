@@ -4,17 +4,18 @@
 
 ```mermaid
 flowchart LR
-  Customer[Customer] -->|browse menu, customize order, checkout| Client[React ordering interface\nVercel Services: frontend]
-  Admin[Administrator] -->|manage menu and orders| Client
-  Client -->|HTTP requests| API[Express and Node.js API\nVercel Services: frontend-backend]
-  API --> Routes[Order, product, and user routes]
-  Routes --> DB[(MongoDB)]
-  DB --> Routes
-  Routes --> API
-  API --> Client
-  API -. payment processing .-> Payments[Payment provider]
-  Client -->|order status and menu| Customer
-  Client -->|order updates| Admin
+  Customer[Customer] -->|browse, customize, order| SPA[React + Vite customer app]
+  Admin[Admin or manager] -->|manage menu, orders, inventory| SPA
+  SPA -->|same-origin HTTPS requests| Routing[Vercel Services routing]
+  Routing -->|pages and static assets| Frontend[Vite frontend service]
+  Routing -->|/api and operational probes| Backend[Express API service]
+  Backend -->|authenticate, validate, price, persist| Mongo[(MongoDB Atlas)]
+  Backend -->|create hosted checkout| Stripe[Stripe Checkout]
+  Stripe -->|signed payment events| Backend
+  Backend -->|verification, reset and order emails| SMTP[Zoho SMTP]
+  Cron[Vercel Cron daily stock check] -->|authorized API request| Backend
+  Frontend -->|menu, account, cart, order status| Customer
+  Frontend -->|admin dashboard| Admin
 ```
 
 > Pizza Delivery System App (MERN - MongoDB, Express, React, Node.js) is a comprehensive web application that enables users to customize and order pizzas online. This project showcases a full-stack development approach with a focus on user experience, functionality, and security. The app includes a user-friendly frontend interface for ordering pizzas, an admin dashboard for managing orders and inventory, and a secure backend server for processing orders and payments.
@@ -60,7 +61,7 @@ flowchart LR
 - ✅ **Password Reset:** Forgot password functionality
 
 ### Admin Features
-- ✅ **Admin Authentication:** Secure admin login with approval system
+- ✅ **Admin Authentication:** Unified login with one-time first-admin setup and invite-only admin/manager accounts
 - ✅ **Dashboard Analytics:** View key metrics (users, orders, revenue)
 - ✅ **User Management:** View and manage all users
 - ✅ **Pizza Management:** Full CRUD operations on pizzas
@@ -92,6 +93,7 @@ flowchart LR
 - **[Constants](./docs/CONSTANTS.md)** - Constants and enums reference
 - **[Testing](./docs/TESTING.md)** - Testing guide with test credentials
 - **[Deployment](./docs/DEPLOYMENT.md)** - Deploy to Vercel (production)
+- **[Health and Login Troubleshooting](./docs/operations/HEALTH_AND_LOGIN.md)** - Probe contracts, first-admin setup, and deployed login diagnosis
 - **[Contributing](./docs/CONTRIBUTING.md)** - Contribution guidelines
 - **[Changelog](./docs/CHANGELOG.md)** - Version history
 

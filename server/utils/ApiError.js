@@ -151,6 +151,16 @@ class ApiError extends Error {
   }
 
   /**
+   * Create a service-unavailable error (503), for example when readiness
+   * checks cannot establish a required database connection.
+   * @param {string} message - Customer-safe or operator-safe message
+   * @returns {ApiError}
+   */
+  static serviceUnavailable(message = 'Service is temporarily unavailable.') {
+    return new ApiError(503, ERROR_CODES.SERVICE_UNAVAILABLE, message);
+  }
+
+  /**
    * Convert error to JSON representation
    * @returns {Object}
    */

@@ -57,6 +57,7 @@ const errorMessages = {
   // Server Errors
   [ERROR_CODES.SERVER_ERROR]: 'An unexpected error occurred. Please try again later',
   [ERROR_CODES.DATABASE_ERROR]: 'Database error occurred. Please try again later',
+  [ERROR_CODES.SERVICE_UNAVAILABLE]: 'Service is temporarily unavailable. Please try again shortly',
   [ERROR_CODES.EMAIL_SEND_FAILED]: 'Failed to send email. Please try again later',
   
   // Network Errors (Client-side)
@@ -81,6 +82,7 @@ const getUserFriendlyMessage = (code, defaultMessage = 'An error occurred') => {
  */
 const mapStatusToErrorCode = (statusCode) => {
   if (statusCode >= 500) {
+    if (statusCode === 503) return ERROR_CODES.SERVICE_UNAVAILABLE;
     return ERROR_CODES.SERVER_ERROR;
   } else if (statusCode === 404) {
     return ERROR_CODES.NOT_FOUND;
@@ -122,6 +124,7 @@ const isServerError = (code) => {
   const serverErrors = [
     ERROR_CODES.SERVER_ERROR,
     ERROR_CODES.DATABASE_ERROR,
+    ERROR_CODES.SERVICE_UNAVAILABLE,
     ERROR_CODES.EMAIL_SEND_FAILED
   ];
   return serverErrors.includes(code);

@@ -259,6 +259,8 @@ Account, then go to **Security → App passwords** to generate one.
 
 Populate the database with test data:
 
+This command is for a local development database only. The importer waits for MongoDB before writing, and it refuses to run when `NODE_ENV=production`. Deployed demo users are not created automatically; create the first production administrator through the one-time `/setup` flow described in [Health Checks and Login Troubleshooting](./operations/HEALTH_AND_LOGIN.md).
+
 ### Import Data
 
 ```bash

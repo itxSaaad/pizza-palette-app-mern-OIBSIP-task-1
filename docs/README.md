@@ -12,6 +12,7 @@ Welcome to the comprehensive documentation for Pizza Palette - a full-stack MERN
 ### Development
 - [Architecture](./ARCHITECTURE.md) - System design and data flows
 - [API Reference](./API.md) - Complete API documentation
+- [Health Checks and Login Troubleshooting](./operations/HEALTH_AND_LOGIN.md) - Probe contracts, account lookup, first-admin setup, and deployed-login diagnosis
 - [Error Handling](./ERROR_HANDLING.md) - Error handling patterns
 - [Constants](./CONSTANTS.md) - Constants and enums reference
 - [Contributing](./CONTRIBUTING.md) - How to contribute
