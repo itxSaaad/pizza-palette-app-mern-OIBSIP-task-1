@@ -28,12 +28,14 @@ const inviteColumns = ['email', 'role', 'invitedBy', 'expiresAt'];
 function InvitesList() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState(USER_ROLES.MANAGER);
+  const [page, setPage] = useState(1);
 
   const dispatch = useDispatch();
 
   const {
     loading,
     adminInviteList,
+    adminInviteListPagination,
     adminInviteListError,
     adminSendInviteError,
     adminSendInviteSuccess,
@@ -43,19 +45,19 @@ function InvitesList() {
 
   const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
     deleteThunk: revokeAdminInvite,
-    refreshThunk: () => listAdminInvites(),
+    refreshThunk: () => listAdminInvites({ page }),
     entityName: 'invite',
   });
 
   useEffect(() => {
-    dispatch(listAdminInvites());
-  }, [dispatch]);
+    dispatch(listAdminInvites({ page }));
+  }, [dispatch, page]);
 
   const handleSendInvite = (e) => {
     e.preventDefault();
     dispatch(sendAdminInvite({ email, role })).then(() => {
       setEmail('');
-      dispatch(listAdminInvites());
+      dispatch(listAdminInvites({ page }));
     });
   };
 
@@ -119,6 +121,8 @@ function InvitesList() {
                 data={adminInviteList}
                 columns={inviteColumns}
                 handleDelete={handleDeleteRequest}
+                pagination={adminInviteListPagination}
+                onPageChange={setPage}
               />
             ) : (
               <Card className="text-center">

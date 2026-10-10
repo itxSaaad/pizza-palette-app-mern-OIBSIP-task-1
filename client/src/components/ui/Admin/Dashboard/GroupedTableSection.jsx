@@ -3,11 +3,20 @@ import PropTypes from 'prop-types';
 import Card from '../../Card';
 import SectionHeading from './SectionHeading';
 import Table from './Table';
+import Pagination from '../../Pagination';
 
 // Replaces the repeated "bucket data into named groups, render a heading +
 // Table (or an empty-state Card) per group" pattern that OrdersList,
 // PizzasList, and InventoryList each reimplemented.
-function GroupedTableSection({ groups, columns, handleDelete, handleChange, columnRenderers }) {
+function GroupedTableSection({
+  groups,
+  columns,
+  handleDelete,
+  handleChange,
+  columnRenderers,
+  pagination,
+  onPageChange,
+}) {
   return (
     <>
       {groups.map(({ label, data, emptyLabel }) => (
@@ -20,6 +29,9 @@ function GroupedTableSection({ groups, columns, handleDelete, handleChange, colu
               handleDelete={handleDelete}
               handleChange={handleChange}
               columnRenderers={columnRenderers}
+              pagination={pagination}
+              onPageChange={onPageChange}
+              showPagination={false}
             />
           ) : (
             <Card className="text-center mb-4">
@@ -30,6 +42,15 @@ function GroupedTableSection({ groups, columns, handleDelete, handleChange, colu
           )}
         </div>
       ))}
+      {pagination && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPrev={() => onPageChange?.(pagination.page - 1)}
+          onNext={() => onPageChange?.(pagination.page + 1)}
+          variant="secondary"
+        />
+      )}
     </>
   );
 }
@@ -46,6 +67,8 @@ GroupedTableSection.propTypes = {
   handleDelete: PropTypes.func.isRequired,
   handleChange: PropTypes.func,
   columnRenderers: PropTypes.objectOf(PropTypes.func),
+  pagination: PropTypes.shape({ page: PropTypes.number, totalPages: PropTypes.number }),
+  onPageChange: PropTypes.func,
 };
 
 export default GroupedTableSection;

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
@@ -20,12 +20,14 @@ function StaffList() {
   const adminUserColumns = ['_id', 'name', 'email', 'role', 'permissions', 'isApproved'];
 
   const dispatch = useDispatch();
+  const [page, setPage] = useState(1);
 
   const admin = useSelector((state) => state.admin);
   const {
     loading,
     adminUserList,
-    adminUserListError,
+    adminUserListPagination,
+    adminUserListsError,
     adminUserDeleteByIdError,
     adminUserUpdateProfileByIdError,
     adminUserUpdateProfileByIdSuccess,
@@ -34,7 +36,7 @@ function StaffList() {
 
   const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
     deleteThunk: deleteAdminUserById,
-    refreshThunk: () => listAdminUsers({}),
+    refreshThunk: () => listAdminUsers({ page }),
     entityName: 'staff member',
   });
 
@@ -49,7 +51,7 @@ function StaffList() {
         permissions: targetUser.permissions,
         isApproved: !targetUser.isApproved,
       })
-    ).then(() => dispatch(listAdminUsers({})));
+    ).then(() => dispatch(listAdminUsers({ page })));
   };
 
   const successMessageUpdate = adminUserUpdateProfileByIdSuccess && {
@@ -75,17 +77,15 @@ function StaffList() {
   };
 
   useEffect(() => {
-    if (!adminUserList) {
-      dispatch(listAdminUsers({}));
-    }
-  }, [dispatch, adminUserList]);
+    dispatch(listAdminUsers({ page }));
+  }, [dispatch, page]);
 
   return (
     <>
       <AdminListLayout
         title="All Staff"
         loading={loading}
-        error={adminUserListError || adminUserDeleteByIdError || adminUserUpdateProfileByIdError}
+        error={adminUserListsError || adminUserDeleteByIdError || adminUserUpdateProfileByIdError}
         successMessage={successMessageDelete || successMessageUpdate}
         isEmpty={adminUserList.length === 0}
         emptyLabel="No Staff Found.."
@@ -96,6 +96,8 @@ function StaffList() {
           handleDelete={handleDeleteRequest}
           handleChange={handleChange}
           columnRenderers={columnRenderers}
+          pagination={adminUserListPagination}
+          onPageChange={setPage}
         />
       </AdminListLayout>
       <ConfirmDialog {...confirmDialogProps} />

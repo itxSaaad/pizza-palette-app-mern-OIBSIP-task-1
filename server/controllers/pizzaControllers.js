@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler');
 
 // Import Utils
-const { buildPaginationResponse } = require('../utils/paginationUtils');
+const { aggregatePaginated, parsePaginationParams } = require('../utils/paginationUtils');
 const { USER_ROLES } = require('../constants');
 const ApiError = require('../utils/ApiError');
 
@@ -9,15 +9,11 @@ const ApiError = require('../utils/ApiError');
 const Pizza = require('../schemas/pizzaSchema');
 
 const parsePizzaListingQuery = (query) => {
-  const page = query.page === undefined ? 1 : Number(query.page);
-  const limit = query.limit === undefined ? 10 : Number(query.limit);
+  const { page, limit } = parsePaginationParams(query);
   const issues = [];
 
-  if (!Number.isSafeInteger(page) || page < 1) issues.push({ field: 'page', message: 'Must be a positive integer.' });
-  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
-    issues.push({ field: 'limit', message: 'Must be an integer between 1 and 100.' });
-  }
-  if (query.createdBy && ![USER_ROLES.ADMIN, USER_ROLES.USER].includes(query.createdBy)) {
+  const createdBy = query.createdBy || USER_ROLES.ADMIN;
+  if (!['all', USER_ROLES.ADMIN, USER_ROLES.USER].includes(createdBy)) {
     issues.push({ field: 'createdBy', message: 'Must be a supported creator role.' });
   }
 
@@ -43,7 +39,7 @@ const parsePizzaListingQuery = (query) => {
   }
   if (issues.length) throw ApiError.validation('Invalid pizza listing parameters.', issues);
 
-  return { page, limit, skip: (page - 1) * limit, minPrice, maxPrice, sortBy, sortOrder };
+  return { page, limit, minPrice, maxPrice, sortBy, sortOrder, createdBy };
 };
 
 // Initialize Controllers
@@ -53,26 +49,28 @@ const parsePizzaListingQuery = (query) => {
 // @access  Public
 
 const getAllPizzas = asyncHandler(async (req, res) => {
-  const { page, limit, skip, minPrice, maxPrice, sortBy, sortOrder } = parsePizzaListingQuery(req.query);
+  const { page, limit, minPrice, maxPrice, sortBy, sortOrder, createdBy } = parsePizzaListingQuery(
+    req.query
+  );
   const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1, _id: 1 };
 
   // Build filter
   const filter = {};
-  if (req.query.createdBy) {
-    filter.createdBy = req.query.createdBy;
-  }
+  if (createdBy !== 'all') filter.createdBy = createdBy;
   if (minPrice !== undefined || maxPrice !== undefined) {
     filter.price = {};
     if (minPrice !== undefined) filter.price.$gte = minPrice;
     if (maxPrice !== undefined) filter.price.$lte = maxPrice;
   }
 
-  const [pizzas, total] = await Promise.all([
-    Pizza.find(filter).sort(sort).skip(skip).limit(limit).select('-__v'),
-    Pizza.countDocuments(filter),
-  ]);
+  const result = await aggregatePaginated(Pizza, [{ $match: filter }], {
+    page,
+    limit,
+    sort,
+    dataStages: [{ $project: { __v: 0 } }],
+  });
 
-  res.status(200).json(buildPaginationResponse(pizzas, total, page, limit));
+  res.status(200).json(result);
 });
 
 // @desc    Get Pizza by Id

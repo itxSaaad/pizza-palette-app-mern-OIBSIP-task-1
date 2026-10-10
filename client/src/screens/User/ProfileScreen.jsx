@@ -19,6 +19,7 @@ import UserOrdersTable from '../../components/ui/UserOrdersTable';
 function ProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [page, setPage] = useState(1);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -27,7 +28,12 @@ function ProfileScreen() {
   const { loading, userDetails, userDetailsError, userInfo, userUpdateProfileSuccess } = user;
 
   const order = useSelector((state) => state.order);
-  const { loading: orderLoading, orderListByUserId, orderListByUserIdError } = order;
+  const {
+    loading: orderLoading,
+    orderListByUserId,
+    orderListByUserIdPagination,
+    orderListByUserIdError,
+  } = order;
 
   const successMessage = userUpdateProfileSuccess && {
     status: '200',
@@ -39,9 +45,9 @@ function ProfileScreen() {
       navigate('/login');
     } else {
       dispatch(getUserDetails({}));
-      dispatch(listOrdersByUserId(userInfo._id));
+      dispatch(listOrdersByUserId({ page }));
     }
-  }, [dispatch, navigate, userInfo]);
+  }, [dispatch, navigate, userInfo, page]);
 
   useEffect(() => {
     if (userDetails && !userDetails.isVerified) {
@@ -93,7 +99,11 @@ function ProfileScreen() {
                     <h1 className="font-display text-h2 text-center mb-4 text-primary-600">
                       My Orders
                     </h1>
-                    <UserOrdersTable orders={orderListByUserId} />
+                    <UserOrdersTable
+                      orders={orderListByUserId}
+                      pagination={orderListByUserIdPagination}
+                      onPageChange={setPage}
+                    />
                   </>
                 ) : (
                   <Card className="w-full text-center">

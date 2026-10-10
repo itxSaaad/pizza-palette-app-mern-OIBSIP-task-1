@@ -1,4 +1,3 @@
-const emailValidator = require('email-validator');
 const asyncHandler = require('express-async-handler');
 
 // Import Utils
@@ -6,6 +5,11 @@ const generateToken = require('../utils/generateToken');
 const { hashPassword } = require('../utils/passwordUtils');
 const { USER_ROLES } = require('../constants');
 const ApiError = require('../utils/ApiError');
+const {
+  aggregatePaginated,
+  parsePaginationParams,
+  parseSortParams,
+} = require('../utils/paginationUtils');
 
 // Import Schema
 const Admin = require('../schemas/adminUserSchema');
@@ -130,14 +134,25 @@ const updateAdminProfile = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 
 const getAllAdmins = asyncHandler(async (req, res) => {
-  const admins = await Admin.find({});
-
-  if (admins) {
-    res.status(200);
-    res.json(admins);
-  } else {
-    throw ApiError.notFound('Admins', 'No admins found.');
-  }
+  const { page, limit } = parsePaginationParams(req.query);
+  const sort = parseSortParams(req.query, '-createdAt', ['createdAt', 'name', 'email', 'role']);
+  const result = await aggregatePaginated(Admin, [{ $match: {} }], {
+    page,
+    limit,
+    sort,
+    dataStages: [
+      {
+        $project: {
+          password: 0,
+          verificationCode: 0,
+          resetPasswordToken: 0,
+          resetPasswordExpire: 0,
+          __v: 0,
+        },
+      },
+    ],
+  });
+  res.status(200).json(result);
 });
 
 // @desc    Get Admin By ID

@@ -6,6 +6,11 @@ const { INVENTORY_TYPES } = require('../constants');
 // Import Schemas
 const { Base, Sauce, Cheese, Veggie } = require('../schemas/inventorySchema');
 const ApiError = require('../utils/ApiError');
+const {
+  aggregatePaginated,
+  parsePaginationParams,
+  parseSortParams,
+} = require('../utils/paginationUtils');
 
 // Initialize Controllers
 
@@ -14,19 +19,42 @@ const ApiError = require('../utils/ApiError');
 // @access  Private
 
 const getAllStocks = asyncHandler(async (req, res) => {
-  const [base, sauce, cheese, veggie] = await Promise.all([
-    Base.find({}),
-    Sauce.find({}),
-    Cheese.find({}),
-    Veggie.find({}),
-  ]);
-
-  res.status(200).json({
-    bases: base,
-    sauces: sauce,
-    cheeses: cheese,
-    veggies: veggie,
+  const { page, limit } = parsePaginationParams(req.query);
+  const allowedTypes = ['Base', 'Sauce', 'Cheese', 'Veggie'];
+  if (req.query.type && !allowedTypes.includes(req.query.type)) {
+    throw ApiError.validation('Invalid inventory type.', [
+      { field: 'type', message: `Must be one of: ${allowedTypes.join(', ')}.` },
+    ]);
+  }
+  const sort = parseSortParams(req.query, '-createdAt', ['createdAt', 'item', 'quantity', 'price']);
+  const unionStage = (Model, type) => ({
+    $unionWith: { coll: Model.collection.name, pipeline: [{ $set: { type } }] },
   });
+  const match = {};
+  if (req.query.type) match.type = req.query.type;
+  if (req.query.search !== undefined) {
+    if (typeof req.query.search !== 'string') {
+      throw ApiError.validation('Invalid inventory filter.', [
+        { field: 'search', message: 'Must be a string.' },
+      ]);
+    }
+    match.item = {
+      $regex: req.query.search.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      $options: 'i',
+    };
+  }
+  const result = await aggregatePaginated(
+    Base,
+    [
+      { $set: { type: 'Base' } },
+      unionStage(Sauce, 'Sauce'),
+      unionStage(Cheese, 'Cheese'),
+      unionStage(Veggie, 'Veggie'),
+      { $match: match },
+    ],
+    { page, limit, sort, dataStages: [{ $project: { __v: 0 } }] }
+  );
+  res.status(200).json(result);
 });
 
 // @desc    Get Stock by Id

@@ -64,7 +64,7 @@ export const getAdminUserDetails = createAsyncThunk(
 // Admin List Users
 export const listAdminUsers = createAsyncThunk(
   'admin/listUsers',
-  async (_, { rejectWithValue, getState }) => {
+  async ({ page = 1, limit = 10 } = {}, { rejectWithValue, getState }) => {
     try {
       const {
         admin: { adminUserInfo },
@@ -76,9 +76,11 @@ export const listAdminUsers = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin`, config);
-
-      return data.data || data;
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/admin`, {
+        ...config,
+        params: { page, limit },
+      });
+      return { items: data.data || [], pagination: data.pagination };
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error));
     }

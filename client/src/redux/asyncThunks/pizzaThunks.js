@@ -47,22 +47,29 @@ export const createPizza = createAsyncThunk(
 );
 
 // Fetch All Pizzas
-export const listPizzas = createAsyncThunk('pizza/listPizzas', async (_, { rejectWithValue }) => {
-  try {
-    const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas`);
-
-    return data.data || data;
-  } catch (error) {
-    return rejectWithValue(extractErrorMessage(error));
+export const listPizzas = createAsyncThunk(
+  'pizza/listPizzas',
+  async ({ page = 1, limit = 10 } = {}, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas`, {
+        params: { createdBy: 'all', page, limit },
+      });
+      return { items: data.data || [], pagination: data.pagination };
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error));
+    }
   }
-});
+);
 
 // Fetch only the public menu catalog. Filtering happens on the API before
 // pagination so user-created custom pizzas cannot push menu items onto a page
 // the public screens never request.
 export const listMenuPizzas = createAsyncThunk(
   'pizza/listMenuPizzas',
-  async ({ page = 1, limit = 12, minPrice, maxPrice, sortBy, sortOrder } = {}, { rejectWithValue }) => {
+  async (
+    { page = 1, limit = 12, minPrice, maxPrice, sortBy, sortOrder } = {},
+    { rejectWithValue }
+  ) => {
     try {
       const { data } = await axios.get(`${import.meta.env.VITE_SERVER_URL}/pizzas`, {
         params: { createdBy: 'admin', page, limit, minPrice, maxPrice, sortBy, sortOrder },
@@ -70,7 +77,14 @@ export const listMenuPizzas = createAsyncThunk(
 
       return {
         items: Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [],
-        pagination: data.pagination || { page, limit, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false },
+        pagination: data.pagination || {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
         query: { page, limit, minPrice, maxPrice, sortBy, sortOrder },
       };
     } catch (error) {

@@ -2,11 +2,10 @@ const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 
 // Import Utils
-const { updateInventoryQuantity } = require('../utils/inventoryUtils');
 const {
+  aggregatePaginated,
   parsePaginationParams,
   parseSortParams,
-  buildPaginationResponse,
 } = require('../utils/paginationUtils');
 const {
   executeInventoryDeductions,
@@ -18,8 +17,55 @@ const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const { ORDER_STATUS, PAYMENT_STATUS, STRIPE_EVENTS, isAdminRole } = require('../constants');
 const Order = require('../schemas/orderSchema');
+const Pizza = require('../schemas/pizzaSchema');
+const User = require('../schemas/userSchema');
 const { Base, Sauce, Cheese, Veggie } = require('../schemas/inventorySchema');
 const inventoryModels = { base: Base, sauce: Sauce, cheese: Cheese, veggie: Veggie };
+
+const populateOrderPizzasStages = [
+  {
+    $lookup: {
+      from: Pizza.collection.name,
+      localField: 'orderItems.pizza',
+      foreignField: '_id',
+      as: '_pizzas',
+    },
+  },
+  {
+    $set: {
+      orderItems: {
+        $map: {
+          input: { $ifNull: ['$orderItems', []] },
+          as: 'item',
+          in: {
+            $mergeObjects: [
+              '$$item',
+              {
+                pizza: {
+                  $ifNull: [
+                    {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: '$_pizzas',
+                            as: 'pizza',
+                            cond: { $eq: ['$$pizza._id', '$$item.pizza'] },
+                          },
+                        },
+                        0,
+                      ],
+                    },
+                    '$$item.pizza',
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+];
 
 const restoreExpiredOrderInventory = async (session) => {
   const orderId = session.metadata?.orderId;
@@ -59,9 +105,6 @@ const restoreExpiredOrderInventory = async (session) => {
 // Initialize Stripe
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// Import Schemas
-const Pizza = require('../schemas/pizzaSchema');
-const User = require('../schemas/userSchema');
 const sendEmail = require('../middlewares/nodemailerMiddleware');
 
 // Initialize Controllers
@@ -122,7 +165,6 @@ const createOrder = asyncHandler(async (req, res) => {
   const createdOrder = await order.save();
 
   // Deduct inventory for the order
-  let inventoryDeducted = false;
   try {
     const deductionResult = await executeInventoryDeductions(transformedOrderItems);
 
@@ -132,7 +174,6 @@ const createOrder = asyncHandler(async (req, res) => {
       throw ApiError.insufficientInventory(deductionResult.message);
     }
 
-    inventoryDeducted = true;
     console.log(`Inventory deducted for order ${createdOrder._id}`);
   } catch (error) {
     // Rollback order if inventory deduction fails
@@ -183,25 +224,21 @@ const createOrder = asyncHandler(async (req, res) => {
 // @access  Private
 
 const getOrdersByUserId = asyncHandler(async (req, res) => {
-  const { page, limit, skip } = parsePaginationParams(req.query);
-  const sort = parseSortParams(req.query, '-createdAt');
+  const { page, limit } = parsePaginationParams(req.query);
+  const sort = parseSortParams(req.query, '-createdAt', ['createdAt', 'totalPrice', 'status']);
 
   const filter = { user: req.user._id };
   if (req.query.status) {
     filter.status = req.query.status;
   }
 
-  const [orders, total] = await Promise.all([
-    Order.find(filter)
-      .populate('orderItems.pizza', 'name price imageUrl')
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .select('-__v'),
-    Order.countDocuments(filter),
-  ]);
-
-  res.status(200).json(buildPaginationResponse(orders, total, page, limit));
+  const result = await aggregatePaginated(Order, [{ $match: filter }], {
+    page,
+    limit,
+    sort,
+    dataStages: [...populateOrderPizzasStages, { $unset: ['_pizzas', '__v'] }],
+  });
+  res.status(200).json(result);
 });
 
 // @desc    Get all Orders
@@ -209,8 +246,8 @@ const getOrdersByUserId = asyncHandler(async (req, res) => {
 // @access  Admin
 
 const getAllOrders = asyncHandler(async (req, res) => {
-  const { page, limit, skip } = parsePaginationParams(req.query);
-  const sort = parseSortParams(req.query, '-createdAt');
+  const { page, limit } = parsePaginationParams(req.query);
+  const sort = parseSortParams(req.query, '-createdAt', ['createdAt', 'totalPrice', 'status']);
 
   // Build filter
   const filter = {};
@@ -218,21 +255,34 @@ const getAllOrders = asyncHandler(async (req, res) => {
     filter.status = req.query.status;
   }
   if (req.query.userId) {
-    filter.user = req.query.userId;
+    if (!mongoose.isValidObjectId(req.query.userId)) {
+      throw ApiError.validation('Invalid order filter.', [
+        { field: 'userId', message: 'Must be a valid user id.' },
+      ]);
+    }
+    filter.user = new mongoose.Types.ObjectId(req.query.userId);
   }
 
-  const [orders, total] = await Promise.all([
-    Order.find(filter)
-      .populate('user', 'name email')
-      .populate('orderItems.pizza', 'name price')
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .select('-__v'),
-    Order.countDocuments(filter),
-  ]);
-
-  res.status(200).json(buildPaginationResponse(orders, total, page, limit));
+  const result = await aggregatePaginated(Order, [{ $match: filter }], {
+    page,
+    limit,
+    sort,
+    dataStages: [
+      {
+        $lookup: {
+          from: User.collection.name,
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+      { $set: { user: { _id: '$user._id', name: '$user.name', email: '$user.email' } } },
+      ...populateOrderPizzasStages,
+      { $unset: ['_pizzas', '__v'] },
+    ],
+  });
+  res.status(200).json(result);
 });
 
 // @desc    Get Order by Id
@@ -568,7 +618,7 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
 
   // Handle the event
   switch (event.type) {
-    case STRIPE_EVENTS.CHECKOUT_COMPLETED:
+    case STRIPE_EVENTS.CHECKOUT_COMPLETED: {
       const session = event.data.object;
 
       try {
@@ -635,8 +685,9 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
         throw error;
       }
       break;
+    }
 
-    case STRIPE_EVENTS.PAYMENT_FAILED:
+    case STRIPE_EVENTS.PAYMENT_FAILED: {
       const failedSession = event.data.object;
       try {
         // Update order status to failed if we have the order ID
@@ -651,6 +702,7 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
         throw error;
       }
       break;
+    }
 
     case STRIPE_EVENTS.CHECKOUT_EXPIRED:
       await restoreExpiredOrderInventory(event.data.object);

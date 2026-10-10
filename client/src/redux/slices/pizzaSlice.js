@@ -14,6 +14,7 @@ import {
 const initialState = {
   pizzaInfo: null,
   pizzaList: [],
+  pizzaListPagination: null,
   menuPizzaList: [],
   menuPizzaPagination: null,
   menuPizzaQuery: null,
@@ -42,6 +43,7 @@ const pizzaSlice = createSlice({
   reducers: {
     clearPizzaData: (state) => {
       state.pizzaList = [];
+      state.pizzaListPagination = null;
       state.menuPizzaList = [];
       state.menuPizzaPagination = null;
       state.menuPizzaQuery = null;
@@ -87,7 +89,8 @@ const pizzaSlice = createSlice({
       })
       .addCase(listPizzas.fulfilled, (state, action) => {
         state.loading = false;
-        state.pizzaList = action.payload;
+        state.pizzaList = action.payload.items;
+        state.pizzaListPagination = action.payload.pagination;
         state.pizzaListSuccess = true;
       })
       .addCase(listPizzas.rejected, (state, action) => {

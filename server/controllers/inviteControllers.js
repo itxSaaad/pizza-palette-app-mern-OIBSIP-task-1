@@ -14,6 +14,7 @@ const sendEmail = require('../middlewares/nodemailerMiddleware');
 const Admin = require('../schemas/adminUserSchema');
 const Invite = require('../schemas/inviteSchema');
 const User = require('../schemas/userSchema');
+const { aggregatePaginated, parsePaginationParams } = require('../utils/paginationUtils');
 
 // Admin/manager accounts are invite-only. Only full admins (not managers)
 // can send invites, so a manager can never grant themselves/others admin
@@ -95,12 +96,30 @@ const listInvites = asyncHandler(async (req, res) => {
     throw ApiError.forbidden('Only admins can view invites.');
   }
 
-  const invites = await Invite.find({})
-    .select('-tokenHash')
-    .populate('invitedBy', 'name email')
-    .sort('-createdAt');
-
-  res.status(200).json(invites);
+  const { page, limit } = parsePaginationParams(req.query);
+  const result = await aggregatePaginated(Invite, [{ $match: {} }], {
+    page,
+    limit,
+    sort: { createdAt: -1, _id: 1 },
+    dataStages: [
+      {
+        $lookup: {
+          from: Admin.collection.name,
+          localField: 'invitedBy',
+          foreignField: '_id',
+          as: 'invitedBy',
+        },
+      },
+      { $unwind: { path: '$invitedBy', preserveNullAndEmptyArrays: true } },
+      {
+        $set: {
+          invitedBy: { _id: '$invitedBy._id', name: '$invitedBy.name', email: '$invitedBy.email' },
+        },
+      },
+      { $project: { tokenHash: 0, __v: 0 } },
+    ],
+  });
+  res.status(200).json(result);
 });
 
 // @desc    Revoke a pending invite

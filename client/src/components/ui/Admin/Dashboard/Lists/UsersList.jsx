@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Import Thunks
@@ -16,13 +16,21 @@ function UsersList() {
   const userColumns = ['_id', 'name', 'email', 'numberOfOrders', 'isVerified'];
 
   const dispatch = useDispatch();
+  const [page, setPage] = useState(1);
 
   const user = useSelector((state) => state.user);
-  const { loading, userList, userListError, userDeleteByIdError, userDeleteByIdSuccess } = user;
+  const {
+    loading,
+    userList,
+    userListPagination,
+    userListError,
+    userDeleteByIdError,
+    userDeleteByIdSuccess,
+  } = user;
 
   const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
     deleteThunk: deleteUserById,
-    refreshThunk: () => listUsers({}),
+    refreshThunk: () => listUsers({ page }),
     entityName: 'user',
   });
 
@@ -37,10 +45,8 @@ function UsersList() {
   };
 
   useEffect(() => {
-    if (!userList) {
-      dispatch(listUsers({}));
-    }
-  }, [dispatch, userList]);
+    dispatch(listUsers({ page }));
+  }, [dispatch, page]);
 
   return (
     <>
@@ -57,6 +63,8 @@ function UsersList() {
           columns={userColumns}
           handleDelete={handleDeleteRequest}
           columnRenderers={columnRenderers}
+          pagination={userListPagination}
+          onPageChange={setPage}
         />
       </AdminListLayout>
       <ConfirmDialog {...confirmDialogProps} />

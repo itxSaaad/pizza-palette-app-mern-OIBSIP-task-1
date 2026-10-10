@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Import Constants
 import { ORDER_STATUS, PAYMENT_STATUS } from '../../../../../constants';
@@ -34,11 +34,13 @@ function OrdersList() {
   ];
 
   const dispatch = useDispatch();
+  const [page, setPage] = useState(1);
 
   const order = useSelector((state) => state.order);
   const {
     loading,
     orderList,
+    orderListPagination,
     orderListError,
     orderDeleteByIdError,
     orderDeleteByIdSuccess,
@@ -48,7 +50,7 @@ function OrdersList() {
 
   const { handleDeleteRequest, confirmDialogProps } = useEntityListActions({
     deleteThunk: deleteOrderById,
-    refreshThunk: () => listOrders({}),
+    refreshThunk: () => listOrders({ page }),
     entityName: 'order',
   });
 
@@ -83,10 +85,12 @@ function OrdersList() {
   const handleUpdate = (id, selectedValue, updateType = 'status') => {
     if (updateType === 'payment') {
       dispatch(updateOrderPaymentStatus({ orderId: id, paymentStatus: selectedValue })).then(() =>
-        dispatch(listOrders({}))
+        dispatch(listOrders({ page }))
       );
     } else {
-      dispatch(updateOrderById({ id, status: selectedValue })).then(() => dispatch(listOrders({})));
+      dispatch(updateOrderById({ id, status: selectedValue })).then(() =>
+        dispatch(listOrders({ page }))
+      );
     }
   };
 
@@ -150,10 +154,8 @@ function OrdersList() {
   };
 
   useEffect(() => {
-    if (!orderList) {
-      dispatch(listOrders({}));
-    }
-  }, [dispatch, orderList]);
+    dispatch(listOrders({ page }));
+  }, [dispatch, page]);
 
   return (
     <>
@@ -171,6 +173,8 @@ function OrdersList() {
           handleDelete={handleDeleteRequest}
           handleChange={handleUpdate}
           columnRenderers={columnRenderers}
+          pagination={orderListPagination}
+          onPageChange={setPage}
         />
       </AdminListLayout>
       <ConfirmDialog {...confirmDialogProps} />

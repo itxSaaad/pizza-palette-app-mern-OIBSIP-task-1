@@ -15,6 +15,8 @@ const initialState = {
   orderInfo: {},
   orderList: [],
   orderListByUserId: [],
+  orderListPagination: null,
+  orderListByUserIdPagination: null,
   orderCreateError: null,
   orderDetailsByIdError: null,
   orderListError: null,
@@ -39,6 +41,8 @@ const orderSlice = createSlice({
       state.orderInfo = {};
       state.orderListByUserId = [];
       state.orderList = [];
+      state.orderListPagination = null;
+      state.orderListByUserIdPagination = null;
       state.orderCreateError = null;
       state.orderListByUserIdError = null;
       state.orderListError = null;
@@ -78,7 +82,8 @@ const orderSlice = createSlice({
       .addCase(listOrders.fulfilled, (state, action) => {
         state.loading = false;
         state.orderListSuccess = true;
-        state.orderList = action.payload;
+        state.orderList = action.payload.items;
+        state.orderListPagination = action.payload.pagination;
       })
       .addCase(listOrders.rejected, (state, action) => {
         state.loading = false;
@@ -92,7 +97,8 @@ const orderSlice = createSlice({
       .addCase(listOrdersByUserId.fulfilled, (state, action) => {
         state.loading = false;
         state.orderListByUserIdSuccess = true;
-        state.orderListByUserId = action.payload;
+        state.orderListByUserId = action.payload.items;
+        state.orderListByUserIdPagination = action.payload.pagination;
       })
       .addCase(listOrdersByUserId.rejected, (state, action) => {
         state.loading = false;

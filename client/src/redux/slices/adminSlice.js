@@ -26,6 +26,7 @@ const initialState = {
     ? JSON.parse(localStorage.getItem('adminUserDetails'))
     : null,
   adminUserList: [],
+  adminUserListPagination: null,
   adminUserListsError: null,
   adminUserDetailsError: null,
   adminUserUpdateProfileError: null,
@@ -41,6 +42,7 @@ const initialState = {
 
   // Invites (invite-only admin/manager creation)
   adminInviteList: [],
+  adminInviteListPagination: null,
   adminInviteListError: null,
   adminInviteListSuccess: false,
   adminSendInviteError: null,
@@ -62,6 +64,7 @@ const adminSlice = createSlice({
       state.adminUserInfo = null;
       state.adminUserDetails = null;
       state.adminUserList = [];
+      state.adminUserListPagination = null;
       state.adminUserListsError = null;
       state.adminUserDetailsError = null;
       state.adminUserUpdateProfileError = null;
@@ -75,6 +78,7 @@ const adminSlice = createSlice({
       state.adminUserUpdateProfileByIdSuccess = false;
       state.adminUserDeleteByIdSuccess = false;
       state.adminInviteList = [];
+      state.adminInviteListPagination = null;
       state.adminInviteListError = null;
       state.adminInviteListSuccess = false;
       state.adminSendInviteError = null;
@@ -107,7 +111,8 @@ const adminSlice = createSlice({
       })
       .addCase(listAdminUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.adminUserList = action.payload;
+        state.adminUserList = action.payload.items;
+        state.adminUserListPagination = action.payload.pagination;
         state.adminUserListsSuccess = true;
       })
       .addCase(listAdminUsers.rejected, (state, action) => {
@@ -207,7 +212,8 @@ const adminSlice = createSlice({
       })
       .addCase(listAdminInvites.fulfilled, (state, action) => {
         state.loading = false;
-        state.adminInviteList = action.payload;
+        state.adminInviteList = action.payload.items;
+        state.adminInviteListPagination = action.payload.pagination;
         state.adminInviteListSuccess = true;
       })
       .addCase(listAdminInvites.rejected, (state, action) => {
